@@ -17,6 +17,8 @@ contract Gamblings is StorageHelper {
 
     if(matchAux.addressToTeam[msg.sender] == 0){
       matchAux.addressToTeam[msg.sender] = _winTeamId;
+    } else {
+      _winTeamId = matchAux.addressToTeam[msg.sender];
     }
 
     if(_winTeamId == matchAux.team1){
@@ -42,31 +44,28 @@ contract Gamblings is StorageHelper {
     matchAux.winTeam = _winTeam;
   }
 
-  function chargeGambling(uint _matchId) public {
+  function chargeGambling(uint _matchId, address _owner) public {
     Match storage matchAux = matches[_matchId];
     uint winTeam = matchAux.winTeam;
     require(winTeam != 0, "team win should not be None");
-    require(matchAux.addressToBalance[msg.sender] > 0, "the sender dont have gambling or its charged");
-    require(matchAux.addressToTeam[msg.sender] == winTeam, "the sender dont win");
+    require(matchAux.addressToBalance[_owner] > 0, "the owner dont have gambling or its charged");
+    require(matchAux.addressToTeam[_owner] == winTeam, "the sender dont win");
 
-    matchAux.addressToBalance[msg.sender] = 0;
+    uint userBal = matchAux.addressToBalance[_owner];
+    matchAux.addressToBalance[_owner] = 0;
 
     if(winTeam == matchAux.team1){
-      addressToBalance[msg.sender] += getTotalwin(matchAux.addressToBalance[msg.sender], matchAux.balance1, matchAux.balanceD + matchAux.balance2);
+      addressToBalance[_owner] += getTotalwin(userBal, matchAux.balance1, matchAux.balanceD + matchAux.balance2);
     }else{
       if(winTeam == matchAux.team2){
-        addressToBalance[msg.sender] += getTotalwin(matchAux.addressToBalance[msg.sender], matchAux.balance2, matchAux.balance1 + matchAux.balanceD);
+        addressToBalance[_owner] += getTotalwin(userBal, matchAux.balance2, matchAux.balance1 + matchAux.balanceD);
       }else{
-        addressToBalance[msg.sender] += getTotalwin(matchAux.addressToBalance[msg.sender], matchAux.balanceD, matchAux.balance1 + matchAux.balance2);
+        addressToBalance[_owner] += getTotalwin(userBal, matchAux.balanceD, matchAux.balance1 + matchAux.balance2);
       }
     }
   }
 
-  function getTotalwin(uint _userBal, uint _totBalWin, uint _totBalLose) internal pure returns(uint) {
-    return ((((_userBal * 1000000) / _totBalWin) * _totBalLose) / 100000) + _userBal;
-  }
-
-  function getNow() public view returns(uint) {
-    return now;
+  function getTotalwin(uint _userBal, uint _totWinBal, uint _totLoseBal) internal pure returns(uint) {
+    return ((_userBal * _totLoseBal) / _totWinBal) + _userBal;
   }
 }
