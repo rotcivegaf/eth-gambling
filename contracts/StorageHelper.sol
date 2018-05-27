@@ -31,6 +31,8 @@ contract StorageHelper is Ownable {
      addTeam("Draw");
   }
 
+  event NewTeam(bytes team);
+  event NewLeague(bytes league);
   event NewMatch(uint matchId, uint league, uint timeNoMoreBets, uint team1, uint team2);
 
   // match getters
@@ -47,10 +49,12 @@ contract StorageHelper is Ownable {
 
   function addTeam(bytes _team) public onlyOwner() {
     teams.push(_team);
+    emit NewTeam(_team);
   }
 
   function addLeague(bytes _league) public onlyOwner() {
     leagues.push(_league);
+    emit NewLeague(_league);
   }
 
   function addMatch(uint _league, uint _timeNoMoreBets, uint _team1, uint _team2) public onlyOwner() returns(uint matchId){
