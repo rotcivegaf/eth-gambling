@@ -51,39 +51,33 @@ contract('Gambling', function(accounts) {
 
   it("Test string arrays and match create on StorageHelper", async() => {
     assert.equal(await gamblings.owner(), owner, "Owner check");
-    assert.equal(await gamblings.teams(noneId), web3.toHex("None"), "team 0 should be NONE");
-    assert.equal(await gamblings.teams(drawId), web3.toHex("Draw"), "team 1 should be Draw");
-    assert.equal(await gamblings.teams(riverId), web3.toHex(river), "team 2 should be River");
-    assert.equal(await gamblings.teams(bocaId), web3.toHex(boca), "team 3 should be Boca");
-    assert.equal(await gamblings.leagues(nacionalAId), web3.toHex(nacionalA), "league 0 should be NacionalA");
+    assert.equal(await gamblings.teams(noneId), web3.toHex("None"), "Wrong team 0");
+    assert.equal(await gamblings.teams(drawId), web3.toHex("Draw"), "Wrong team 1");
+    assert.equal(await gamblings.teams(riverId), web3.toHex(river), "Wrong team 2");
+    assert.equal(await gamblings.teams(bocaId), web3.toHex(boca), "Wrong team 3");
+    assert.equal(await gamblings.leagues(nacionalAId), web3.toHex(nacionalA), "Wrong league 0");
   });
 
 
   it("Test gamblings", async() => {
     let amount = web3.toWei(0.05);
     await gamblings.deposit({from: player1, value: amount*2});
-    let leagueId = await gamblings.getMatchLeague(match0);
-    assert.equal(await gamblings.leagues(leagueId), web3.toHex(nacionalA), "league should be NacionalA");
+    assert.equal(await gamblings.getMatchLeague(match0), web3.toHex(nacionalA), "Wrong league of match 0");
     assert.equal((await gamblings.getMatchTimeNoMoreBets(match0)).toNumber(), matchDate, "TimeNoMoreBets should be 8/24/2018 14:52:10");
-    let team1Id = (await gamblings.getMatchTeam1(match0)).toNumber();
-    assert.equal(await gamblings.teams(team1Id), web3.toHex(river), "Team1 should be Boca");
-    let team2Id = (await gamblings.getMatchTeam2(match0)).toNumber();
-    assert.equal(await gamblings.teams(team2Id), web3.toHex(boca), "Team2 should be River");
-    let teamWinId = await gamblings.getMatchTeamWin(match0);
-    assert.equal(await gamblings.teams(teamWinId), web3.toHex("None"), "win team should be None");
+    assert.equal(await gamblings.getMatchTeam1(match0), web3.toHex(river), "Wrong Team1 of match 0");
+    assert.equal(await gamblings.getMatchTeam2(match0), web3.toHex(boca), "Wrong Team2 of match 0");
+    assert.equal(await gamblings.getMatchTeamWin(match0), web3.toHex("None"), "Wrong win team of match 0");
     //gambling test
     await gamblings.makeGambling(match0, riverId, amount, {from: player1});
-    assert.equal((await gamblings.getMatchBalance1(match0)).toNumber(), amount, "Balance1 should be 1 ETH");
-    assert.equal((await gamblings.getMatchBalanceD(match0)).toNumber(), 0, "BalanceD should be 0 ETH");
-    assert.equal((await gamblings.getMatchBalance2(match0)).toNumber(), 0, "Balance2 should be 0 ETH");
-    assert.equal((await gamblings.getMatchAddressToBalance(match0, player1)).toNumber(), amount, "Balance address should be 1 ETH");
-    let playerTeamId = (await gamblings.getMatchAddressToTeam(match0, player1)).toNumber();
-    assert.equal(await gamblings.teams(playerTeamId), web3.toHex(river), "Team player should be River");
+    assert.equal((await gamblings.getMatchBalance1(match0)).toNumber(), amount, "Wrong balance1 of match 0");
+    assert.equal((await gamblings.getMatchBalanceD(match0)).toNumber(), 0, "Wrong balanceD of match 0");
+    assert.equal((await gamblings.getMatchBalance2(match0)).toNumber(), 0, "Wrong balance2 of match 0");
+    assert.equal((await gamblings.getMatchAddressToBalance(match0, player1)).toNumber(), amount, "Wrong Balance address of player in match 0");
+    assert.equal(await gamblings.getMatchAddressToTeam(match0, player1), web3.toHex(river), "Wrong Team player of player in match 0");
 
     await gamblings.makeGambling(match0, riverId, amount, {from: player1});
-    playerTeamId = (await gamblings.getMatchAddressToTeam(match0, player1)).toNumber();
-    assert.equal(await gamblings.teams(playerTeamId), web3.toHex(river), "Team player should not change");
-    assert.equal((await gamblings.getMatchAddressToBalance(match0, player1)).toNumber(), amount * 2, "Balance address should be 2 ETH");
+    assert.equal(await gamblings.getMatchAddressToTeam(match0, player1), web3.toHex(river), "Team player should not change");
+    assert.equal((await gamblings.getMatchAddressToBalance(match0, player1)).toNumber(), amount * 2, "Wrong balance address of player in match 0");
   });
 
   it("Test Finish match", async() => {
@@ -105,8 +99,7 @@ contract('Gambling', function(accounts) {
       assert(Helper.isRevertErrorMessage(e), "expected throw but got: " + e);
     }
     await gamblings.finishMatch(match1, drawId, {from: owner});
-    let teamWinId = (await gamblings.getMatchTeamWin(match1)).toNumber();
-    assert.equal(await gamblings.teams(teamWinId), web3.toHex("Draw"), "TeamWin should be Draw");
+    assert.equal(await gamblings.getMatchTeamWin(match1), web3.toHex("Draw"), "Wrong win team of match 1");
 
     try {
       await gamblings.makeGambling(match1, bocaId, amount, {from: player1});
@@ -118,7 +111,7 @@ contract('Gambling', function(accounts) {
     let match2 = (await gamblings.addMatch(nacionalAId, Helper.now(), bocaId, riverId, {from: owner})).logs[0].args.matchId;
     Helper.timeTravel(10000);
     await gamblings.finishMatch(match2, bocaId, {from: owner});
-    assert.equal((await gamblings.getMatchTeamWin(match2)).toNumber(), bocaId, "the win should be 2(Boca)");
+    assert.equal(await gamblings.getMatchTeamWin(match2), web3.toHex(boca), "Wrong win team of match 2");
   });
 
   it("Test Gamblings", async() => {
@@ -127,21 +120,34 @@ contract('Gambling', function(accounts) {
     await gamblings.deposit({from: player3, value: 6000});
     await gamblings.deposit({from: player4, value: 7000});
 
-    let match1 = (await gamblings.addMatch(nacionalAId, Helper.now(), bocaId, riverId, {from: owner})).logs[0].args.matchId;
+    let match1 = (await gamblings.addMatch(nacionalAId, Helper.now() + 1000, bocaId, riverId, {from: owner})).logs[0].args.matchId;
 
     await gamblings.makeGambling(match1, riverId, 1000, {from: player1});
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player1)).toNumber(), 1000, "Wrong Player1 balance");
+    assert.equal((await gamblings.getMatchAddressToTeam(match1, player1)), web3.toHex(river), "Player1 Team");
     await gamblings.makeGambling(match1, bocaId,  7000, {from: player4});
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player4)).toNumber(), 7000, "Wrong Player1 balance");
     await gamblings.makeGambling(match1, drawId,  0, {from: player4});
     await gamblings.makeGambling(match1, riverId, 0, {from: player4});
+    assert.equal((await gamblings.getMatchAddressToTeam(match1, player4)), web3.toHex(boca), "");
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player4)).toNumber(), 7000, "Wrong Player4 balance");
     await gamblings.makeGambling(match1, drawId,  6000, {from: player3});
+    assert.equal((await gamblings.getMatchAddressToTeam(match1, player3)), web3.toHex("Draw"), "");
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player3)).toNumber(), 6000, "Wrong Player3 balance");
     await gamblings.makeGambling(match1, drawId,  2000, {from: player1});
+    assert.equal((await gamblings.getMatchAddressToTeam(match1, player1)), web3.toHex(river), "");
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player1)).toNumber(), 1000 + 2000, "Wrong Player1 balance");
     await gamblings.makeGambling(match1, riverId,  1000, {from: player2});
+    assert.equal((await gamblings.getMatchAddressToTeam(match1, player2)), web3.toHex(river), "");
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player2)).toNumber(), 1000, "Wrong Player2 balance");
     await gamblings.makeGambling(match1, drawId,  5000, {from: player2});// if the gambling team its defined, only up the balance
+    assert.equal((await gamblings.getMatchAddressToTeam(match1, player2)), web3.toHex(river), "");
+    assert.equal((await gamblings.getMatchAddressToBalance(match1, player2)).toNumber(), 1000 + 5000, "Wrong Player2 balance");
 
-    assert.equal((await gamblings.addressToBalance(player1)).toNumber(), 0, "");
-    assert.equal((await gamblings.addressToBalance(player2)).toNumber(), 0, "");
-    assert.equal((await gamblings.addressToBalance(player3)).toNumber(), 0, "");
-    assert.equal((await gamblings.addressToBalance(player4)).toNumber(), 0, "");
+    assert.equal((await gamblings.addressToBalance(player1)).toNumber(), 0, "Wrong Player1 balance");
+    assert.equal((await gamblings.addressToBalance(player2)).toNumber(), 0, "Wrong Player2 balance");
+    assert.equal((await gamblings.addressToBalance(player3)).toNumber(), 0, "Wrong Player3 balance");
+    assert.equal((await gamblings.addressToBalance(player4)).toNumber(), 0, "Wrong Player4 balance");
 
     Helper.timeTravel(10000);
     await gamblings.finishMatch(match1, riverId, {from: owner});
@@ -150,9 +156,10 @@ contract('Gambling', function(accounts) {
     assert.equal((await gamblings.getMatchBalance2(match1)).toNumber(), 9000, "");
 
     await gamblings.chargeGambling(match1, player1);
-    assert.equal((await gamblings.addressToBalance(player1)).toNumber(), 7333, "");
     await gamblings.chargeGambling(match1, player2);
-    assert.equal((await gamblings.addressToBalance(player2)).toNumber(), 14666, "");
+
+    assert.equal((await gamblings.addressToBalance(player1)).toNumber(), 7333, "Wrong Player1 balance");
+    assert.equal((await gamblings.addressToBalance(player2)).toNumber(), 14666, "Wrong Player1 balance");
 
     try {
       await gamblings.chargeGambling(match1, player3);
