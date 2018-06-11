@@ -36,16 +36,21 @@ contract StorageHelper is Ownable {
   event NewMatch(uint matchId, uint league, uint timeNoMoreBets, uint team1, uint team2);
 
   // match getters
-  function getMatchLeague(uint _index) public view returns(uint){ return matches[_index].league; }
-  function getMatchTimeNoMoreBets(uint _index) public view returns(uint){ return matches[_index].timeNoMoreBets; }
-  function getMatchTeam1(uint _index) public view returns(uint){ return matches[_index].team1; }
-  function getMatchTeam2(uint _index) public view returns(uint){ return matches[_index].team2; }
-  function getMatchTeamWin(uint _index) public view returns(uint){ return matches[_index].winTeam; }
-  function getMatchBalance1(uint _index) public view returns(uint){ return matches[_index].balance1; }
-  function getMatchBalanceD(uint _index) public view returns(uint){ return matches[_index].balanceD; }
-  function getMatchBalance2(uint _index) public view returns(uint){ return matches[_index].balance2; }
-  function getMatchAddressToBalance(uint _index, address _addr) public view returns(uint){ return matches[_index].addressToBalance[_addr]; }
-  function getMatchAddressToTeam(uint _index, address _addr) public view returns(uint){ return matches[_index].addressToTeam[_addr]; }
+  function getMatchLeagueId(uint _index)                        public view returns(uint) { return matches[_index].league; }
+  function getMatchLeague(uint _index)                          public view returns(bytes){ return leagues[matches[_index].league]; }
+  function getMatchTimeNoMoreBets(uint _index)                  public view returns(uint) { return matches[_index].timeNoMoreBets; }
+  function getMatchTeam1Id(uint _index)                         public view returns(uint) { return matches[_index].team1; }
+  function getMatchTeam1(uint _index)                           public view returns(bytes){ return teams[matches[_index].team1]; }
+  function getMatchTeam2Id(uint _index)                         public view returns(uint) { return matches[_index].team2; }
+  function getMatchTeam2(uint _index)                           public view returns(bytes){ return teams[matches[_index].team2]; }
+  function getMatchTeamWinId(uint _index)                       public view returns(uint) { return matches[_index].winTeam; }
+  function getMatchTeamWin(uint _index)                         public view returns(bytes){ return teams[matches[_index].winTeam]; }
+  function getMatchBalance1(uint _index)                        public view returns(uint) { return matches[_index].balance1; }
+  function getMatchBalanceD(uint _index)                        public view returns(uint) { return matches[_index].balanceD; }
+  function getMatchBalance2(uint _index)                        public view returns(uint) { return matches[_index].balance2; }
+  function getMatchAddressToBalance(uint _index, address _addr) public view returns(uint) { return matches[_index].addressToBalance[_addr]; }
+  function getMatchAddressToTeamId(uint _index, address _addr)  public view returns(uint) { return matches[_index].addressToTeam[_addr]; }
+  function getMatchAddressToTeam(uint _index, address _addr)    public view returns(bytes){ return teams[matches[_index].addressToTeam[_addr]]; }
 
   function addTeam(bytes _team) public onlyOwner() {
     teams.push(_team);
