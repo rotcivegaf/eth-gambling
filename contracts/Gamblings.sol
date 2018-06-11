@@ -6,11 +6,13 @@ import "./StorageHelper.sol";
 contract Gamblings is StorageHelper {
   using SafeMath for uint256;
 
+  event NewGambling(address owner, uint matchId);
+  event FinishMatch(uint matchId, uint winTeam);
+  event ChargeGambling(address owner, uint matchId);
+
   function makeGambling(uint _matchId, uint _winTeamId, uint _value) public {
     Match storage matchAux = matches[_matchId];
     require(matchAux.timeNoMoreBets >= now, "the bets should are opened");
-    require(_winTeamId != 0, "team win dont should be NONE");
-    require(_winTeamId == matchAux.team1 || _winTeamId == matchAux.team2 || _winTeamId == 1, "wrong team");
     require(addressToBalance[msg.sender] >= _value , "insufficient founds");
 
     addressToBalance[msg.sender] -= _value;
@@ -32,6 +34,7 @@ contract Gamblings is StorageHelper {
     }
 
     matchAux.addressToBalance[msg.sender] += _value;
+    emit NewGambling(msg.sender, _matchId);
   }
 
   function finishMatch(uint _matchId, uint _winTeam) public onlyOwner() {
@@ -42,6 +45,7 @@ contract Gamblings is StorageHelper {
     require(_winTeam == matchAux.team1 || _winTeam == 1 || _winTeam == matchAux.team2, "wrong team");
 
     matchAux.winTeam = _winTeam;
+    emit FinishMatch(_matchId, _winTeam);
   }
 
   function chargeGambling(uint _matchId, address _owner) public {
@@ -59,10 +63,11 @@ contract Gamblings is StorageHelper {
     }else{
       if(winTeam == matchAux.team2){
         addressToBalance[_owner] += getTotalwin(userBal, matchAux.balance2, matchAux.balance1 + matchAux.balanceD);
-      }else{
+      }else{// draw
         addressToBalance[_owner] += getTotalwin(userBal, matchAux.balanceD, matchAux.balance1 + matchAux.balance2);
       }
     }
+    emit ChargeGambling(_owner, _matchId);
   }
 
   function getTotalwin(uint _userBal, uint _totWinBal, uint _totLoseBal) internal pure returns(uint) {
