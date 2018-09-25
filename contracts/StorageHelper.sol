@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
-import "./Ownable.sol";
-import "./Safemath.sol";
+import "./utils/Ownable.sol";
+import "./utils/Safemath.sol";
 
 
 contract StorageHelper is Ownable {
