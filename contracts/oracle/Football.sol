@@ -1,8 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/IOracle.sol";
 import "../utils/BytesUtils.sol";
 import "../utils/Ownable.sol";
+
+import "../interfaces/IGameOracle.sol";
 
 
 contract DecodeGameData is BytesUtils {
@@ -29,7 +30,7 @@ contract IdHelper {
     }
 }
 
-contract Football is IOracle, DecodeGameData, IdHelper, Ownable {
+contract Football is IGameOracle, DecodeGameData, IdHelper, Ownable {
     event NewGame(uint256 now, bytes32 gameId, uint256 noMoreBets, bytes32 team1, bytes32 team2);
     event SetWinner(uint256 now, bytes32 gameId, bytes32 winTeam);
 
@@ -45,41 +46,26 @@ contract Football is IOracle, DecodeGameData, IdHelper, Ownable {
 
     mapping(bytes32 => Game) public games;
 
-    function validateCreate(bytes32 _gameId, bytes _data) external returns(bool) {
-        Game storage game = games[_gameId];
+    function validateCreate(bytes32 _eventId) external returns(bool) {
+        Game storage game = games[_eventId];
         require(
-            now < game.noMoreBets &&
-                game.noMoreBets != 0,
+            now < game.noMoreBets && game.noMoreBets != 0,
             "The game is closed or invalid gameId"
-        );
-        if(_data.length == 0)
-            return true;
-
-        (bytes32 creatorOption, bytes32 playerOption) = _decodeGameData(_data);
-
-        require(creatorOption == playerOption, "Invalid player option");
-        require(
-            creatorOption == game.team1 ||
-                creatorOption == game.team2 ||
-                creatorOption == DRAW,
-            "Invalid creator option"
-        );
-        require(
-            playerOption == game.team1 ||
-                playerOption == game.team2 ||
-                playerOption == DRAW,
-            "Invalid player option"
         );
 
         return true;
     }
 
-    function validatePlay(bytes32 _gameId, bytes) external returns(bool) {
-        Game storage game = games[_gameId];
+    function validatePlay(bytes32 _eventId, bytes32 _option) external returns(bool) {
+        Game storage game = games[_eventId];
         require(
-            now < game.noMoreBets &&
-                game.noMoreBets != 0,
+            now < game.noMoreBets && game.noMoreBets != 0,
             "The game is closed or invalid gameId"
+        );
+
+        require(
+            _option == game.team1 || _option == game.team2 || _option == DRAW,
+            "Invalid option"
         );
 
         return true;

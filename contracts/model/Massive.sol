@@ -1,7 +1,6 @@
 pragma solidity ^0.4.24;
 
 import "../interfaces/IModel.sol";
-import "../interfaces/IOracle.sol";
 import "../utils/BytesUtils.sol";
 
 
@@ -21,10 +20,6 @@ contract DecodeData is BytesUtils{
 
 contract Massive is IModel, DecodeData {
     struct Bet {
-        IOracle game;
-        bytes32 eventId;
-        address creator;
-
         mapping (address => uint256) playerToBalance;
         mapping (address => bytes32) playerToOption;
         mapping (bytes32 => uint256) optionToBalance;
@@ -48,15 +43,10 @@ contract Massive is IModel, DecodeData {
     function createBet(
         bytes32 _id,
         bytes _data
-    ) external onlyGamblingManager returns(uint256){
+    ) external onlyGamblingManager {
         (address game, bytes32 eventId) = _decodeCreateData(_data);
 
-        require(IOracle(game).validateCreate(eventId, _data), "Bet validation fail");
-
         bets[_id] = Bet({
-            game:    IOracle(game),
-            eventId: eventId,
-            creator: msg.sender,
             balance: 0
         });
     }

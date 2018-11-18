@@ -16,7 +16,7 @@ contract TestModel is IModel {
         require(due > now, "Due time already past");
     }
 
-    function createBet(bytes32 _id, bytes _data) external returns(uint256 needAmount){
+    function createBet(bytes32 _id, bytes _data) external {
         //_validateBet(_data);
     }
 
