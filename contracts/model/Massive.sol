@@ -1,7 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/IModel.sol";
 import "../utils/BytesUtils.sol";
+
+import "../interfaces/IGamblingModel.sol";
 
 
 contract DecodeData is BytesUtils{
@@ -18,7 +19,7 @@ contract DecodeData is BytesUtils{
     }
 }
 
-contract Massive is IModel, DecodeData {
+contract Massive is IGamblingModel, DecodeData {
     struct Bet {
         mapping (address => uint256) playerToBalance;
         mapping (address => bytes32) playerToOption;

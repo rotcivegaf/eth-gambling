@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/IModel.sol";
+import "../interfaces/IGamblingModel.sol";
 
 
-contract TestModel is IModel {
+contract TestModel is IGamblingModel {
     uint256 public constant L_DATA = 16 + 8;
 
     function validateBet(bytes _data) public returns(bool) {

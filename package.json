@@ -13,8 +13,9 @@
   "description": "",
   "dependencies": {
     "bn.js": "^4.11.8",
-    "openzeppelin-solidity": "^1.9.0",
-    "truffle-core": "^4.1.11",
+    "chai-bignumber": "^2.0.2",
+    "truffle": "^4.1.14",
+    "truffle-core": "^4.1.14",
     "web3": "^1.0.0-beta.34"
   },
   "repository": {
@@ -24,5 +25,13 @@
   "bugs": {
     "url": "https://github.com/rotcivegaf/ethGambling/issues"
   },
-  "homepage": "https://github.com/rotcivegaf/ethGambling#readme"
+  "homepage": "https://github.com/rotcivegaf/ethGambling#readme",
+  "devDependencies": {
+    "eslint": "^5.9.0",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-node": "^8.0.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-standard": "^4.0.0"
+  }
 }

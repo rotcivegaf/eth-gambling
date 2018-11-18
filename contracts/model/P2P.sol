@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../utils/BytesUtils.sol";
 
-import "../interfaces/IModel.sol";
+import "../interfaces/IGamblingModel.sol";
 
 
 contract DecodeData is BytesUtils{
@@ -22,7 +22,7 @@ contract DecodeData is BytesUtils{
     }
 }
 
-contract P2P is IModel, DecodeData {
+contract P2P is IGamblingModel, DecodeData {
     struct Bet {
         address playerA;
         address playerB;
