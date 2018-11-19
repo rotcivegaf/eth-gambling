@@ -51,7 +51,7 @@ contract BalanceManager {
         uint256 _amount
       ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient funds to discount");
+        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient founds to discount");
 
         toBalance[msg.sender][_currency] -= _amount;
 
@@ -76,7 +76,7 @@ contract BalanceManager {
         if(_currency == 0x0)
             _to.transfer(addrBal);
         else
-            require(Token(_currency).transfer(_to, addrBal), "Error pulling tokens, in withdraw");
+            require(Token(_currency).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
 
         emit Withdraw(msg.sender, _to, _currency, addrBal);
 
@@ -89,7 +89,7 @@ contract BalanceManager {
         uint256 _amount
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient funds to transfer");// Here check underflow
+        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient founds to transfer");// Here check underflow
 
         toBalance[msg.sender][_currency] -= _amount;
         // Yes, this can overflow but who wants a token what has an astrological number of token?
@@ -205,7 +205,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         uint256 needAmount = bet.gamblingModel.playBet(_betId, msg.sender, _option);
 
         // Substract balance from BalanceManager
-        require(toBalance[msg.sender][bet.currency] >= needAmount, "Insufficient funds to discount from wallet/contract");
+        require(toBalance[msg.sender][bet.currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
         toBalance[msg.sender][bet.currency] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
@@ -221,7 +221,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         uint256 needAmount = bet.gamblingModel.collectBet(_betId, msg.sender, bet.gameOracle.whoWon(bet.eventId));
 
         // Substract balance from Bet
-        require(bet.balance >= needAmount, "Insufficient funds to discount from bet balance");
+        require(bet.balance >= needAmount, "Insufficient founds to discount from bet balance");
         bet.balance -= needAmount;
         // Add balance to BalanceManager
         toBalance[msg.sender][bet.currency] += needAmount;
