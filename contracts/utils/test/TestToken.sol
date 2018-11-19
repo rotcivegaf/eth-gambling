@@ -5,19 +5,21 @@ import "./../SafeMath.sol";
 /*  ERC 20 token */
 contract StandardToken {
     using SafeMath for uint256;
+    address public constant RETURN_FALSE_ADDRESS = 0x00000000000000000000000000000066616c7365;
 
     uint256 public totalSupply;
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
-    function transfer(address _to, uint256 _value) public returns (bool success) {
+    function transfer(address _to, uint256 _value) public returns (bool) {
+        if (_to == RETURN_FALSE_ADDRESS)
+            return false;
+
         if (balances[msg.sender] >= _value) {
             balances[msg.sender] = balances[msg.sender].sub(_value);
             balances[_to] = balances[_to].add(_value);
             Transfer(msg.sender, _to, _value);
             return true;
-        } else {
-            return false;
         }
     }
 

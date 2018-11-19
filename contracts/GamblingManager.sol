@@ -35,9 +35,9 @@ contract BalanceManager {
                 Token(_currency).transferFrom(
                     msg.sender, address(this), _amount) &&
                     msg.value == 0,
-                "Error pulling tokens, in deposit"
+                "Error pulling tokens or send ETH, in deposit"
             );
-
+        // Yes, this can overflow but who wants a token what has an astrological number of token?
         toBalance[_to][_currency] += _amount;
 
         emit Deposit(msg.sender, _to, _currency, _amount);
@@ -51,14 +51,14 @@ contract BalanceManager {
         uint256 _amount
       ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(toBalance[_to][_currency] >= _amount, "Insufficient funds to discount");
+        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient funds to discount");
 
-        toBalance[_to][_currency] -= _amount;
+        toBalance[msg.sender][_currency] -= _amount;
 
         if(_currency == 0x0)
             _to.transfer(_amount);
         else
-            require(Token(_currency).transferFrom(address(this), _to, _amount), "Error pulling tokens, in withdraw");
+            require(Token(_currency).transfer(_to, _amount), "Error transfer tokens, in withdraw");
 
         emit Withdraw(msg.sender, _to, _currency, _amount);
 
@@ -76,10 +76,7 @@ contract BalanceManager {
         if(_currency == 0x0)
             _to.transfer(addrBal);
         else
-            require(
-                Token(_currency).transferFrom(address(this), _to, addrBal),
-                "Error pulling tokens, in withdraw"
-            );
+            require(Token(_currency).transfer(_to, addrBal), "Error pulling tokens, in withdraw");
 
         emit Withdraw(msg.sender, _to, _currency, addrBal);
 
