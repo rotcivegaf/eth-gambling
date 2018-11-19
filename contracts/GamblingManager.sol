@@ -11,6 +11,7 @@ import "./interfaces/IGameOracle.sol";
 contract BalanceManager {
     event Deposit(address from, address to, address currency, uint256 amount);
     event Withdraw(address from, address to, address currency, uint256 amount);
+    event InsideTransfer(address from, address to, address currency, uint256 amount);
 
     // [wallet/contract, currency] to balance
     mapping (address => mapping (address => uint256)) public toBalance;
@@ -81,6 +82,23 @@ contract BalanceManager {
             );
 
         emit Withdraw(msg.sender, _to, _currency, addrBal);
+
+        return true;
+    }
+
+    function insideTransfer (
+        address _to,
+        address _currency,
+        uint256 _amount
+    ) external returns(bool) {
+        require(_to != 0x0, "_to should not be 0x0");
+        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient funds to transfer");// Here check underflow
+
+        toBalance[msg.sender][_currency] -= _amount;
+        // Yes, this can overflow but who wants a token what has an astrological number of token?
+        toBalance[_to][_currency] += _amount;
+
+        emit InsideTransfer(msg.sender, _to, _currency, _amount);
 
         return true;
     }
