@@ -1,0 +1,34 @@
+pragma solidity ^0.4.24;
+
+import "../interfaces/IGamblingModel.sol";
+
+
+contract TestModel is IGamblingModel {
+    uint256 public constant L_DATA = 16 + 8;
+
+    function validateBet(bytes _data) public returns(bool) {
+        //require(_data.length == L_DATA, "Invalid data length");
+        //_validate(uint64(read(_data, 16, 8)));
+        return true;
+    }
+
+    function _validate(uint256 due) internal view {
+        require(due > now, "Due time already past");
+    }
+
+    function createBet(bytes32 _id, bytes _data) external {
+        //_validateBet(_data);
+    }
+
+    function playBet(bytes32 _id, bytes _data) external returns(uint256 needAmount){
+
+    }
+
+    function collectBet(bytes32 _id) external returns(uint256 amount){
+
+    }
+
+    function cancelBet(bytes32 _id) external returns(uint256 amount){
+
+    }
+}
