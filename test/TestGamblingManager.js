@@ -4,15 +4,17 @@ const GamblingManager = artifacts.require('./GamblingManager.sol');
 
 const Helper = require('./Helper.js');
 const BigNumber = web3.BigNumber;
+const Web3Utils = require('web3-utils');
 
 require('chai')
     .use(require('chai-bignumber')(BigNumber))
     .should();
 
 contract('GamblingManager', function (accounts) {
-    const player1 = accounts[1];
-    const player2 = accounts[2];
-    const depositer = accounts[3];
+    const creator = accounts[1];
+    const player1 = accounts[2];
+    const player2 = accounts[3];
+    const depositer = accounts[4];
 
     const amount = new BigNumber('10000');
     const MAX_UINT256 = new BigNumber('2').pow(new BigNumber('256').sub(new BigNumber('1')));
@@ -710,6 +712,84 @@ contract('GamblingManager', function (accounts) {
                     'Insufficient founds to transfer'
                 );
             });
+        });
+    });
+
+    describe('IdHelper contract test', function () {
+        const one = '0x01';
+        const two = '0x02';
+        const three = '0x03';
+
+        it('function buildId', async () => {
+            const nonce = new BigNumber('1515121');
+
+            const calcId = Web3Utils.soliditySha3(
+                { t: 'uint8', v: one },
+                { t: 'address', v: gamblingManager.address },
+                { t: 'address', v: creator },
+                { t: 'uint256', v: nonce }
+            );
+
+            const id = await gamblingManager.buildId(
+                creator,
+                nonce
+            );
+
+            id.should.be.bignumber.equal(calcId);
+        });
+
+        it('function buildId2', async () => { // TODO  use test constants
+            const currency = Helper.address0x;
+            const gamblingModel = Helper.address0x;
+            const gamblingData = Helper.address0x;
+            const gameOracle = Helper.address0x;
+            const eventId = Helper.address0x;
+            const gameData = Helper.address0x;
+            const salt = new BigNumber('1515121');
+
+            const calcId = Web3Utils.soliditySha3(
+                { t: 'uint8', v: two },
+                { t: 'address', v: gamblingManager.address },
+                { t: 'address', v: creator },
+                { t: 'address', v: currency },
+                { t: 'address', v: gamblingModel },
+                { t: 'bytes', v: gamblingData },
+                { t: 'address', v: gameOracle },
+                { t: 'uint256', v: eventId },
+                { t: 'bytes', v: gameData },
+                { t: 'uint256', v: salt }
+            );
+
+            const id = await gamblingManager.buildId2(
+                creator,
+                currency,
+                gamblingModel,
+                gamblingData,
+                gameOracle,
+                eventId,
+                gameData,
+                salt
+            );
+
+            id.should.be.bignumber.equal(calcId);
+        });
+
+        it('function buildId3', async () => {
+            const salt = new BigNumber('21313');
+
+            const calcId = Web3Utils.soliditySha3(
+                { t: 'uint8', v: three },
+                { t: 'address', v: gamblingManager.address },
+                { t: 'address', v: creator },
+                { t: 'uint256', v: salt }
+            );
+
+            const id = await gamblingManager.buildId3(
+                creator,
+                salt
+            );
+
+            id.should.be.bignumber.equal(calcId);
         });
     });
 });
