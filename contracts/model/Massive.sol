@@ -70,7 +70,6 @@ contract Massive is IGamblingModel, DecodeData {
     function cancelBet(
         bytes32 _betId,
         address creator
-    ) external onlyGamblingManager returns(uint256 amount){
-        return 0;
+    ) external onlyGamblingManager {
     }
 }

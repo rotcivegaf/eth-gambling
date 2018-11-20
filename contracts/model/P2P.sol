@@ -135,20 +135,17 @@ contract P2P is IGamblingModel, DecodeData {
         }
     }
 
-    function cancelBet(
+    function cancelBet( // TODO FIX
         bytes32 _betId,
         address _player
-    ) external onlyGamblingManager returns(uint256 amount){
+    ) external onlyGamblingManager {
         Bet storage bet = bets[_betId];
 
         if (_player == bet.playerA && bet.playerB == 0x0) {
-            amount = bet.playerAPay > bet.playerBPay ? bet.playerAPay : bet.playerBPay;
             delete bets[_betId];
-            return;
         }
 
         if (_player == bet.playerB && bet.playerA == 0x0) {
-            amount = bet.playerAPay > bet.playerBPay ? bet.playerAPay : bet.playerBPay;
             delete bets[_betId];
         }
     }
