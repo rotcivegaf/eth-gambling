@@ -1,4 +1,5 @@
 const TestToken = artifacts.require('./utils/test/TestToken.sol');
+const TestModel = artifacts.require('./utils/test/TestModel.sol');
 
 const GamblingManager = artifacts.require('./GamblingManager.sol');
 
@@ -22,10 +23,13 @@ contract('GamblingManager', function (accounts) {
 
     let gamblingManager;
     let token;
+    let model;
 
     before('Deploy GamblingManager', async function () {
         gamblingManager = await GamblingManager.new();
+
         token = await TestToken.new();
+        model = await TestModel.new();
     });
 
     beforeEach('Reset all token balance and gamblingManager ETH', async function () {
@@ -738,13 +742,13 @@ contract('GamblingManager', function (accounts) {
             id.should.be.bignumber.equal(calcId);
         });
 
-        it('function buildId2', async () => { // TODO  use test constants
+        it('function buildId2', async () => {
             const currency = Helper.address0x;
-            const gamblingModel = Helper.address0x;
-            const gamblingData = Helper.address0x;
-            const gameOracle = Helper.address0x;
-            const eventId = Helper.address0x;
-            const gameData = Helper.address0x;
+            const gamblingModel = model.address;
+            const gamblingData = '0x2958923085128371829371289371289371239871239872131234213412344443';
+            const gameOracle = Helper.address0x;// TODO  use test constants
+            const eventId = Helper.address0x;// TODO  use test constants
+            const gameData = Helper.address0x;// TODO  use test constants
             const salt = new BigNumber('1515121');
 
             const calcId = Web3Utils.soliditySha3(
