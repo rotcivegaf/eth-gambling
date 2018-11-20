@@ -9,9 +9,9 @@ import "./interfaces/IGameOracle.sol";
 
 
 contract BalanceManager {
-    event Deposit(address from, address to, address currency, uint256 amount);
-    event Withdraw(address from, address to, address currency, uint256 amount);
-    event InsideTransfer(address from, address to, address currency, uint256 amount);
+    event Deposit(address indexed from, address indexed to, address indexed currency, uint256 amount);
+    event Withdraw(address indexed from, address indexed to, address indexed currency, uint256 amount);
+    event InsideTransfer(address indexed from, address indexed to, address indexed currency, uint256 amount);
 
     // [wallet/contract, currency] to balance
     mapping (address => mapping (address => uint256)) public toBalance;
@@ -102,10 +102,64 @@ contract BalanceManager {
 }
 
 contract IdHelper {
+    event Created(bytes32 indexed _id, uint256 _nonce, bytes _data);
+    event Created2(bytes32 indexed _id, uint256 _salt, bytes _data);
+    event Created3(bytes32 indexed _id, uint256 _salt, bytes _data);
+
     mapping(address => uint256) public nonces;
 
-    function buildId(address _creator, uint256 _nonce, bool withNonce ) external pure returns (bytes32) {
-        return keccak256(abi.encodePacked(_creator, _nonce, withNonce));
+    function buildId(
+        address _creator,
+        uint256 _nonce
+    ) external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                uint8(1),
+                address(this),
+                _creator,
+                _nonce
+            )
+        );
+    }
+
+    function buildId2(
+        address _creator,
+        address _currency,
+        IGamblingModel _gamblingModel,
+        bytes _gamblingData,
+        IGameOracle _gameOracle,
+        bytes32 _eventId,
+        bytes _gameData,
+        uint256 _salt
+    ) external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                uint8(2),
+                address(this),
+                _creator,
+                _currency,
+                _gamblingModel,
+                _gamblingData,
+                _gameOracle,
+                _eventId,
+                _gameData,
+                _salt
+            )
+        );
+    }
+
+    function buildId3(
+        address _creator,
+        uint256 _salt
+    ) external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                uint8(3),
+                address(this),
+                _creator,
+                _salt
+            )
+        );
     }
 }
 
@@ -124,41 +178,107 @@ contract GamblingManager is BalanceManager, IdHelper {
     function create(
         address _currency,
         IGamblingModel _gamblingModel,
-        bytes _modelData,
+        bytes _gamblingData,
         IGameOracle _gameOracle,
         bytes32 _eventId,
         bytes _gameData
     ) external returns(bytes32 betId){
         uint256 nonce = nonces[msg.sender]++;
-        betId = keccak256(abi.encodePacked(msg.sender, nonce, false));
+
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(1),
+                address(this),
+                msg.sender,
+                nonce
+            )
+        );
 
         _create(
             betId,
             _currency,
             _gamblingModel,
-            _modelData,
+            _gamblingData,
             _gameOracle,
             _eventId,
             _gameData
         );
+
+        emit Created(betId, nonce, _gameData);
     }
 
-    function createWithNonce(
+    function create2(
         address _currency,
         IGamblingModel _gamblingModel,
-        bytes _modelData,
+        bytes _gamblingData,
         IGameOracle _gameOracle,
         bytes32 _eventId,
         bytes _gameData,
-        uint256 nonce
-    ) external returns(bytes32 betId){
-        betId = keccak256(abi.encodePacked(msg.sender, nonce, true));
+        uint256 _salt
+    ) external returns (bytes32 betId) {
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(2),
+                address(this),
+                msg.sender,
+                _currency,
+                _gamblingModel,
+                _gamblingData,
+                _gameOracle,
+                _eventId,
+                _gameData,
+                _salt
+            )
+        );
 
         _create(
             betId,
             _currency,
             _gamblingModel,
-            _modelData,
+            _gamblingData,
+            _gameOracle,
+            _eventId,
+            _gameData
+        );
+
+        emit Created2(betId, _salt, _gameData);
+    }
+
+    function create3(
+        address _currency,
+        IGamblingModel _gamblingModel,
+        bytes _gamblingData,
+        IGameOracle _gameOracle,
+        bytes32 _eventId,
+        bytes _gameData,
+        uint256 salt
+    ) external returns(bytes32 betId){
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(3),
+                address(this),
+                msg.sender,
+                salt
+            )
+        );
+
+        _create(
+            betId,
+            _currency,
+            _gamblingModel,
+            _gamblingData,
+            _gameOracle,
+            _eventId,
+            _gameData
+        );
+
+        emit Created3(betId, salt, _gameData);
+
+        _create(
+            betId,
+            _currency,
+            _gamblingModel,
+            _gamblingData,
             _gameOracle,
             _eventId,
             _gameData
@@ -169,7 +289,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         bytes32 _betId,
         address _currency,
         IGamblingModel _gamblingModel,
-        bytes _modelData,
+        bytes _gamblingData,
         IGameOracle _gameOracle,
         bytes32 _eventId,
         bytes _gameData
@@ -178,7 +298,7 @@ contract GamblingManager is BalanceManager, IdHelper {
 
         require(_gameOracle.validateCreate(_eventId, _gameData), "Create validation fail");
 
-        _gamblingModel.createBet(_betId, _modelData);
+        _gamblingModel.createBet(_betId, _gamblingData);
 
         bets[_betId] = Bet({
             currency: _currency,
@@ -189,8 +309,7 @@ contract GamblingManager is BalanceManager, IdHelper {
             gameOracle: _gameOracle,
             eventId: _eventId
         });
-
-        // TODO  pay yo creator???
+        // TODO  pay to creator???
     }
 
     function play(
