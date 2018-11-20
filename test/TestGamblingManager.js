@@ -10,7 +10,6 @@ require('chai')
     .should();
 
 contract('GamblingManager', function (accounts) {
-    const owner = accounts[9];
     const player1 = accounts[1];
     const player2 = accounts[2];
     const depositer = accounts[3];
