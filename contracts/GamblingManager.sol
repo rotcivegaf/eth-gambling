@@ -102,10 +102,6 @@ contract BalanceManager {
 }
 
 contract IdHelper {
-    event Created(bytes32 indexed _id, uint256 _nonce, bytes _data);
-    event Created2(bytes32 indexed _id, uint256 _salt, bytes _data);
-    event Created3(bytes32 indexed _id, uint256 _salt, bytes _data);
-
     mapping(address => uint256) public nonces;
 
     function buildId(
@@ -164,6 +160,10 @@ contract IdHelper {
 }
 
 contract GamblingManager is BalanceManager, IdHelper {
+    event Created(bytes32 indexed _id, uint256 _nonce, bytes _data);
+    event Created2(bytes32 indexed _id, uint256 _salt, bytes _data);
+    event Created3(bytes32 indexed _id, uint256 _salt, bytes _data);
+
     struct Bet {
         address currency;
         uint256 balance;
