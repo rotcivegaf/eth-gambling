@@ -1,5 +1,6 @@
 const TestToken = artifacts.require('./utils/test/TestToken.sol');
 const TestModel = artifacts.require('./utils/test/TestModel.sol');
+const TestOracle = artifacts.require('./utils/test/TestOracle.sol');
 
 const GamblingManager = artifacts.require('./GamblingManager.sol');
 
@@ -20,16 +21,22 @@ contract('GamblingManager', function (accounts) {
     const amount = new BigNumber('10000');
     const MAX_UINT256 = new BigNumber('2').pow(new BigNumber('256').sub(new BigNumber('1')));
     const ZEROBN = new BigNumber('0');
+    const BYTES32UNO = '0x0000000000000000000000000000000000000000000000000000000000000001';
+    const one = '0x01';
+    const two = '0x02';
+    const three = '0x03';
 
     let gamblingManager;
     let token;
     let model;
+    let oracle;
 
     before('Deploy GamblingManager', async function () {
         gamblingManager = await GamblingManager.new();
 
         token = await TestToken.new();
         model = await TestModel.new();
+        oracle = await TestOracle.new();
     });
 
     beforeEach('Reset all token balance and gamblingManager ETH', async function () {
@@ -720,10 +727,6 @@ contract('GamblingManager', function (accounts) {
     });
 
     describe('IdHelper contract test', function () {
-        const one = '0x01';
-        const two = '0x02';
-        const three = '0x03';
-
         it('function buildId', async () => {
             const nonce = new BigNumber('1515121');
 
@@ -745,10 +748,10 @@ contract('GamblingManager', function (accounts) {
         it('function buildId2', async () => {
             const currency = Helper.address0x;
             const gamblingModel = model.address;
-            const gamblingData = '0x2958923085128371829371289371289371239871239872131234213412344443';
-            const gameOracle = Helper.address0x;// TODO  use test constants
-            const eventId = Helper.address0x;// TODO  use test constants
-            const gameData = Helper.address0x;// TODO  use test constants
+            const gamblingData = '0x2958923085128a371829371289371f2893712398712398721312342134123444';
+            const gameOracle = oracle.address;
+            const eventId = BYTES32UNO;
+            const gameData = '0x21651651516512315123151a';
             const salt = new BigNumber('1515121');
 
             const calcId = Web3Utils.soliditySha3(
@@ -759,7 +762,7 @@ contract('GamblingManager', function (accounts) {
                 { t: 'address', v: gamblingModel },
                 { t: 'bytes', v: gamblingData },
                 { t: 'address', v: gameOracle },
-                { t: 'uint256', v: eventId },
+                { t: 'bytes32', v: eventId },
                 { t: 'bytes', v: gameData },
                 { t: 'uint256', v: salt }
             );
