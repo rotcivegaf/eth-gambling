@@ -46,7 +46,7 @@ contract Football is IGameOracle, DecodeGameData, IdHelper, Ownable {
 
     mapping(bytes32 => Game) public games;
 
-    function validateCreate(bytes32 _eventId) external returns(bool) {
+    function validateCreate(bytes32 _eventId) external view returns(bool) {
         Game storage game = games[_eventId];
         require(
             now < game.noMoreBets && game.noMoreBets != 0,
@@ -56,7 +56,7 @@ contract Football is IGameOracle, DecodeGameData, IdHelper, Ownable {
         return true;
     }
 
-    function validatePlay(bytes32 _eventId, bytes32 _option) external returns(bool) {
+    function validatePlay(bytes32 _eventId, bytes32 _option) external view returns(bool) {
         Game storage game = games[_eventId];
         require(
             now < game.noMoreBets && game.noMoreBets != 0,
@@ -71,7 +71,7 @@ contract Football is IGameOracle, DecodeGameData, IdHelper, Ownable {
         return true;
     }
 
-    function whoWon(bytes32 _gameId) external returns(bytes32){
+    function whoWon(bytes32 _gameId) external view returns(bytes32){
         Game storage game = games[_gameId];
         require(
             game.winTeam != 0x0 &&
