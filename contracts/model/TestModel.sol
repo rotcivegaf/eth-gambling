@@ -1,11 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "../utils/BytesUtils.sol";
-
 import "../interfaces/IGamblingModel.sol";
 
 
-contract TestModel is IGamblingModel, BytesUtils {
+contract TestModel is IGamblingModel {
     function createBet(bytes32, bytes) external {
     }
 
@@ -13,7 +11,7 @@ contract TestModel is IGamblingModel, BytesUtils {
         return uint256(amountReturn);
     }
 
-    function collectBet(bytes32, address, bytes32 amountReturn) external returns(uint256 amount) {
+    function collectBet(bytes32, address, bytes32 amountReturn) external returns(uint256) {
         return uint256(amountReturn);
     }
 
