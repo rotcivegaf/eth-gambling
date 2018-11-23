@@ -1,6 +1,6 @@
 module.exports.address0x = '0x0000000000000000000000000000000000000000';
+module.exports.bytes320x = '0x0000000000000000000000000000000000000000000000000000000000000000';
 module.exports.returnFalseAddress = '0x00000000000000000000000000000066616c7365';
-
 
 module.exports.timeTravel = async (seconds) => {
     await web3.currentProvider.send({ jsonrpc: '2.0', method: 'evm_increaseTime', params: [seconds], id: 0 });
