@@ -273,16 +273,6 @@ contract GamblingManager is BalanceManager, IdHelper {
         );
 
         emit Created3(betId, salt, _gameData);
-
-        _create(
-            betId,
-            _currency,
-            _gamblingModel,
-            _gamblingData,
-            _gameOracle,
-            _eventId,
-            _gameData
-        );
     }
 
     function _create(
