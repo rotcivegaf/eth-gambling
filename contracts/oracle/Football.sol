@@ -3,21 +3,21 @@ pragma solidity ^0.4.24;
 import "../utils/BytesUtils.sol";
 import "../utils/Ownable.sol";
 
-import "../interfaces/IGameOracle.sol";
+import "../interfaces/IOracle.sol";
 
 
-contract DecodeGameData is BytesUtils {
-    uint256 public constant L_GAME_DATA =
+contract DecodeOracleData is BytesUtils {
+    uint256 public constant L_ORACLE_DATA =
         32 + // creatorOption
         32;  // playerOption
 
-    function _decodeGameData(
+    function _decodeOracleData(
         bytes _data
     ) internal pure returns (
         bytes32 creatorOption,
         bytes32 playerOption
     ) {
-        require(_data.length == L_GAME_DATA, "Invalid data length");
+        require(_data.length == L_ORACLE_DATA, "Invalid data length");
         (creatorOption, playerOption) = decode(_data, 32, 32);
     }
 }
@@ -30,7 +30,7 @@ contract IdHelper {
     }
 }
 
-contract Football is IGameOracle, DecodeGameData, IdHelper, Ownable {
+contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
     event NewGame(uint256 now, bytes32 gameId, uint256 noMoreBets, bytes32 team1, bytes32 team2);
     event SetWinner(uint256 now, bytes32 gameId, bytes32 winTeam);
 

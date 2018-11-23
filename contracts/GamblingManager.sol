@@ -4,8 +4,8 @@ import "./utils/Ownable.sol";
 import "./utils/SafeMath.sol";
 
 import "./interfaces/Token.sol";
-import "./interfaces/IGamblingModel.sol";
-import "./interfaces/IGameOracle.sol";
+import "./interfaces/IModel.sol";
+import "./interfaces/IOracle.sol";
 
 
 contract BalanceManager {
@@ -121,11 +121,11 @@ contract IdHelper {
     function buildId2(
         address _creator,
         address _currency,
-        IGamblingModel _gamblingModel,
-        bytes _gamblingData,
-        IGameOracle _gameOracle,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
         bytes32 _eventId,
-        bytes _gameData,
+        bytes _oracleData,
         uint256 _salt
     ) external view returns (bytes32) {
         return keccak256(
@@ -134,11 +134,11 @@ contract IdHelper {
                 address(this),
                 _creator,
                 _currency,
-                _gamblingModel,
-                _gamblingData,
-                _gameOracle,
+                _model,
+                _modelData,
+                _oracle,
                 _eventId,
-                _gameData,
+                _oracleData,
                 _salt
             )
         );
@@ -168,8 +168,8 @@ contract GamblingManager is BalanceManager, IdHelper {
         address currency;
         uint256 balance;
 
-        IGamblingModel gamblingModel;
-        IGameOracle gameOracle;
+        IModel model;
+        IOracle oracle;
         bytes32 eventId;
     }
 
@@ -177,11 +177,11 @@ contract GamblingManager is BalanceManager, IdHelper {
 
     function create(
         address _currency,
-        IGamblingModel _gamblingModel,
-        bytes _gamblingData,
-        IGameOracle _gameOracle,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
         bytes32 _eventId,
-        bytes _gameData
+        bytes _oracleData
     ) external returns(bytes32 betId){
         uint256 nonce = nonces[msg.sender]++;
 
@@ -197,23 +197,23 @@ contract GamblingManager is BalanceManager, IdHelper {
         _create(
             betId,
             _currency,
-            _gamblingModel,
-            _gamblingData,
-            _gameOracle,
+            _model,
+            _modelData,
+            _oracle,
             _eventId,
-            _gameData
+            _oracleData
         );
 
-        emit Created(betId, nonce, _gameData);
+        emit Created(betId, nonce, _oracleData);
     }
 
     function create2(
         address _currency,
-        IGamblingModel _gamblingModel,
-        bytes _gamblingData,
-        IGameOracle _gameOracle,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
         bytes32 _eventId,
-        bytes _gameData,
+        bytes _oracleData,
         uint256 _salt
     ) external returns (bytes32 betId) {
         betId = keccak256(
@@ -222,11 +222,11 @@ contract GamblingManager is BalanceManager, IdHelper {
                 address(this),
                 msg.sender,
                 _currency,
-                _gamblingModel,
-                _gamblingData,
-                _gameOracle,
+                _model,
+                _modelData,
+                _oracle,
                 _eventId,
-                _gameData,
+                _oracleData,
                 _salt
             )
         );
@@ -234,23 +234,23 @@ contract GamblingManager is BalanceManager, IdHelper {
         _create(
             betId,
             _currency,
-            _gamblingModel,
-            _gamblingData,
-            _gameOracle,
+            _model,
+            _modelData,
+            _oracle,
             _eventId,
-            _gameData
+            _oracleData
         );
 
-        emit Created2(betId, _salt, _gameData);
+        emit Created2(betId, _salt, _oracleData);
     }
 
     function create3(
         address _currency,
-        IGamblingModel _gamblingModel,
-        bytes _gamblingData,
-        IGameOracle _gameOracle,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
         bytes32 _eventId,
-        bytes _gameData,
+        bytes _oracleData,
         uint256 salt
     ) external returns(bytes32 betId){
         betId = keccak256(
@@ -265,38 +265,38 @@ contract GamblingManager is BalanceManager, IdHelper {
         _create(
             betId,
             _currency,
-            _gamblingModel,
-            _gamblingData,
-            _gameOracle,
+            _model,
+            _modelData,
+            _oracle,
             _eventId,
-            _gameData
+            _oracleData
         );
 
-        emit Created3(betId, salt, _gameData);
+        emit Created3(betId, salt, _oracleData);
     }
 
     function _create(
         bytes32 _betId,
         address _currency,
-        IGamblingModel _gamblingModel,
-        bytes _gamblingData,
-        IGameOracle _gameOracle,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
         bytes32 _eventId,
-        bytes _gameData
+        bytes _oracleData
     ) internal {
-        require(bets[_betId].eventId == 0x0, "The bet is already created");
+        require(address(bets[_betId].model) == 0x0, "The bet is already created");
 
-        require(_gameOracle.validateCreate(_eventId, _gameData), "Create validation fail");
+        require(_oracle.validateCreate(_eventId, _oracleData), "Create validation fail");
 
-        _gamblingModel.createBet(_betId, _gamblingData);
+        _model.createBet(_betId, _modelData);
 
         bets[_betId] = Bet({
             currency: _currency,
             balance: 0,
 
-            gamblingModel: _gamblingModel,
+            model: _model,
 
-            gameOracle: _gameOracle,
+            oracle: _oracle,
             eventId: _eventId
         });
         // TODO  pay to creator???
@@ -304,14 +304,14 @@ contract GamblingManager is BalanceManager, IdHelper {
 
     function play(
         bytes32 _betId,
-        bytes _gameData,
+        bytes _oracleData,
         bytes32 _option
     ) external returns(bool){
         Bet storage bet = bets[_betId];
 
-        require(bet.gameOracle.validatePlay(bet.eventId, _option, _gameData), "Bet validation fail");
+        require(bet.oracle.validatePlay(bet.eventId, _option, _oracleData), "Bet validation fail");
 
-        uint256 needAmount = bet.gamblingModel.playBet(_betId, msg.sender, _option);
+        uint256 needAmount = bet.model.playBet(_betId, msg.sender, _option);
 
         // Substract balance from BalanceManager
         require(toBalance[msg.sender][bet.currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
@@ -327,7 +327,7 @@ contract GamblingManager is BalanceManager, IdHelper {
     function collect(bytes32 _betId) external returns(bool){
         Bet storage bet = bets[_betId];
 
-        uint256 needAmount = bet.gamblingModel.collectBet(_betId, msg.sender, bet.gameOracle.whoWon(bet.eventId));
+        uint256 needAmount = bet.model.collectBet(_betId, msg.sender, bet.oracle.whoWon(bet.eventId));
 
         // Substract balance from Bet
         require(bet.balance >= needAmount, "Insufficient founds to discount from bet balance");
@@ -342,7 +342,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         Bet storage bet = bets[_betId];
         require(bets[_betId].eventId == 0x0, "The bet is already created");
 
-        bet.gamblingModel.cancelBet(_betId, msg.sender);
+        bet.model.cancelBet(_betId, msg.sender);
 
         uint256 betBalance = bet.balance;
         bet.balance = 0;

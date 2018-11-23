@@ -1,9 +1,9 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/IGamblingModel.sol";
+import "../interfaces/IModel.sol";
 
 
-contract TestModel is IGamblingModel {
+contract TestModel is IModel {
     function createBet(bytes32, bytes) external {
     }
 
