@@ -9,6 +9,7 @@ contract BytesUtils {
     }
     function read(bytes data, uint256 offset, uint256 length) internal pure returns (bytes32 o) {
         require(data.length >= offset + length, "Reading bytes out of bounds");
+        require(length <= 32, "Length should be less than 32");
         assembly {
             o := mload(add(data, add(32, offset)))
             let lb := sub(32, length)
