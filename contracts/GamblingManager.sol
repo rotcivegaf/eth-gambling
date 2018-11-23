@@ -160,9 +160,9 @@ contract IdHelper {
 }
 
 contract GamblingManager is BalanceManager, IdHelper {
-    event Created(bytes32 indexed _id, uint256 _nonce, bytes _data);
-    event Created2(bytes32 indexed _id, uint256 _salt, bytes _data);
-    event Created3(bytes32 indexed _id, uint256 _salt, bytes _data);
+    event Created(bytes32 indexed _id, uint256 _nonce, bytes _modelData, bytes _oracleData);
+    event Created2(bytes32 indexed _id, uint256 _salt, bytes _modelData, bytes _oracleData);
+    event Created3(bytes32 indexed _id, uint256 _salt, bytes _modelData, bytes _oracleData);
 
     struct Bet {
         address currency;
@@ -204,7 +204,7 @@ contract GamblingManager is BalanceManager, IdHelper {
             _oracleData
         );
 
-        emit Created(betId, nonce, _oracleData);
+        emit Created(betId, nonce, _modelData, _oracleData);
     }
 
     function create2(
@@ -241,7 +241,7 @@ contract GamblingManager is BalanceManager, IdHelper {
             _oracleData
         );
 
-        emit Created2(betId, _salt, _oracleData);
+        emit Created2(betId, _salt, _modelData, _oracleData);
     }
 
     function create3(
@@ -272,7 +272,7 @@ contract GamblingManager is BalanceManager, IdHelper {
             _oracleData
         );
 
-        emit Created3(betId, salt, _oracleData);
+        emit Created3(betId, salt, _modelData, _oracleData);
     }
 
     function _create(

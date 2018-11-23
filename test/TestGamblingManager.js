@@ -841,7 +841,8 @@ contract('GamblingManager', function (accounts) {
 
             Created._id.should.be.bignumber.equal(calcId);
             Created._nonce.should.be.bignumber.equal(nonce);
-            assert.equal(Created._data, BYTES32ONE);
+            assert.equal(Created._modelData, BYTES32ONE);
+            assert.equal(Created._oracleData, BYTES32ONE);
 
             id.should.be.bignumber.equal(calcId);
 
@@ -896,7 +897,8 @@ contract('GamblingManager', function (accounts) {
 
             Created2._id.should.be.bignumber.equal(calcId);
             Created2._salt.should.be.bignumber.equal(salt);
-            assert.equal(Created2._data, BYTES32ONE);
+            assert.equal(Created2._modelData, BYTES32ONE);
+            assert.equal(Created2._oracleData, BYTES32ONE);
 
             id.should.be.bignumber.equal(calcId);
 
@@ -939,7 +941,8 @@ contract('GamblingManager', function (accounts) {
 
             Created3._id.should.be.bignumber.equal(calcId);
             Created3._salt.should.be.bignumber.equal(salt);
-            assert.equal(Created3._data, BYTES32ONE);
+            assert.equal(Created3._modelData, BYTES32ONE);
+            assert.equal(Created3._oracleData, BYTES32ONE);
 
             id.should.be.bignumber.equal(calcId);
 
