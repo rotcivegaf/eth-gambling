@@ -115,7 +115,12 @@ contract BalanceManager {
         // Yes, this can overflow but who wants a token what has an astrological number of token?
         toBalance[_to][_currency] += _amount;
 
-        emit InsideTransfer(msg.sender, _to, _currency, _amount);
+        emit InsideTransfer(
+            msg.sender,
+            _to,
+            _currency,
+            _amount
+        );
 
         return true;
     }

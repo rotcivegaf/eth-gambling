@@ -17,6 +17,7 @@ contract DecodeData is BytesUtils{
     }
 }
 
+
 contract Massive is IModel, DecodeData {
     struct Bet {
         mapping (address => uint256) playerToBalance;
