@@ -2,7 +2,7 @@ pragma solidity ^0.4.24;
 
 import "../utils/BytesUtils.sol";
 
-import "../interfaces/IGamblingModel.sol";
+import "../interfaces/IModel.sol";
 
 
 contract DecodeData is BytesUtils{
@@ -19,7 +19,7 @@ contract DecodeData is BytesUtils{
     }
 }
 
-contract Massive is IGamblingModel, DecodeData {
+contract Massive is IModel, DecodeData {
     struct Bet {
         mapping (address => uint256) playerToBalance;
         mapping (address => bytes32) playerToOption;
@@ -31,11 +31,6 @@ contract Massive is IGamblingModel, DecodeData {
 
     address public gamblingManager;
 
-    modifier onlyGamblingManager() {
-        require(msg.sender == gamblingManager);
-        _;
-    }
-
     constructor(address _gamblingManager) public {
         // TODO check if _gamblingManager respect the interface
         gamblingManager = _gamblingManager;
@@ -44,7 +39,9 @@ contract Massive is IGamblingModel, DecodeData {
     function createBet(
         bytes32 _id,
         bytes _data
-    ) external onlyGamblingManager {
+    ) external {
+        require(msg.sender == gamblingManager);
+
         (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({
@@ -56,20 +53,25 @@ contract Massive is IGamblingModel, DecodeData {
         bytes32 _betId,
         address _player,
         bytes _data
-    ) external onlyGamblingManager returns(uint256 needAmount){
+    ) external returns(uint256 needAmount){
+        require(msg.sender == gamblingManager);
+
         return 0;
     }
 
     function collectBet(
         bytes32 _betId,
         address _sender
-    ) external onlyGamblingManager returns(uint256 amount){
+    ) external returns(uint256 amount){
+        require(msg.sender == gamblingManager);
+
         return 0;
     }
 
     function cancelBet(
         bytes32 _betId,
         address creator
-    ) external onlyGamblingManager {
+    ) external {
+        require(msg.sender == gamblingManager);
     }
 }
