@@ -6,9 +6,7 @@ import "../interfaces/IModel.sol";
 
 
 contract DecodeData is BytesUtils{
-    uint256 public constant L_CREATE_DATA =
-        20 + // game
-        32;  // event Id
+    uint256 public constant L_CREATE_DATA = 20 + 32;// game + event Id
 
     function _decodeCreateData(
         bytes _data
@@ -42,7 +40,7 @@ contract Massive is IModel, DecodeData {
     ) external {
         require(msg.sender == gamblingManager);
 
-        (address game, bytes32 eventId) = _decodeCreateData(_data);
+        // (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({
             balance: 0

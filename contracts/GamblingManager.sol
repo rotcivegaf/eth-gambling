@@ -18,7 +18,12 @@ contract BalanceManager {
 
     function () external payable {
         toBalance[msg.sender][0x0] += msg.value;
-        emit Deposit(msg.sender, msg.sender, 0x0, msg.value);
+        emit Deposit(
+            msg.sender,
+            msg.sender,
+            0x0,
+            msg.value
+        );
     }
 
     function deposit(
@@ -28,7 +33,7 @@ contract BalanceManager {
     ) external payable returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
 
-        if(_currency == 0x0)
+        if (_currency == 0x0)
             require(_amount == msg.value, "The amount should be equal to msg.value");
         else
             require(
@@ -40,7 +45,12 @@ contract BalanceManager {
         // Yes, this can overflow but who wants a token what has an astrological number of token?
         toBalance[_to][_currency] += _amount;
 
-        emit Deposit(msg.sender, _to, _currency, _amount);
+        emit Deposit(
+            msg.sender,
+            _to,
+            _currency,
+            _amount
+        );
 
         return true;
     }
@@ -55,12 +65,17 @@ contract BalanceManager {
 
         toBalance[msg.sender][_currency] -= _amount;
 
-        if(_currency == 0x0)
+        if (_currency == 0x0)
             _to.transfer(_amount);
         else
             require(Token(_currency).transfer(_to, _amount), "Error transfer tokens, in withdraw");
 
-        emit Withdraw(msg.sender, _to, _currency, _amount);
+        emit Withdraw(
+            msg.sender,
+            _to,
+            _currency,
+            _amount
+        );
 
         return true;
     }
@@ -73,12 +88,17 @@ contract BalanceManager {
         uint256 addrBal = toBalance[msg.sender][_currency];
         toBalance[msg.sender][_currency] = 0;
 
-        if(_currency == 0x0)
+        if (_currency == 0x0)
             _to.transfer(addrBal);
         else
             require(Token(_currency).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
 
-        emit Withdraw(msg.sender, _to, _currency, addrBal);
+        emit Withdraw(
+            msg.sender,
+            _to,
+            _currency,
+            addrBal
+        );
 
         return true;
     }
@@ -100,6 +120,7 @@ contract BalanceManager {
         return true;
     }
 }
+
 
 contract IdHelper {
     mapping(address => uint256) public nonces;
@@ -159,6 +180,7 @@ contract IdHelper {
     }
 }
 
+
 contract GamblingManager is BalanceManager, IdHelper {
     event Created(bytes32 indexed _id, uint256 _nonce, bytes _modelData, bytes _oracleData);
     event Created2(bytes32 indexed _id, uint256 _salt, bytes _modelData, bytes _oracleData);
@@ -204,7 +226,12 @@ contract GamblingManager is BalanceManager, IdHelper {
             _oracleData
         );
 
-        emit Created(betId, nonce, _modelData, _oracleData);
+        emit Created(
+            betId,
+            nonce,
+            _modelData,
+            _oracleData
+        );
     }
 
     function create2(
@@ -241,7 +268,12 @@ contract GamblingManager is BalanceManager, IdHelper {
             _oracleData
         );
 
-        emit Created2(betId, _salt, _modelData, _oracleData);
+        emit Created2(
+            betId,
+            _salt,
+            _modelData,
+            _oracleData
+        );
     }
 
     function create3(
@@ -272,7 +304,12 @@ contract GamblingManager is BalanceManager, IdHelper {
             _oracleData
         );
 
-        emit Created3(betId, salt, _modelData, _oracleData);
+        emit Created3(
+            betId,
+            salt,
+            _modelData,
+            _oracleData
+        );
     }
 
     function _create(
@@ -293,9 +330,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         bets[_betId] = Bet({
             currency: _currency,
             balance: 0,
-
             model: _model,
-
             oracle: _oracle,
             eventId: _eventId
         });

@@ -6,11 +6,7 @@ import "../interfaces/IModel.sol";
 
 
 contract DecodeData is BytesUtils{
-    uint256 public constant L_CREATE_DATA =
-        32 + // player A option
-        32 + // player B option
-        16 + // player A pay
-        16;  // player B pay
+    uint256 public constant L_CREATE_DATA = 32 + 32 + 16 + 16;  // player A option + player B option + player A pay + player B pay
 
     function _decodeCreateData(
         bytes _data
@@ -60,19 +56,17 @@ contract P2P is IModel, DecodeData {
 
         require(playerAPay > 0 && playerBPay > 0, "The pay amounts should not be 0");
         require(
-            playerAOption != 0x0 &&
-                playerBOption != 0x0 &&
-                playerAOption != playerBOption,
+            playerAOption != 0x0 && playerBOption != 0x0 && playerAOption != playerBOption,
             "The players do not have an option or are equal"
         );
 
         bets[_id] = Bet({
-            playerA:       0x0,
-            playerB:       0x0,
+            playerA: 0x0,
+            playerB: 0x0,
             playerAOption: playerAOption,
             playerBOption: playerBOption,
-            playerAPay:    playerAPay, // Pay A to B
-            playerBPay:    playerBPay  // Pay B to A
+            playerAPay: playerAPay, // Pay A to B
+            playerBPay: playerBPay  // Pay B to A
         });
     }
 
@@ -102,29 +96,29 @@ contract P2P is IModel, DecodeData {
         require(bet.playerA != 0x0 || bet.playerB != 0x0, "The bet its not taken");
         uint256 senderRestPay = restPay[_betId][_player];
 
-        if(senderRestPay > 0){ // to pay in a draw
+        if (senderRestPay > 0){ // to pay in a draw
             amount = senderRestPay;
             restPay[_betId][_player] = 0;
             return;
         }
 
-        if(_winner == bet.playerAOption && _player == bet.playerA){
+        if (_winner == bet.playerAOption && _player == bet.playerA){
             amount = bet.playerAPay + bet.playerBPay;
             bet.playerAPay = 0;
             bet.playerBPay = 0;
         } else {
-            if(_winner == bet.playerBOption && _player == bet.playerB){
+            if (_winner == bet.playerBOption && _player == bet.playerB){
                 amount = bet.playerAPay + bet.playerBPay;
                 bet.playerAPay = 0;
                 bet.playerBPay = 0;
             } else {
-                if(_player == bet.playerA){
+                if (_player == bet.playerA){
                     restPay[_betId][bet.playerB] = bet.playerAPay;
                     amount = bet.playerBPay;
                     bet.playerAPay = 0;
                     bet.playerBPay = 0;
                 } else {
-                    if(_player == bet.playerB) {
+                    if (_player == bet.playerB) {
                         restPay[_betId][bet.playerA] = bet.playerBPay;
                         amount =  bet.playerAPay;
                         bet.playerAPay = 0;
