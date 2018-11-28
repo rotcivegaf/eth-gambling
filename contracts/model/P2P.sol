@@ -12,11 +12,18 @@ contract DecodeData is BytesUtils{
         bytes _data
     ) internal pure returns (bytes32, bytes32, uint128, uint128) {
         require(_data.length == L_CREATE_DATA, "Invalid create data length");
-        (bytes32 playerAOption, bytes32 playerBOption, bytes32 playerAPay, bytes32 playerBPay) =
-            decode(_data, 32, 32, 16, 16);
+        (bytes32 playerAOption, bytes32 playerBOption, bytes32 playerAPay, bytes32 playerBPay) = decode(
+            _data,
+            32,
+            32,
+            16,
+            16
+        );
+
         return (playerAOption, playerBOption, uint128(playerAPay), uint128(playerBPay));
     }
 }
+
 
 contract P2P is IModel, DecodeData {
     struct Bet {
@@ -66,7 +73,7 @@ contract P2P is IModel, DecodeData {
             playerAOption: playerAOption,
             playerBOption: playerBOption,
             playerAPay: playerAPay, // Pay A to B
-            playerBPay: playerBPay  // Pay B to A
+            playerBPay: playerBPay // Pay B to A
         });
     }
 
@@ -120,7 +127,7 @@ contract P2P is IModel, DecodeData {
                 } else {
                     if (_player == bet.playerB) {
                         restPay[_betId][bet.playerA] = bet.playerBPay;
-                        amount =  bet.playerAPay;
+                        amount = bet.playerAPay;
                         bet.playerAPay = 0;
                         bet.playerBPay = 0;
                     }

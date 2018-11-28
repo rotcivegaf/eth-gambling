@@ -7,9 +7,7 @@ import "../interfaces/IOracle.sol";
 
 
 contract DecodeOracleData is BytesUtils {
-    uint256 public constant L_ORACLE_DATA =
-        32 + // creatorOption
-        32;  // playerOption
+    uint256 public constant L_ORACLE_DATA = 32 + 32;  // creatorOption + playerOption
 
     function _decodeOracleData(
         bytes _data
@@ -22,6 +20,7 @@ contract DecodeOracleData is BytesUtils {
     }
 }
 
+
 contract IdHelper {
     mapping(address => uint256) public nonces;
 
@@ -29,6 +28,7 @@ contract IdHelper {
         return keccak256(abi.encodePacked(_creator, _nonce, withNonce));
     }
 }
+
 
 contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
     event NewGame(uint256 now, bytes32 gameId, uint256 noMoreBets, bytes32 team1, bytes32 team2);
@@ -82,7 +82,11 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
         return game.winTeam;
     }
 
-    function addGame(bytes32 _team1, bytes32 _team2, uint256 _noMoreBets) external onlyOwner returns(bytes32 gameId){
+    function addGame(
+        bytes32 _team1,
+        bytes32 _team2,
+        uint256 _noMoreBets
+    ) external onlyOwner returns(bytes32 gameId){
         gameId = keccak256(
             abi.encodePacked(
                 _team1,
@@ -92,11 +96,8 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
         );
 
         require(
-            _team1 != 0x0 &&
-                _team2 != 0x0 &&
-                _team1 != _team2 &&
-                now < _noMoreBets
-            , "Team invalid or noMoreBets is to old"
+            _team1 != 0x0 && _team2 != 0x0 && _team1 != _team2 && now < _noMoreBets,
+            "Team invalid or noMoreBets is to old"
         );
 
         games[gameId] = Game({
@@ -106,11 +107,17 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
             noMoreBets: _noMoreBets
         });
 
-        emit NewGame(now, gameId, _noMoreBets, _team1, _team2);
+        emit NewGame(
+            now,
+            gameId,
+            _noMoreBets,
+            _team1,
+            _team2
+        );
     }
 
     // what happens if the owner makes a mistake and puts an incorrect winner
-    function setWinTeam(bytes32 _gameId, bytes32 _winTeam) onlyOwner external {
+    function setWinTeam(bytes32 _gameId, bytes32 _winTeam) external onlyOwner {
         Game storage game = games[_gameId];
         require(now >= game.noMoreBets, "The game is closed");
         require(game.noMoreBets != 0, "invalid gameId");
