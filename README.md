@@ -1,1 +1,1 @@
-# ethGambling
+# ETH Gambling

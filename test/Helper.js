@@ -42,4 +42,4 @@ module.exports.toEvents = async (promise, ...events) => {
     }
     eventObjs = eventObjs.map(x => x.args);
     return (eventObjs.length === 1) ? eventObjs[0] : eventObjs;
-}
+};
