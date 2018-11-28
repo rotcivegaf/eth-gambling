@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 
-import "../interfaces/IModel.sol";
+import "../../interfaces/IModel.sol";
 
 
 contract TestModel is IModel {

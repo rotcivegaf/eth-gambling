@@ -1,8 +1,8 @@
 pragma solidity ^0.4.24;
 
-import "../utils/BytesUtils.sol";
+import "../BytesUtils.sol";
 
-import "../interfaces/IOracle.sol";
+import "../../interfaces/IOracle.sol";
 
 
 contract TestOracle is IOracle, BytesUtils  {
