@@ -33,7 +33,7 @@
   "bugs": {
     "url": "https://github.com/rotcivegaf/ethGambling/issues"
   },
-  "homepage": "https://github.com/rotcivegaf/ethGambling#readme",
+  "homepage": "https://github.com/rotcivegaf/ethGambling",
   "devDependencies": {
     "chai": "^4.1.2",
     "chai-bignumber": "^2.0.2",
