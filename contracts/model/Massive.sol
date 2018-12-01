@@ -58,6 +58,14 @@ contract Massive is IModel, DecodeData {
         return 0;
     }
 
+    function createPlayBet(
+        bytes32 _betId,
+        address _player,
+        bytes32 _option
+    ) external returns(uint256){
+        return 0;
+    }
+
     function collectBet(
         bytes32 _betId,
         address _sender

@@ -13,6 +13,10 @@ contract TestModel is IModel {
 
     function collectBet(bytes32, address, bytes32 amountReturn) external returns(uint256) {
         return uint256(amountReturn);
+    function createPlayBet(bytes32, address, bytes32 _amountReturn, bytes) external returns(uint256){
+        return uint256(_amountReturn);
+    }
+
     }
 
     function cancelBet(bytes32, address) external {

@@ -217,6 +217,16 @@ contract Events {
         uint256 _amount,
         bytes _oracleData
     );
+
+    event CreatedPlayed(
+        address indexed _creator,
+        bytes32 indexed _id,
+        uint256 _nonce,
+        bytes _modelData,
+        bytes32 _option,
+        uint256 _amount,
+        bytes _oracleData
+    );
 }
 
 
@@ -406,7 +416,58 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
         return true;
     }
 
-    //TODO createPlay()
+    function createPlay(
+        address _currency,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
+        bytes32 _eventId,
+        bytes32 _option,
+        bytes _oracleData
+    ) external returns(bytes32 betId){
+        require(_oracle.validateCreatePlay(_eventId, _option, _oracleData), "Create and play validation fail");
+
+        uint256 nonce = nonces[msg.sender]++;
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(1),
+                address(this),
+                msg.sender,
+                nonce
+            )
+        );
+
+        require(address(bets[betId].model) == 0x0, "The bet is already created");
+
+        uint256 needAmount = _model.createPlayBet({
+            _id: betId,
+            _player: msg.sender,
+            _option: _option,
+            _data: _modelData
+        });
+
+        // Substract balance from BalanceManager
+        require(toBalance[msg.sender][_currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
+        toBalance[msg.sender][_currency] -= needAmount;
+
+        bets[betId] = Bet({
+            currency: _currency,
+            balance: needAmount,
+            model: _model,
+            oracle: _oracle,
+            eventId: _eventId
+        });
+
+        emit CreatedPlayed(
+            msg.sender,
+            betId,
+            nonce,
+            _modelData,
+            _option,
+            needAmount,
+            _oracleData
+        );
+    }
 
     function collect(bytes32 _betId, address _player) external returns(bool){
         Bet storage bet = bets[_betId];
