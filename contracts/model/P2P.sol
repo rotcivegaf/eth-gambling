@@ -53,7 +53,9 @@ contract P2P is IModel, DecodeData {
     function createBet(
         bytes32 _id,
         bytes _data
-    ) external onlyGamblingManager {
+    ) external
+        onlyGamblingManager
+    {
         (
             bytes32 playerAOption,
             bytes32 playerBOption,
@@ -81,8 +83,9 @@ contract P2P is IModel, DecodeData {
         bytes32 _betId,
         address _player,
         bytes _option
-    ) external onlyGamblingManager returns(uint256 needAmount){
-        require(_option.length == 32, "Invalid data");
+    ) external
+        onlyGamblingManager
+    returns(uint256 needAmount){
         Bet storage bet = bets[_betId];
         require(bet.playerAOption == 0x0, "The bet its taken");
 
@@ -108,7 +111,9 @@ contract P2P is IModel, DecodeData {
         bytes32 _betId,
         address _player,
         bytes32 _winner
-    ) external onlyGamblingManager returns(uint256 amount){
+    ) external
+        onlyGamblingManager
+    returns(uint256 amount){
         Bet storage bet = bets[_betId];
         require(bet.playerA != 0x0 || bet.playerB != 0x0, "The bet its not taken");
         uint256 senderRestPay = restPay[_betId][_player];
@@ -149,7 +154,9 @@ contract P2P is IModel, DecodeData {
     function cancelBet( // TODO FIX
         bytes32 _betId,
         address _player
-    ) external onlyGamblingManager {
+    ) external
+        onlyGamblingManager
+    {
         Bet storage bet = bets[_betId];
 
         if (_player == bet.playerA && bet.playerB == 0x0) {
