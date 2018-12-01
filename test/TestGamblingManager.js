@@ -8,8 +8,8 @@ const Helper = require('./Helper.js');
 const BigNumber = web3.BigNumber;
 const Web3Utils = require('web3-utils');
 
-function toHexBytes32 (numberStr) {
-    const hex = Web3Utils.toHex('6953').slice(2);
+function toHexBytes32 (number) {
+    const hex = Web3Utils.toHex(bn(number)).slice(2);
     return '0x' + '0'.repeat(64 - hex.length) + hex;
 };
 
@@ -35,7 +35,6 @@ contract('GamblingManager', function (accounts) {
     const depositer = accounts[4];
 
     const amount = bn(10000);
-    const DATA_RETURN_TRUE = '0x0000000000000000000000000000000000000000000000000000000000000001';
     const one = '0x01';
     const two = '0x02';
     const three = '0x03';
@@ -45,6 +44,9 @@ contract('GamblingManager', function (accounts) {
     const I_MODEL = 2;
     const I_ORACLE = 3;
     const I_EVENT = 4;
+    // For testOracle return true/fale
+    const RETURN_TRUE = toHexBytes32(1);
+    const RETURN_FALSE = toHexBytes32(0);
 
     let gamblingManager;
     let token;
@@ -847,7 +849,7 @@ contract('GamblingManager', function (accounts) {
             const gamblingModel = model.address;
             const gamblingData = '0x2958923085128a371829371289371f2893712398712398721312342134123444';
             const gameOracle = oracle.address;
-            const eventId = DATA_RETURN_TRUE;
+            const eventId = RETURN_TRUE;
             const gameData = '0x21651651516512315123151a';
             const salt = bn(1515121);
 
@@ -917,10 +919,10 @@ contract('GamblingManager', function (accounts) {
                 () => gamblingManager.create(
                     Helper.address0x,
                     model.address,
-                    DATA_RETURN_TRUE,
+                    RETURN_TRUE,
                     oracle.address,
-                    Helper.bytes320x,
-                    DATA_RETURN_TRUE,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
                     { from: creator }
                 ),
                 'Created'
@@ -928,8 +930,8 @@ contract('GamblingManager', function (accounts) {
 
             Created._id.should.be.bignumber.equal(calcId);
             Created._nonce.should.be.bignumber.equal(nonce);
-            assert.equal(Created._modelData, DATA_RETURN_TRUE);
-            assert.equal(Created._oracleData, DATA_RETURN_TRUE);
+            assert.equal(Created._modelData, RETURN_TRUE);
+            assert.equal(Created._oracleData, RETURN_TRUE);
 
             id.should.be.bignumber.equal(calcId);
 
@@ -938,7 +940,7 @@ contract('GamblingManager', function (accounts) {
             bet[I_BALANCE].should.be.bignumber.equal(bn(0));
             assert.equal(bet[I_MODEL], model.address);
             assert.equal(bet[I_ORACLE], oracle.address);
-            assert.equal(bet[I_EVENT], Helper.bytes320x);
+            assert.equal(bet[I_EVENT], toHexBytes32(0));
         });
 
         it('Function create2', async () => {
@@ -950,10 +952,10 @@ contract('GamblingManager', function (accounts) {
                 { t: 'address', v: creator },
                 { t: 'address', v: Helper.address0x }, // currency
                 { t: 'address', v: model.address }, //    model
-                { t: 'bytes', v: DATA_RETURN_TRUE }, //         model data
+                { t: 'bytes', v: RETURN_TRUE }, //         model data
                 { t: 'address', v: oracle.address }, //   oracle
-                { t: 'bytes32', v: Helper.bytes320x }, // event id
-                { t: 'bytes', v: DATA_RETURN_TRUE }, //         oracle data
+                { t: 'bytes32', v: toHexBytes32(0) }, // event id
+                { t: 'bytes', v: RETURN_TRUE }, //         oracle data
                 { t: 'uint256', v: salt }
             );
 
@@ -961,10 +963,10 @@ contract('GamblingManager', function (accounts) {
                 creator,
                 Helper.address0x,
                 model.address,
-                DATA_RETURN_TRUE,
+                RETURN_TRUE,
                 oracle.address,
-                Helper.bytes320x,
-                DATA_RETURN_TRUE,
+                toHexBytes32(0),
+                RETURN_TRUE,
                 salt
             );
 
@@ -972,10 +974,10 @@ contract('GamblingManager', function (accounts) {
                 () => gamblingManager.create2(
                     Helper.address0x,
                     model.address,
-                    DATA_RETURN_TRUE,
+                    RETURN_TRUE,
                     oracle.address,
-                    Helper.bytes320x,
-                    DATA_RETURN_TRUE,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
                     salt,
                     { from: creator }
                 ),
@@ -984,8 +986,8 @@ contract('GamblingManager', function (accounts) {
 
             Created2._id.should.be.bignumber.equal(calcId);
             Created2._salt.should.be.bignumber.equal(salt);
-            assert.equal(Created2._modelData, DATA_RETURN_TRUE);
-            assert.equal(Created2._oracleData, DATA_RETURN_TRUE);
+            assert.equal(Created2._modelData, RETURN_TRUE);
+            assert.equal(Created2._oracleData, RETURN_TRUE);
 
             id.should.be.bignumber.equal(calcId);
 
@@ -994,7 +996,7 @@ contract('GamblingManager', function (accounts) {
             bet[I_BALANCE].should.be.bignumber.equal(bn(0));
             assert.equal(bet[I_MODEL], model.address);
             assert.equal(bet[I_ORACLE], oracle.address);
-            assert.equal(bet[I_EVENT], Helper.bytes320x);
+            assert.equal(bet[I_EVENT], toHexBytes32(0));
         });
 
         it('Function create3', async () => {
@@ -1016,10 +1018,10 @@ contract('GamblingManager', function (accounts) {
                 () => gamblingManager.create3(
                     Helper.address0x,
                     model.address,
-                    DATA_RETURN_TRUE,
+                    RETURN_TRUE,
                     oracle.address,
-                    Helper.bytes320x,
-                    DATA_RETURN_TRUE,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
                     salt,
                     { from: creator }
                 ),
@@ -1028,8 +1030,8 @@ contract('GamblingManager', function (accounts) {
 
             Created3._id.should.be.bignumber.equal(calcId);
             Created3._salt.should.be.bignumber.equal(salt);
-            assert.equal(Created3._modelData, DATA_RETURN_TRUE);
-            assert.equal(Created3._oracleData, DATA_RETURN_TRUE);
+            assert.equal(Created3._modelData, RETURN_TRUE);
+            assert.equal(Created3._oracleData, RETURN_TRUE);
 
             id.should.be.bignumber.equal(calcId);
 
@@ -1038,7 +1040,7 @@ contract('GamblingManager', function (accounts) {
             bet[I_BALANCE].should.be.bignumber.equal(bn(0));
             assert.equal(bet[I_MODEL], model.address);
             assert.equal(bet[I_ORACLE], oracle.address);
-            assert.equal(bet[I_EVENT], Helper.bytes320x);
+            assert.equal(bet[I_EVENT], toHexBytes32(0));
         });
 
         describe('Function _create', function () {
@@ -1048,10 +1050,10 @@ contract('GamblingManager', function (accounts) {
                 await gamblingManager.create3(
                     Helper.address0x,
                     model.address,
-                    DATA_RETURN_TRUE,
+                    RETURN_TRUE,
                     oracle.address,
-                    Helper.bytes320x,
-                    DATA_RETURN_TRUE,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
                     salt,
 
                     { from: creator }
@@ -1061,10 +1063,10 @@ contract('GamblingManager', function (accounts) {
                     () => gamblingManager.create3(
                         Helper.address0x,
                         model.address,
-                        DATA_RETURN_TRUE,
+                        RETURN_TRUE,
                         oracle.address,
-                        Helper.bytes320x,
-                        DATA_RETURN_TRUE,
+                        toHexBytes32(0),
+                        RETURN_TRUE,
                         salt,
                         { from: creator }
                     ),
@@ -1077,10 +1079,10 @@ contract('GamblingManager', function (accounts) {
                     () => gamblingManager.create(
                         Helper.address0x,
                         model.address,
-                        Helper.bytes320x,
+                        toHexBytes32(0),
                         oracle.address,
-                        Helper.bytes320x,
-                        Helper.bytes320x,
+                        toHexBytes32(0),
+                        toHexBytes32(0),
                         { from: creator }
                     ),
                     'Create validation fail'
@@ -1098,10 +1100,10 @@ contract('GamblingManager', function (accounts) {
                 await gamblingManager.create(
                     Helper.address0x,
                     model.address,
-                    DATA_RETURN_TRUE,
+                    RETURN_TRUE,
                     oracle.address,
-                    Helper.bytes320x,
-                    DATA_RETURN_TRUE,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
                     { from: creator }
                 );
 
@@ -1115,12 +1117,12 @@ contract('GamblingManager', function (accounts) {
                 const prevBalGP1 = await gamblingManager.balanceOf(player1, Helper.address0x);
                 const prevBalBet = (await gamblingManager.bets(id))[I_BALANCE];
 
-                const amountOption = toHexBytes32('6953');
+                const amountOption = toHexBytes32(6953);
                 const Play = await Helper.toEvents(
                     () => gamblingManager.play(
                         id,
                         amountOption,
-                        DATA_RETURN_TRUE,
+                        RETURN_TRUE,
                         { from: player1 }
                     ),
                     'Played'
@@ -1129,7 +1131,7 @@ contract('GamblingManager', function (accounts) {
                 assert.equal(Play._id, id);
                 assert.equal(Play._option, amountOption);
                 Play._amount.should.be.bignumber.equal(amountOption);
-                assert.equal(Play._oracleData, DATA_RETURN_TRUE);
+                assert.equal(Play._oracleData, RETURN_TRUE);
 
                 (await gamblingManager.balanceOf(player1, Helper.address0x)).should.be.bignumber.equal(prevBalGP1.sub(bn(amountOption)));
                 (await gamblingManager.bets(id))[I_BALANCE].should.be.bignumber.equal(prevBalBet.plus(bn(amountOption)));
@@ -1139,16 +1141,80 @@ contract('GamblingManager', function (accounts) {
                 bet[I_BALANCE].should.be.bignumber.equal(bn(amountOption));
                 assert.equal(bet[I_MODEL], model.address);
                 assert.equal(bet[I_ORACLE], oracle.address);
-                assert.equal(bet[I_EVENT], Helper.bytes320x);
+                assert.equal(bet[I_EVENT], toHexBytes32(0));
             });
 
             it('Try play a bet and validation return false', async () => {
+                const id = await gamblingManager.buildId(
+                    creator,
+                    await gamblingManager.nonces(creator)
+                );
+
+                await gamblingManager.create(
+                    Helper.address0x,
+                    model.address,
+                    RETURN_TRUE,
+                    oracle.address,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
+                    { from: creator }
+                );
+
+                await gamblingManager.deposit(
+                    player1,
+                    Helper.address0x,
+                    amount,
+                    { from: depositer, value: amount }
+                );
+
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        toHexBytes32(0),
+                        RETURN_FALSE,
+                        { from: player1 }
+                    ),
+                    'Bet validation fail'
+                );
             });
 
             it('Try play a bet without balance', async () => {
+                const id = await gamblingManager.buildId(
+                    creator,
+                    await gamblingManager.nonces(creator)
+                );
+
+                await gamblingManager.create(
+                    Helper.address0x,
+                    model.address,
+                    RETURN_TRUE,
+                    oracle.address,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
+                    { from: creator }
+                );
+
+                await gamblingManager.withdrawAll(
+                    accounts[8],
+                    Helper.address0x,
+                    { from: player1 }
+                );
+
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        toHexBytes32(1),
+                        RETURN_TRUE,
+                        { from: player1 }
+                    ),
+                    'Insufficient founds to discount from wallet/contract'
+                );
             });
         });
 
+        describe('Function createPlay', function () {
+
+        });
         describe('Function collect', function () {
 
         });
