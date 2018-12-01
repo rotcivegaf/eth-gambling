@@ -408,16 +408,20 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
 
     //TODO createPlay()
 
-    function collect(bytes32 _betId) external returns(bool){
+    function collect(bytes32 _betId, address _player) external returns(bool){
         Bet storage bet = bets[_betId];
 
-        uint256 needAmount = bet.model.collectBet(_betId, msg.sender, bet.oracle.whoWon(bet.eventId));
+        uint256 needAmount = bet.model.collectBet({
+            _id: _betId,
+            _player: _player,
+            _winner: bet.oracle.whoWon(bet.eventId)
+        });
 
         // Substract balance from Bet
         require(bet.balance >= needAmount, "Insufficient founds to discount from bet balance");
         bet.balance -= needAmount;
         // Add balance to BalanceManager
-        toBalance[msg.sender][bet.currency] += needAmount;
+        toBalance[_player][bet.currency] += needAmount;
 
         return true;
     }
