@@ -247,6 +247,20 @@ contract GamblingManagerEvents {
         uint256 _amount,
         bytes _oracleData
     );
+
+    event Collected(
+        address indexed _creator,
+        address indexed _player,
+        bytes32 indexed _id,
+        bytes32 _winner,
+        uint256 _amount
+    );
+
+    event Canceled(
+        address indexed _creator,
+        bytes32 indexed _id,
+        uint256 _amount
+    );
 }
 
 
@@ -492,17 +506,22 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents {
     function collect(bytes32 _betId, address _player) external returns(bool){
         Bet storage bet = bets[_betId];
 
-        uint256 needAmount = bet.model.collectBet({
-            _id: _betId,
-            _player: _player,
-            _winner: bet.oracle.whoWon(bet.eventId)
-        });
+        bytes32 winner = bet.oracle.whoWon(bet.eventId);
+        uint256 collectAmount = bet.model.collectBet(_betId, _player, winner);
 
         // Substract balance from Bet
-        require(bet.balance >= needAmount, "Insufficient founds to discount from bet balance");
-        bet.balance -= needAmount;
+        require(bet.balance >= collectAmount, "Insufficient founds to discount from bet balance");
+        bet.balance -= collectAmount;
         // Add balance to BalanceManager
-        balanceOf[_player][bet.currency] += needAmount;
+        balanceOf[_player][bet.currency] += collectAmount;
+
+        emit Collected(
+            msg.sender,
+            _player,
+            _betId,
+            winner,
+            collectAmount
+        );
 
         return true;
     }
@@ -520,6 +539,12 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents {
         bet.balance = 0;
         // Add balance to BalanceManager
         balanceOf[msg.sender][bet.currency] += betBalance;
+
+        emit Canceled(
+            msg.sender,
+            _betId,
+            betBalance
+        );
 
         return true;
     }
