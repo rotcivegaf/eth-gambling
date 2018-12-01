@@ -9,8 +9,7 @@ const BigNumber = web3.BigNumber;
 const Web3Utils = require('web3-utils');
 
 function toHexBytes32 (number) {
-    const hex = Web3Utils.toHex(bn(number)).slice(2);
-    return '0x' + '0'.repeat(64 - hex.length) + hex;
+    return Web3Utils.toTwosComplement(bn(number));
 };
 
 require('chai')
