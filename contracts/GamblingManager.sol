@@ -14,10 +14,10 @@ contract BalanceManager {
     event InsideTransfer(address indexed from, address indexed to, address indexed currency, uint256 amount);
 
     // [wallet/contract, currency] to balance
-    mapping (address => mapping (address => uint256)) public toBalance;
+    mapping (address => mapping (address => uint256)) public balanceOf;
 
     function () external payable {
-        toBalance[msg.sender][0x0] += msg.value;
+        balanceOf[msg.sender][0x0] += msg.value;
         emit Deposit(
             msg.sender,
             msg.sender,
@@ -43,7 +43,7 @@ contract BalanceManager {
                 "Error pulling tokens or send ETH, in deposit"
             );
         // Yes, this can overflow but who wants a token what has an astrological number of token?
-        toBalance[_to][_currency] += _amount;
+        balanceOf[_to][_currency] += _amount;
 
         emit Deposit(
             msg.sender,
@@ -61,9 +61,9 @@ contract BalanceManager {
         uint256 _amount
       ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient founds to discount");
+        require(balanceOf[msg.sender][_currency] >= _amount, "Insufficient founds to discount");
 
-        toBalance[msg.sender][_currency] -= _amount;
+        balanceOf[msg.sender][_currency] -= _amount;
 
         if (_currency == 0x0)
             _to.transfer(_amount);
@@ -85,8 +85,8 @@ contract BalanceManager {
         address _currency
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        uint256 addrBal = toBalance[msg.sender][_currency];
-        toBalance[msg.sender][_currency] = 0;
+        uint256 addrBal = balanceOf[msg.sender][_currency];
+        balanceOf[msg.sender][_currency] = 0;
 
         if (_currency == 0x0)
             _to.transfer(addrBal);
@@ -109,11 +109,11 @@ contract BalanceManager {
         uint256 _amount
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(toBalance[msg.sender][_currency] >= _amount, "Insufficient founds to transfer");// Here check underflow
+        require(balanceOf[msg.sender][_currency] >= _amount, "Insufficient founds to transfer");// Here check underflow
 
-        toBalance[msg.sender][_currency] -= _amount;
+        balanceOf[msg.sender][_currency] -= _amount;
         // Yes, this can overflow but who wants a token what has an astrological number of token?
-        toBalance[_to][_currency] += _amount;
+        balanceOf[_to][_currency] += _amount;
 
         emit InsideTransfer(
             msg.sender,
@@ -401,8 +401,8 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
         });
 
         // Substract balance from BalanceManager
-        require(toBalance[msg.sender][bet.currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
-        toBalance[msg.sender][bet.currency] -= needAmount;
+        require(balanceOf[msg.sender][bet.currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
+        balanceOf[msg.sender][bet.currency] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
 
@@ -447,8 +447,8 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
         });
 
         // Substract balance from BalanceManager
-        require(toBalance[msg.sender][_currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
-        toBalance[msg.sender][_currency] -= needAmount;
+        require(balanceOf[msg.sender][_currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
+        balanceOf[msg.sender][_currency] -= needAmount;
 
         bets[betId] = Bet({
             currency: _currency,
@@ -482,7 +482,7 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
         require(bet.balance >= needAmount, "Insufficient founds to discount from bet balance");
         bet.balance -= needAmount;
         // Add balance to BalanceManager
-        toBalance[_player][bet.currency] += needAmount;
+        balanceOf[_player][bet.currency] += needAmount;
 
         return true;
     }
@@ -499,7 +499,7 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
         uint256 betBalance = bet.balance;
         bet.balance = 0;
         // Add balance to BalanceManager
-        toBalance[msg.sender][bet.currency] += betBalance;
+        balanceOf[msg.sender][bet.currency] += betBalance;
 
         return true;
     }
