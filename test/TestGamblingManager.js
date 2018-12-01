@@ -1073,7 +1073,7 @@ contract('GamblingManager', function (accounts) {
                 );
             });
 
-            it('Try create a bet and validate of oracle return false', async () => {
+            it('Try create a bet and validate of oracle returns false', async () => {
                 await Helper.tryCatchRevert(
                     () => gamblingManager.create(
                         Helper.address0x,
@@ -1307,18 +1307,63 @@ contract('GamblingManager', function (accounts) {
                     'Insufficient founds to discount from wallet/contract'
                 );
             });
+
+            it('Try overflow with the return of model.playBet', async () => {
+            });
         });
 
         describe('Function createPlay', function () {
+            it('Should createPlay a bet in ETH', async () => {
+            });
 
+            it('Should createPlay a bet in Token', async () => {
+            });
+
+            it('Try createPlay a bet and validateCreatePlay returns false', async () => {
+            });
+
+            it('Try createPlay an identical bet', async () => {
+            });
+
+            it('Try createPlay a bet without ETH balance', async () => {
+            });
+
+            it('Try createPlay a bet without Token balance', async () => {
+            });
+
+            it('Try overflow with the return of model.createPlayBet', async () => {
+            });
         });
 
         describe('Function collect', function () {
+            it('Should collect a bet in ETH', async () => {
+            });
 
+            it('Should collect a bet in Token', async () => {
+            });
+
+            it('Should collect a bet and the sender its not the creator or the player', async () => {
+            });
+
+            it('Try collect a bet and the balance of bet its insufficient', async () => {
+            });
+
+            it('Try overflow with the return of model.collectBet', async () => {
+            });
         });
 
         describe('Function cancel', function () {
+            it('Should cancel a bet in ETH', async () => {
+            });
 
+            it('Should cancel a bet in Token', async () => {
+            });
+
+            it('Should cancel a bet and the sender its not the creator or the player', async () => {
+            });
+
+            it('Try cancel a bet and transfer to address 0x0', async () => {
+            });
         });
     });
 });
