@@ -186,11 +186,41 @@ contract IdHelper {
 }
 
 
-contract GamblingManager is BalanceManager, IdHelper {
-    event Created(bytes32 indexed _id, uint256 _nonce, bytes _modelData, bytes _oracleData);
-    event Created2(bytes32 indexed _id, uint256 _salt, bytes _modelData, bytes _oracleData);
-    event Created3(bytes32 indexed _id, uint256 _salt, bytes _modelData, bytes _oracleData);
+contract Events {
+    event Created(
+        address indexed _creator,
+        bytes32 indexed _id,
+        uint256 _nonce,
+        bytes _modelData,
+        bytes _oracleData
+    );
 
+    event Created2(
+        address indexed _creator,
+        bytes32 indexed _id,
+        uint256 _salt,
+        bytes _modelData,
+        bytes _oracleData
+    );
+
+    event Created3(
+        address indexed _creator,
+        bytes32 indexed _id,
+        uint256 _salt,
+        bytes _modelData,
+        bytes _oracleData
+    );
+
+    event Played(
+        bytes32 indexed _id,
+        bytes32 _option,
+        uint256 _amount,
+        bytes _oracleData
+    );
+}
+
+
+contract GamblingManager is BalanceManager, IdHelper, Events {
     struct Bet {
         address currency;
         uint256 balance;
@@ -232,6 +262,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         );
 
         emit Created(
+            msg.sender,
             betId,
             nonce,
             _modelData,
@@ -274,6 +305,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         );
 
         emit Created2(
+            msg.sender,
             betId,
             _salt,
             _modelData,
@@ -310,6 +342,7 @@ contract GamblingManager is BalanceManager, IdHelper {
         );
 
         emit Created3(
+            msg.sender,
             betId,
             salt,
             _modelData,
@@ -358,6 +391,13 @@ contract GamblingManager is BalanceManager, IdHelper {
         toBalance[msg.sender][bet.currency] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
+
+        emit Played(
+            _betId,
+            _option,
+            needAmount,
+            _oracleData
+        );
 
         return true;
     }
