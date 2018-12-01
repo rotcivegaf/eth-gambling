@@ -900,150 +900,150 @@ contract('GamblingManager', function (accounts) {
     });
 
     describe('GamblingManager contract test', function () {
-        it('Function create', async () => {
-            const nonce = await gamblingManager.nonces(creator);
+        describe('Functions create, create3, create3, _create', function () {
+            it('Function create', async () => {
+                const nonce = await gamblingManager.nonces(creator);
 
-            const calcId = Web3Utils.soliditySha3(
-                { t: 'uint8', v: one },
-                { t: 'address', v: gamblingManager.address },
-                { t: 'address', v: creator },
-                { t: 'uint256', v: nonce }
-            );
+                const calcId = Web3Utils.soliditySha3(
+                    { t: 'uint8', v: one },
+                    { t: 'address', v: gamblingManager.address },
+                    { t: 'address', v: creator },
+                    { t: 'uint256', v: nonce }
+                );
 
-            const id = await gamblingManager.buildId(
-                creator,
-                nonce
-            );
+                const id = await gamblingManager.buildId(
+                    creator,
+                    nonce
+                );
 
-            const Created = await Helper.toEvents(
-                () => gamblingManager.create(
+                const Created = await Helper.toEvents(
+                    () => gamblingManager.create(
+                        Helper.address0x,
+                        model.address,
+                        RETURN_TRUE,
+                        oracle.address,
+                        toHexBytes32(0),
+                        RETURN_TRUE,
+                        { from: creator }
+                    ),
+                    'Created'
+                );
+
+                Created._id.should.be.bignumber.equal(calcId);
+                Created._nonce.should.be.bignumber.equal(nonce);
+                assert.equal(Created._modelData, RETURN_TRUE);
+                assert.equal(Created._oracleData, RETURN_TRUE);
+
+                id.should.be.bignumber.equal(calcId);
+
+                const bet = await gamblingManager.bets(id);
+                assert.equal(bet[I_CURRENCY], Helper.address0x);
+                bet[I_BALANCE].should.be.bignumber.equal(bn(0));
+                assert.equal(bet[I_MODEL], model.address);
+                assert.equal(bet[I_ORACLE], oracle.address);
+                assert.equal(bet[I_EVENT], toHexBytes32(0));
+            });
+
+            it('Function create2', async () => {
+                const salt = bn(1515121);
+
+                const calcId = Web3Utils.soliditySha3(
+                    { t: 'uint8', v: two },
+                    { t: 'address', v: gamblingManager.address },
+                    { t: 'address', v: creator },
+                    { t: 'address', v: Helper.address0x }, // currency
+                    { t: 'address', v: model.address }, //    model
+                    { t: 'bytes', v: RETURN_TRUE }, //         model data
+                    { t: 'address', v: oracle.address }, //   oracle
+                    { t: 'bytes32', v: toHexBytes32(0) }, // event id
+                    { t: 'bytes', v: RETURN_TRUE }, //         oracle data
+                    { t: 'uint256', v: salt }
+                );
+
+                const id = await gamblingManager.buildId2(
+                    creator,
                     Helper.address0x,
                     model.address,
                     RETURN_TRUE,
                     oracle.address,
                     toHexBytes32(0),
                     RETURN_TRUE,
-                    { from: creator }
-                ),
-                'Created'
-            );
+                    salt
+                );
 
-            Created._id.should.be.bignumber.equal(calcId);
-            Created._nonce.should.be.bignumber.equal(nonce);
-            assert.equal(Created._modelData, RETURN_TRUE);
-            assert.equal(Created._oracleData, RETURN_TRUE);
+                const Created2 = await Helper.toEvents(
+                    () => gamblingManager.create2(
+                        Helper.address0x,
+                        model.address,
+                        RETURN_TRUE,
+                        oracle.address,
+                        toHexBytes32(0),
+                        RETURN_TRUE,
+                        salt,
+                        { from: creator }
+                    ),
+                    'Created2'
+                );
 
-            id.should.be.bignumber.equal(calcId);
+                Created2._id.should.be.bignumber.equal(calcId);
+                Created2._salt.should.be.bignumber.equal(salt);
+                assert.equal(Created2._modelData, RETURN_TRUE);
+                assert.equal(Created2._oracleData, RETURN_TRUE);
 
-            const bet = await gamblingManager.bets(id);
-            assert.equal(bet[I_CURRENCY], Helper.address0x);
-            bet[I_BALANCE].should.be.bignumber.equal(bn(0));
-            assert.equal(bet[I_MODEL], model.address);
-            assert.equal(bet[I_ORACLE], oracle.address);
-            assert.equal(bet[I_EVENT], toHexBytes32(0));
-        });
+                id.should.be.bignumber.equal(calcId);
 
-        it('Function create2', async () => {
-            const salt = bn(1515121);
+                const bet = await gamblingManager.bets(id);
+                assert.equal(bet[I_CURRENCY], Helper.address0x);
+                bet[I_BALANCE].should.be.bignumber.equal(bn(0));
+                assert.equal(bet[I_MODEL], model.address);
+                assert.equal(bet[I_ORACLE], oracle.address);
+                assert.equal(bet[I_EVENT], toHexBytes32(0));
+            });
 
-            const calcId = Web3Utils.soliditySha3(
-                { t: 'uint8', v: two },
-                { t: 'address', v: gamblingManager.address },
-                { t: 'address', v: creator },
-                { t: 'address', v: Helper.address0x }, // currency
-                { t: 'address', v: model.address }, //    model
-                { t: 'bytes', v: RETURN_TRUE }, //         model data
-                { t: 'address', v: oracle.address }, //   oracle
-                { t: 'bytes32', v: toHexBytes32(0) }, // event id
-                { t: 'bytes', v: RETURN_TRUE }, //         oracle data
-                { t: 'uint256', v: salt }
-            );
+            it('Function create3', async () => {
+                const salt = bn(21313);
 
-            const id = await gamblingManager.buildId2(
-                creator,
-                Helper.address0x,
-                model.address,
-                RETURN_TRUE,
-                oracle.address,
-                toHexBytes32(0),
-                RETURN_TRUE,
-                salt
-            );
+                const calcId = Web3Utils.soliditySha3(
+                    { t: 'uint8', v: three },
+                    { t: 'address', v: gamblingManager.address },
+                    { t: 'address', v: creator },
+                    { t: 'uint256', v: salt }
+                );
 
-            const Created2 = await Helper.toEvents(
-                () => gamblingManager.create2(
-                    Helper.address0x,
-                    model.address,
-                    RETURN_TRUE,
-                    oracle.address,
-                    toHexBytes32(0),
-                    RETURN_TRUE,
-                    salt,
-                    { from: creator }
-                ),
-                'Created2'
-            );
+                const id = await gamblingManager.buildId3(
+                    creator,
+                    salt
+                );
 
-            Created2._id.should.be.bignumber.equal(calcId);
-            Created2._salt.should.be.bignumber.equal(salt);
-            assert.equal(Created2._modelData, RETURN_TRUE);
-            assert.equal(Created2._oracleData, RETURN_TRUE);
+                const Created3 = await Helper.toEvents(
+                    () => gamblingManager.create3(
+                        Helper.address0x,
+                        model.address,
+                        RETURN_TRUE,
+                        oracle.address,
+                        toHexBytes32(0),
+                        RETURN_TRUE,
+                        salt,
+                        { from: creator }
+                    ),
+                    'Created3'
+                );
 
-            id.should.be.bignumber.equal(calcId);
+                Created3._id.should.be.bignumber.equal(calcId);
+                Created3._salt.should.be.bignumber.equal(salt);
+                assert.equal(Created3._modelData, RETURN_TRUE);
+                assert.equal(Created3._oracleData, RETURN_TRUE);
 
-            const bet = await gamblingManager.bets(id);
-            assert.equal(bet[I_CURRENCY], Helper.address0x);
-            bet[I_BALANCE].should.be.bignumber.equal(bn(0));
-            assert.equal(bet[I_MODEL], model.address);
-            assert.equal(bet[I_ORACLE], oracle.address);
-            assert.equal(bet[I_EVENT], toHexBytes32(0));
-        });
+                id.should.be.bignumber.equal(calcId);
 
-        it('Function create3', async () => {
-            const salt = bn(21313);
+                const bet = await gamblingManager.bets(id);
+                assert.equal(bet[I_CURRENCY], Helper.address0x);
+                bet[I_BALANCE].should.be.bignumber.equal(bn(0));
+                assert.equal(bet[I_MODEL], model.address);
+                assert.equal(bet[I_ORACLE], oracle.address);
+                assert.equal(bet[I_EVENT], toHexBytes32(0));
+            });
 
-            const calcId = Web3Utils.soliditySha3(
-                { t: 'uint8', v: three },
-                { t: 'address', v: gamblingManager.address },
-                { t: 'address', v: creator },
-                { t: 'uint256', v: salt }
-            );
-
-            const id = await gamblingManager.buildId3(
-                creator,
-                salt
-            );
-
-            const Created3 = await Helper.toEvents(
-                () => gamblingManager.create3(
-                    Helper.address0x,
-                    model.address,
-                    RETURN_TRUE,
-                    oracle.address,
-                    toHexBytes32(0),
-                    RETURN_TRUE,
-                    salt,
-                    { from: creator }
-                ),
-                'Created3'
-            );
-
-            Created3._id.should.be.bignumber.equal(calcId);
-            Created3._salt.should.be.bignumber.equal(salt);
-            assert.equal(Created3._modelData, RETURN_TRUE);
-            assert.equal(Created3._oracleData, RETURN_TRUE);
-
-            id.should.be.bignumber.equal(calcId);
-
-            const bet = await gamblingManager.bets(id);
-            assert.equal(bet[I_CURRENCY], Helper.address0x);
-            bet[I_BALANCE].should.be.bignumber.equal(bn(0));
-            assert.equal(bet[I_MODEL], model.address);
-            assert.equal(bet[I_ORACLE], oracle.address);
-            assert.equal(bet[I_EVENT], toHexBytes32(0));
-        });
-
-        describe('Function _create', function () {
             it('Try create an identical bet', async () => {
                 const salt = bn(56465165);
 
@@ -1114,7 +1114,7 @@ contract('GamblingManager', function (accounts) {
                     { from: depositer, value: amount }
                 );
 
-                const prevBalGP1 = await gamblingManager.balanceOf(player1, Helper.address0x);
+                await savePrevBalances();
                 const prevBalBet = (await gamblingManager.bets(id))[I_BALANCE];
 
                 const amountOption = toHexBytes32(6953);
@@ -1133,15 +1133,80 @@ contract('GamblingManager', function (accounts) {
                 Play._amount.should.be.bignumber.equal(amountOption);
                 assert.equal(Play._oracleData, RETURN_TRUE);
 
-                (await gamblingManager.balanceOf(player1, Helper.address0x)).should.be.bignumber.equal(prevBalGP1.sub(bn(amountOption)));
-                (await gamblingManager.bets(id))[I_BALANCE].should.be.bignumber.equal(prevBalBet.plus(bn(amountOption)));
-
                 const bet = await gamblingManager.bets(id);
                 assert.equal(bet[I_CURRENCY], Helper.address0x);
-                bet[I_BALANCE].should.be.bignumber.equal(bn(amountOption));
+                bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.plus(amountOption));
                 assert.equal(bet[I_MODEL], model.address);
                 assert.equal(bet[I_ORACLE], oracle.address);
                 assert.equal(bet[I_EVENT], toHexBytes32(0));
+
+                // check ETH balance
+                web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
+                (await gamblingManager.balanceOf(player1, Helper.address0x)).should.be.bignumber.equal(prevBalGP1.sub(bn(amountOption)));
+                // check Token balance
+                (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
+                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
+                (await gamblingManager.balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T);
+            });
+
+            it('Should play a bet with Token', async () => {
+                const id = await gamblingManager.buildId(
+                    creator,
+                    await gamblingManager.nonces(creator)
+                );
+
+                await gamblingManager.create(
+                    token.address,
+                    model.address,
+                    RETURN_TRUE,
+                    oracle.address,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
+                    { from: creator }
+                );
+
+                await token.setBalance(depositer, amount);
+                await token.approve(gamblingManager.address, amount, { from: depositer });
+                await gamblingManager.deposit(
+                    player1,
+                    token.address,
+                    amount,
+                    { from: depositer }
+                );
+
+                await savePrevBalances();
+                const prevBalBet = (await gamblingManager.bets(id))[I_BALANCE];
+
+                const amountOption = toHexBytes32(6953);
+                const Play = await Helper.toEvents(
+                    () => gamblingManager.play(
+                        id,
+                        amountOption,
+                        RETURN_TRUE,
+                        { from: player1 }
+                    ),
+                    'Played'
+                );
+                // for event
+                assert.equal(Play._id, id);
+                assert.equal(Play._option, amountOption);
+                Play._amount.should.be.bignumber.equal(amountOption);
+                assert.equal(Play._oracleData, RETURN_TRUE);
+
+                const bet = await gamblingManager.bets(id);
+                assert.equal(bet[I_CURRENCY], token.address);
+                bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.plus(amountOption));
+                assert.equal(bet[I_MODEL], model.address);
+                assert.equal(bet[I_ORACLE], oracle.address);
+                assert.equal(bet[I_EVENT], toHexBytes32(0));
+
+                // check ETH balance
+                web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
+                (await gamblingManager.balanceOf(player1, Helper.address0x)).should.be.bignumber.equal(prevBalGP1);
+                // check Token balance
+                (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
+                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
+                (await gamblingManager.balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T.sub(bn(amountOption)));
             });
 
             it('Try play a bet and validation return false', async () => {
@@ -1178,7 +1243,7 @@ contract('GamblingManager', function (accounts) {
                 );
             });
 
-            it('Try play a bet without balance', async () => {
+            it('Try play a bet without ETH balance', async () => {
                 const id = await gamblingManager.buildId(
                     creator,
                     await gamblingManager.nonces(creator)
@@ -1210,11 +1275,45 @@ contract('GamblingManager', function (accounts) {
                     'Insufficient founds to discount from wallet/contract'
                 );
             });
+
+            it('Try play a bet without Token balance', async () => {
+                const id = await gamblingManager.buildId(
+                    creator,
+                    await gamblingManager.nonces(creator)
+                );
+
+                await gamblingManager.create(
+                    token.address,
+                    model.address,
+                    RETURN_TRUE,
+                    oracle.address,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
+                    { from: creator }
+                );
+
+                await gamblingManager.withdrawAll(
+                    accounts[8],
+                    token.address,
+                    { from: player1 }
+                );
+
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        toHexBytes32(1),
+                        RETURN_TRUE,
+                        { from: player1 }
+                    ),
+                    'Insufficient founds to discount from wallet/contract'
+                );
+            });
         });
 
         describe('Function createPlay', function () {
 
         });
+
         describe('Function collect', function () {
 
         });
