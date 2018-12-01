@@ -377,14 +377,18 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
 
     function play(
         bytes32 _betId,
-        bytes _oracleData,
-        bytes32 _option
+        bytes32 _option,
+        bytes _oracleData
     ) external returns(bool){
         Bet storage bet = bets[_betId];
 
         require(bet.oracle.validatePlay(bet.eventId, _option, _oracleData), "Bet validation fail");
 
-        uint256 needAmount = bet.model.playBet(_betId, msg.sender, _option);
+        uint256 needAmount = bet.model.playBet({
+            _id: _betId,
+            _player: msg.sender,
+            _option: _option
+        });
 
         // Substract balance from BalanceManager
         require(toBalance[msg.sender][bet.currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
@@ -422,7 +426,10 @@ contract GamblingManager is BalanceManager, IdHelper, Events {
         Bet storage bet = bets[_betId];
         require(bets[_betId].eventId == 0x0, "The bet is already created");
 
-        bet.model.cancelBet(_betId, msg.sender);
+        bet.model.cancelBet({
+            _id: _betId,
+            _player: msg.sender
+        });
 
         uint256 betBalance = bet.balance;
         bet.balance = 0;
