@@ -82,14 +82,14 @@ contract P2P is IModel, DecodeData {
     function playBet(
         bytes32 _betId,
         address _player,
-        bytes _option
+        bytes32 _option
     ) external
         onlyGamblingManager
     returns(uint256 needAmount){
         Bet storage bet = bets[_betId];
         require(bet.playerAOption == 0x0, "The bet its taken");
 
-        if (readBytes32(_option, 0) == bet.playerAOption)
+        if (_option == bet.playerAOption)
             bet.playerA = _player;
         else
             bet.playerB = _player;
