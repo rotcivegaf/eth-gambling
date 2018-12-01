@@ -8,11 +8,31 @@ import "./interfaces/IModel.sol";
 import "./interfaces/IOracle.sol";
 
 
-contract BalanceManager {
-    event Deposit(address indexed from, address indexed to, address indexed currency, uint256 amount);
-    event Withdraw(address indexed from, address indexed to, address indexed currency, uint256 amount);
-    event InsideTransfer(address indexed from, address indexed to, address indexed currency, uint256 amount);
+contract BalanceManagerEvents {
+    event Deposit(
+        address indexed from,
+        address indexed to,
+        address indexed currency,
+        uint256 amount
+    );
 
+    event Withdraw(
+        address indexed from,
+        address indexed to,
+        address indexed currency,
+        uint256 amount
+    );
+
+    event InsideTransfer(
+        address indexed from,
+        address indexed to,
+        address indexed currency,
+        uint256 amount
+    );
+}
+
+
+contract BalanceManager is BalanceManagerEvents{
     // [wallet/contract, currency] to balance
     mapping (address => mapping (address => uint256)) public balanceOf;
 
@@ -112,7 +132,7 @@ contract BalanceManager {
         require(balanceOf[msg.sender][_currency] >= _amount, "Insufficient founds to transfer");// Here check underflow
 
         balanceOf[msg.sender][_currency] -= _amount;
-        // Yes, this can overflow but who wants a token what has an astrological number of token?
+        // Yes, this can overflow but who wants a token what has an astronomical number of token?
         balanceOf[_to][_currency] += _amount;
 
         emit InsideTransfer(
@@ -186,7 +206,7 @@ contract IdHelper {
 }
 
 
-contract Events {
+contract GamblingManagerEvents {
     event Created(
         address indexed _creator,
         bytes32 indexed _id,
@@ -230,7 +250,7 @@ contract Events {
 }
 
 
-contract GamblingManager is BalanceManager, IdHelper, Events {
+contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents {
     struct Bet {
         address currency;
         uint256 balance;
