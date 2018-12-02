@@ -37,7 +37,7 @@ contract Massive is IModel, DecodeData {
 
     function createBet(
         bytes32 _id,
-        bytes _data
+        bytes
     ) external {
         require(msg.sender == gamblingManager);
 
@@ -49,9 +49,9 @@ contract Massive is IModel, DecodeData {
     }
 
     function playBet(
-        bytes32 _betId,
-        address _player,
-        bytes32 _option
+        bytes32,
+        address,
+        bytes32
     ) external returns(uint256 needAmount){
         require(msg.sender == gamblingManager);
 
@@ -59,16 +59,18 @@ contract Massive is IModel, DecodeData {
     }
 
     function createPlayBet(
-        bytes32 _betId,
-        address _player,
-        bytes32 _option
+        bytes32,
+        address,
+        bytes32,
+        bytes
     ) external returns(uint256){
         return 0;
     }
 
     function collectBet(
-        bytes32 _betId,
-        address _sender
+        bytes32,
+        address,
+        bytes32
     ) external returns(uint256 amount){
         require(msg.sender == gamblingManager);
 
@@ -76,8 +78,8 @@ contract Massive is IModel, DecodeData {
     }
 
     function cancelBet(
-        bytes32 _betId,
-        address creator
+        bytes32,
+        address
     ) external {
         require(msg.sender == gamblingManager);
     }

@@ -98,9 +98,10 @@ contract P2P is IModel, DecodeData {
     }
 
     function createPlayBet(
-        bytes32 _betId,
-        address _player,
-        bytes32 _option
+        bytes32,
+        address,
+        bytes32,
+        bytes
     ) external
         onlyGamblingManager
     returns(uint256){
