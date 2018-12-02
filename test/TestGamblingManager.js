@@ -1309,6 +1309,36 @@ contract('GamblingManager', function (accounts) {
             });
 
             it('Try overflow with the return of model.playBet', async () => {
+                const id = await gamblingManager.buildId(
+                    creator,
+                    await gamblingManager.nonces(creator)
+                );
+
+                await gamblingManager.create(
+                    token.address,
+                    model.address,
+                    RETURN_TRUE,
+                    oracle.address,
+                    toHexBytes32(0),
+                    RETURN_TRUE,
+                    { from: creator }
+                );
+
+                await gamblingManager.withdrawAll(
+                    accounts[8],
+                    token.address,
+                    { from: player1 }
+                );
+
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        toHexBytes32(-1),
+                        RETURN_TRUE,
+                        { from: player1 }
+                    ),
+                    'Insufficient founds to discount from wallet/contract'
+                );
             });
         });
 
