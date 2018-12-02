@@ -1,8 +1,5 @@
 pragma solidity ^0.4.24;
 
-import "./utils/Ownable.sol";
-import "./utils/SafeMath.sol";
-
 import "./interfaces/Token.sol";
 import "./interfaces/IModel.sol";
 import "./interfaces/IOracle.sol";
