@@ -246,7 +246,7 @@ contract GamblingManagerEvents {
     );
 
     event Collected(
-        address indexed _creator,
+        address indexed _collecter,
         address indexed _player,
         bytes32 indexed _id,
         bytes32 _winner,
