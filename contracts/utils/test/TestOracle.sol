@@ -24,7 +24,6 @@ contract TestOracle is IOracle, BytesUtils  {
     }
 
     function whoWon(bytes32 _eventId) external view returns(bytes32){
-        if (_eventId == TRUE)
-            return _eventId;
+        return _eventId;
     }
 }
