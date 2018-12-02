@@ -255,8 +255,7 @@ contract GamblingManagerEvents {
 
     event Canceled(
         address indexed _creator,
-        bytes32 indexed _id,
-        uint256 _amount
+        bytes32 indexed _id
     );
 }
 
@@ -525,22 +524,23 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents {
 
     function cancel(bytes32 _betId) external returns(bool){
         Bet storage bet = bets[_betId];
-        require(bets[_betId].eventId == 0x0, "The bet is already created");
+        require(bets[_betId].model != IModel(0x0), "The bet is cancel or not created");
 
         bet.model.cancelBet({
             _id: _betId,
             _player: msg.sender
         });
 
-        uint256 betBalance = bet.balance;
-        bet.balance = 0;
-        // Add balance to BalanceManager
-        balanceOf[msg.sender][bet.currency] += betBalance;
+        delete(bet.model);
+
+        if (bet.balance != 0) {
+            // Add balance to BalanceManager
+            balanceOf[msg.sender][bet.currency] += bet.balance;
+        }
 
         emit Canceled(
             msg.sender,
-            _betId,
-            betBalance
+            _betId
         );
 
         return true;
