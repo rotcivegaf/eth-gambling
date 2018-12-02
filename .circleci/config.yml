@@ -175,15 +175,15 @@ workflows:
     build_and_test:
         jobs:
             - install
-            - build:
-                requires:
-                    - install
-            - test:
-                requires:
-                    - install
-            - coverage:
-                requires:
-                    - install
+            # - build:
+            #     requires:
+            #         - install
+            # - test:
+            #     requires:
+            #         - install
+            # - coverage:
+            #     requires:
+            #         - install
             - lint-javascript:
                 requires:
                     - install
