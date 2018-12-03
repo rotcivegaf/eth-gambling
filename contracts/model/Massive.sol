@@ -1,11 +1,11 @@
 pragma solidity ^0.4.24;
 
-import "../utils/BytesUtils.sol";
-
 import "../interfaces/IModel.sol";
 
+import "../utils/BytesUtils.sol";
 
-contract DecodeData is BytesUtils{
+
+contract DecodeData is BytesUtils {
     uint256 public constant L_CREATE_DATA = 20 + 32;// game + event Id
 
     function _decodeCreateData(

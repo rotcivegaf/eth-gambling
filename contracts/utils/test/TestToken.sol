@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.24;
 
 import "./../SafeMath.sol";
 
@@ -40,7 +40,7 @@ contract StandardToken {
         return balances[_owner];
     }
 
-    function approve(address _spender,  uint256 _value) public returns (bool success) {
+    function approve(address _spender, uint256 _value) public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;
@@ -67,8 +67,8 @@ contract StandardToken {
         return true;
     }
 
-    mapping (address => uint256) balances;
-    mapping (address => mapping (address => uint256)) allowed;
+    mapping (address => uint256) public balances;
+    mapping (address => mapping (address => uint256)) public allowed;
 }
 
 
@@ -87,7 +87,7 @@ contract TestToken is StandardToken {
     event CreatedToken(address _address);
     event SetBalance(address _address, uint256 _balance);
 
-    constructor() public {
+    constructor () public {
         emit CreatedToken(address(this));
     }
 

@@ -31,8 +31,8 @@ contract IdHelper {
 
 
 contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
-    event NewGame(uint256 now, bytes32 gameId, uint256 noMoreBets, bytes32 team1, bytes32 team2);
-    event SetWinner(uint256 now, bytes32 gameId, bytes32 winTeam);
+    event NewGame(uint256 _now, bytes32 _gameId, uint256 _noMoreBets, bytes32 _team1, bytes32 _team2);
+    event SetWinner(uint256 _now, bytes32 _gameId, bytes32 _winTeam);
 
     bytes32 public constant DRAW = 0x0000000000000000000000000000000000000000000000000000000064726177;
 
@@ -71,11 +71,11 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
         return true;
     }
 
-    function validateCreatePlay(bytes32, bytes32, bytes) external view returns(bool){
+    function validateCreatePlay(bytes32, bytes32, bytes) external view returns(bool) {
         // TODO
     }
 
-    function whoWon(bytes32 _gameId) external view returns(bytes32){
+    function whoWon(bytes32 _gameId) external view returns(bytes32) {
         Game storage game = games[_gameId];
         require(
             game.winTeam != 0x0 &&
@@ -90,7 +90,7 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
         bytes32 _team1,
         bytes32 _team2,
         uint256 _noMoreBets
-    ) external onlyOwner returns(bytes32 gameId){
+    ) external onlyOwner returns(bytes32 gameId) {
         gameId = keccak256(
             abi.encodePacked(
                 _team1,
