@@ -120,20 +120,20 @@ contract('GamblingManager', function (accounts) {
         describe('function deposit', function () {
             it('Deposit ETH', async () => {
                 await savePrevBalances();
-                const Deposit = await Helper.toEvents(
+                const Deposited = await Helper.toEvents(
                     () => gamblingManager.deposit(
                         player1,
                         ETH,
                         amount,
                         { from: depositer, value: amount }
                     ),
-                    'Deposit'
+                    'Deposited'
                 );
                 // for event
-                assert.equal(Deposit.from, depositer);
-                assert.equal(Deposit.to, player1);
-                assert.equal(Deposit.currency, ETH);
-                Deposit.amount.should.be.bignumber.equal(amount);
+                assert.equal(Deposited.from, depositer);
+                assert.equal(Deposited.to, player1);
+                assert.equal(Deposited.currency, ETH);
+                Deposited.amount.should.be.bignumber.equal(amount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG.plus(amount));
@@ -149,20 +149,20 @@ contract('GamblingManager', function (accounts) {
                 await token.setBalance(depositer, amount);
                 await token.approve(gamblingManager.address, amount, { from: depositer });
 
-                const Deposit = await Helper.toEvents(
+                const Deposited = await Helper.toEvents(
                     () => gamblingManager.deposit(
                         player1,
                         token.address,
                         amount,
                         { from: depositer }
                     ),
-                    'Deposit'
+                    'Deposited'
                 );
                 // for event
-                assert.equal(Deposit.from, depositer);
-                assert.equal(Deposit.to, player1);
-                assert.equal(Deposit.currency, token.address);
-                Deposit.amount.should.be.bignumber.equal(amount);
+                assert.equal(Deposited.from, depositer);
+                assert.equal(Deposited.to, player1);
+                assert.equal(Deposited.currency, token.address);
+                Deposited.amount.should.be.bignumber.equal(amount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -180,20 +180,20 @@ contract('GamblingManager', function (accounts) {
                 await token.setBalance(depositer, amount);
                 await token.approve(gamblingManager.address, amount, { from: depositer });
 
-                const Deposit = await Helper.toEvents(
+                const Deposited = await Helper.toEvents(
                     () => gamblingManager.deposit(
                         player1,
                         token.address,
                         lowAmount,
                         { from: depositer }
                     ),
-                    'Deposit'
+                    'Deposited'
                 );
                 // for event
-                assert.equal(Deposit.from, depositer);
-                assert.equal(Deposit.to, player1);
-                assert.equal(Deposit.currency, token.address);
-                Deposit.amount.should.be.bignumber.equal(lowAmount);
+                assert.equal(Deposited.from, depositer);
+                assert.equal(Deposited.to, player1);
+                assert.equal(Deposited.currency, token.address);
+                Deposited.amount.should.be.bignumber.equal(lowAmount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -313,20 +313,20 @@ contract('GamblingManager', function (accounts) {
                     { from: depositer, value: amount }
                 );
 
-                const Withdraw = await Helper.toEvents(
+                const Withdrawed = await Helper.toEvents(
                     () => gamblingManager.withdraw(
                         player2,
                         ETH,
                         withdrawAmount,
                         { from: player1 }
                     ),
-                    'Withdraw'
+                    'Withdrawed'
                 );
                 // for event
-                assert.equal(Withdraw.from, player1);
-                assert.equal(Withdraw.to, player2);
-                assert.equal(Withdraw.currency, ETH);
-                Withdraw.amount.should.be.bignumber.equal(withdrawAmount);
+                assert.equal(Withdrawed.from, player1);
+                assert.equal(Withdrawed.to, player2);
+                assert.equal(Withdrawed.currency, ETH);
+                Withdrawed.amount.should.be.bignumber.equal(withdrawAmount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG.plus(amount).sub(withdrawAmount));
@@ -353,21 +353,21 @@ contract('GamblingManager', function (accounts) {
 
                 await savePrevBalances();
 
-                const Withdraw = await Helper.toEvents(
+                const Withdrawed = await Helper.toEvents(
                     () => gamblingManager.withdraw(
                         player2,
                         token.address,
                         withdrawAmount,
                         { from: player1 }
                     ),
-                    'Withdraw'
+                    'Withdrawed'
                 );
 
                 // for event
-                assert.equal(Withdraw.from, player1);
-                assert.equal(Withdraw.to, player2);
-                assert.equal(Withdraw.currency, token.address);
-                Withdraw.amount.should.be.bignumber.equal(withdrawAmount);
+                assert.equal(Withdrawed.from, player1);
+                assert.equal(Withdrawed.to, player2);
+                assert.equal(Withdrawed.currency, token.address);
+                Withdrawed.amount.should.be.bignumber.equal(withdrawAmount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -479,20 +479,20 @@ contract('GamblingManager', function (accounts) {
                 await savePrevBalances();
                 const prevPlayer2Bal = web3.eth.getBalance(player2);
 
-                const Withdraw = await Helper.toEvents(
+                const Withdrawed = await Helper.toEvents(
                     () => gamblingManager.withdrawAll(
                         player2,
                         ETH,
                         { from: player1 }
                     ),
-                    'Withdraw'
+                    'Withdrawed'
                 );
 
                 // for event
-                assert.equal(Withdraw.from, player1);
-                assert.equal(Withdraw.to, player2);
-                assert.equal(Withdraw.currency, ETH);
-                Withdraw.amount.should.be.bignumber.equal(prevBalGP1);
+                assert.equal(Withdrawed.from, player1);
+                assert.equal(Withdrawed.to, player2);
+                assert.equal(Withdrawed.currency, ETH);
+                Withdrawed.amount.should.be.bignumber.equal(prevBalGP1);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG.sub(prevBalGP1));
@@ -519,20 +519,20 @@ contract('GamblingManager', function (accounts) {
 
                 await savePrevBalances();
 
-                const Withdraw = await Helper.toEvents(
+                const Withdrawed = await Helper.toEvents(
                     () => gamblingManager.withdrawAll(
                         player2,
                         token.address,
                         { from: player1 }
                     ),
-                    'Withdraw'
+                    'Withdrawed'
                 );
 
                 // for event
-                assert.equal(Withdraw.from, player1);
-                assert.equal(Withdraw.to, player2);
-                assert.equal(Withdraw.currency, token.address);
-                Withdraw.amount.should.be.bignumber.equal(prevBalGP1T);
+                assert.equal(Withdrawed.from, player1);
+                assert.equal(Withdrawed.to, player2);
+                assert.equal(Withdrawed.currency, token.address);
+                Withdrawed.amount.should.be.bignumber.equal(prevBalGP1T);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -593,19 +593,19 @@ contract('GamblingManager', function (accounts) {
                 const prevPlayer2Bal = web3.eth.getBalance(player2);
                 await savePrevBalances();
 
-                const Withdraw = await Helper.toEvents(
+                const Withdrawed = await Helper.toEvents(
                     () => gamblingManager.withdrawAll(
                         player2,
                         ETH,
                         { from: player1 }
                     ),
-                    'Withdraw'
+                    'Withdrawed'
                 );
                 // for event
-                assert.equal(Withdraw.from, player1);
-                assert.equal(Withdraw.to, player2);
-                assert.equal(Withdraw.currency, ETH);
-                Withdraw.amount.should.be.bignumber.equal(bn(0));
+                assert.equal(Withdrawed.from, player1);
+                assert.equal(Withdrawed.to, player2);
+                assert.equal(Withdrawed.currency, ETH);
+                Withdrawed.amount.should.be.bignumber.equal(bn(0));
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -629,20 +629,20 @@ contract('GamblingManager', function (accounts) {
                 await savePrevBalances();
                 prevBalGT = await token.balanceOf(gamblingManager.address);
 
-                const Withdraw = await Helper.toEvents(
+                const Withdrawed = await Helper.toEvents(
                     () => gamblingManager.withdrawAll(
                         player2,
                         token.address,
                         { from: player1 }
                     ),
-                    'Withdraw'
+                    'Withdrawed'
                 );
 
                 // for event
-                assert.equal(Withdraw.from, player1);
-                assert.equal(Withdraw.to, player2);
-                assert.equal(Withdraw.currency, token.address);
-                Withdraw.amount.should.be.bignumber.equal(bn(0));
+                assert.equal(Withdrawed.from, player1);
+                assert.equal(Withdrawed.to, player2);
+                assert.equal(Withdrawed.currency, token.address);
+                Withdrawed.amount.should.be.bignumber.equal(bn(0));
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -691,20 +691,20 @@ contract('GamblingManager', function (accounts) {
                 await savePrevBalances();
                 const prevPlayer2Bal = web3.eth.getBalance(player2);
 
-                const InsideTransfer = await Helper.toEvents(
+                const InsideTransfered = await Helper.toEvents(
                     () => gamblingManager.insideTransfer(
                         player2,
                         ETH,
                         transferAmount,
                         { from: player1 }
                     ),
-                    'InsideTransfer'
+                    'InsideTransfered'
                 );
                 // for event
-                assert.equal(InsideTransfer.from, player1);
-                assert.equal(InsideTransfer.to, player2);
-                assert.equal(InsideTransfer.currency, ETH);
-                InsideTransfer.amount.should.be.bignumber.equal(transferAmount);
+                assert.equal(InsideTransfered.from, player1);
+                assert.equal(InsideTransfered.to, player2);
+                assert.equal(InsideTransfered.currency, ETH);
+                InsideTransfered.amount.should.be.bignumber.equal(transferAmount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -732,20 +732,20 @@ contract('GamblingManager', function (accounts) {
 
                 await savePrevBalances();
 
-                const InsideTransfer = await Helper.toEvents(
+                const InsideTransfered = await Helper.toEvents(
                     () => gamblingManager.insideTransfer(
                         player2,
                         token.address,
                         transferAmount,
                         { from: player1 }
                     ),
-                    'InsideTransfer'
+                    'InsideTransfered'
                 );
                 // for event
-                assert.equal(InsideTransfer.from, player1);
-                assert.equal(InsideTransfer.to, player2);
-                assert.equal(InsideTransfer.currency, token.address);
-                InsideTransfer.amount.should.be.bignumber.equal(transferAmount);
+                assert.equal(InsideTransfered.from, player1);
+                assert.equal(InsideTransfered.to, player2);
+                assert.equal(InsideTransfered.currency, token.address);
+                InsideTransfered.amount.should.be.bignumber.equal(transferAmount);
 
                 // check ETH balance
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
@@ -2022,7 +2022,7 @@ contract('GamblingManager', function (accounts) {
                         id,
                         { from: creatorPlayer }
                     ),
-                    'The bet is cancel or not created'
+                    ''
                 );
             });
         });
