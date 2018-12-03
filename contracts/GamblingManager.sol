@@ -510,7 +510,6 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         bytes32 _betId
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
-        require(bets[_betId].model != IModel(0x0), "The bet is cancel or not created");
 
         bet.model.cancelBet(_betId, msg.sender);
 
