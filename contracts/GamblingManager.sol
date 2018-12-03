@@ -8,21 +8,21 @@ import "./utils/Ownable.sol";
 
 
 contract BalanceManagerEvents {
-    event Deposit(
+    event Deposited(
         address indexed from,
         address indexed to,
         address indexed currency,
         uint256 amount
     );
 
-    event Withdraw(
+    event Withdrawed(
         address indexed from,
         address indexed to,
         address indexed currency,
         uint256 amount
     );
 
-    event InsideTransfer(
+    event InsideTransfered(
         address indexed from,
         address indexed to,
         address indexed currency,
@@ -37,7 +37,8 @@ contract BalanceManager is BalanceManagerEvents {
 
     function () external payable {
         balanceOf[msg.sender][0x0] += msg.value;
-        emit Deposit(
+
+        emit Deposited(
             msg.sender,
             msg.sender,
             0x0,
@@ -64,7 +65,7 @@ contract BalanceManager is BalanceManagerEvents {
         // Yes, this can overflow but who wants a token what has an astrological number of token?
         balanceOf[_to][_currency] += _amount;
 
-        emit Deposit(
+        emit Deposited(
             msg.sender,
             _to,
             _currency,
@@ -78,7 +79,7 @@ contract BalanceManager is BalanceManagerEvents {
         address _to,
         address _currency,
         uint256 _amount
-      ) external returns(bool) {
+    ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
         require(balanceOf[msg.sender][_currency] >= _amount, "Insufficient founds to discount");
 
@@ -89,7 +90,7 @@ contract BalanceManager is BalanceManagerEvents {
         else
             require(Token(_currency).transfer(_to, _amount), "Error transfer tokens, in withdraw");
 
-        emit Withdraw(
+        emit Withdrawed(
             msg.sender,
             _to,
             _currency,
@@ -112,7 +113,7 @@ contract BalanceManager is BalanceManagerEvents {
         else
             require(Token(_currency).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
 
-        emit Withdraw(
+        emit Withdrawed(
             msg.sender,
             _to,
             _currency,
@@ -134,7 +135,7 @@ contract BalanceManager is BalanceManagerEvents {
         // Yes, this can overflow but who wants a token what has an astronomical number of token?
         balanceOf[_to][_currency] += _amount;
 
-        emit InsideTransfer(
+        emit InsideTransfered(
             msg.sender,
             _to,
             _currency,
@@ -281,7 +282,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         IOracle _oracle,
         bytes32 _eventId,
         bytes _oracleData
-    ) external returns(bytes32 betId){
+    ) external returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
         betId = keccak256(
@@ -363,7 +364,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         bytes32 _eventId,
         bytes _oracleData,
         uint256 salt
-    ) external returns(bytes32 betId){
+    ) external returns(bytes32 betId) {
         betId = keccak256(
             abi.encodePacked(
                 uint8(3),
@@ -392,36 +393,11 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         );
     }
 
-    function _create(
-        bytes32 _betId,
-        address _currency,
-        IModel _model,
-        bytes _modelData,
-        IOracle _oracle,
-        bytes32 _eventId,
-        bytes _oracleData
-    ) internal {
-        require(address(bets[_betId].model) == 0x0, "The bet is already created");
-
-        require(_oracle.validateCreate(_eventId, _oracleData), "Create validation fail");
-
-        _model.createBet(_betId, _modelData);
-
-        bets[_betId] = Bet({
-            currency: _currency,
-            balance: 0,
-            model: _model,
-            oracle: _oracle,
-            eventId: _eventId
-        });
-        // TODO  pay to creator???
-    }
-
     function play(
         bytes32 _betId,
         bytes32 _option,
         bytes _oracleData
-    ) external returns(bool){
+    ) external returns(bool) {
         Bet storage bet = bets[_betId];
 
         require(bet.oracle.validatePlay(bet.eventId, _option, _oracleData), "Bet validation fail");
@@ -433,7 +409,10 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         });
 
         // Substract balance from BalanceManager
-        require(balanceOf[msg.sender][bet.currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
+        require(
+            balanceOf[msg.sender][bet.currency] >= needAmount,
+            "Insufficient founds to discount from wallet/contract"
+        );
         balanceOf[msg.sender][bet.currency] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
@@ -456,7 +435,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         bytes32 _eventId,
         bytes32 _option,
         bytes _oracleData
-    ) external returns(bytes32 betId){
+    ) external returns(bytes32 betId) {
         require(_oracle.validateCreatePlay(_eventId, _option, _oracleData), "Create and play validation fail");
 
         uint256 nonce = nonces[msg.sender]++;
@@ -501,7 +480,10 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         );
     }
 
-    function collect(bytes32 _betId, address _player) external returns(bool){
+    function collect(
+        bytes32 _betId,
+        address _player
+    ) external returns(bool) {
         Bet storage bet = bets[_betId];
 
         bytes32 winner = bet.oracle.whoWon(bet.eventId);
@@ -524,16 +506,15 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         return true;
     }
 
-    function cancel(bytes32 _betId) external returns(bool){
+    function cancel(
+        bytes32 _betId
+    ) external returns(bool) {
         Bet storage bet = bets[_betId];
         require(bets[_betId].model != IModel(0x0), "The bet is cancel or not created");
 
-        bet.model.cancelBet({
-            _id: _betId,
-            _player: msg.sender
-        });
+        bet.model.cancelBet(_betId, msg.sender);
 
-        delete(bet.model);
+        delete (bet.model);
 
         if (bet.balance != 0) {
             // Add balance to BalanceManager
@@ -546,5 +527,30 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         );
 
         return true;
+    }
+
+    function _create(
+        bytes32 _betId,
+        address _currency,
+        IModel _model,
+        bytes _modelData,
+        IOracle _oracle,
+        bytes32 _eventId,
+        bytes _oracleData
+    ) internal {
+        require(address(bets[_betId].model) == 0x0, "The bet is already created");
+
+        require(_oracle.validateCreate(_eventId, _oracleData), "Create validation fail");
+
+        _model.createBet(_betId, _modelData);
+
+        bets[_betId] = Bet({
+            currency: _currency,
+            balance: 0,
+            model: _model,
+            oracle: _oracle,
+            eventId: _eventId
+        });
+        // TODO  pay to creator???
     }
 }
