@@ -30,6 +30,11 @@ contract Massive is IModel, DecodeData {
 
     address public gamblingManager;
 
+    modifier onlyGamblingManager() {
+        require(msg.sender == gamblingManager);
+        _;
+    }
+
     constructor(address _gamblingManager) public {
         // TODO check if _gamblingManager respect the interface
         gamblingManager = _gamblingManager;
@@ -38,9 +43,9 @@ contract Massive is IModel, DecodeData {
     function createBet(
         bytes32 _id,
         bytes
-    ) external {
-        require(msg.sender == gamblingManager);
-
+    ) external
+        onlyGamblingManager
+    {
         // (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({
@@ -52,9 +57,9 @@ contract Massive is IModel, DecodeData {
         bytes32,
         address,
         bytes32
-    ) external returns(uint256 needAmount){
-        require(msg.sender == gamblingManager);
-
+    ) external
+        onlyGamblingManager
+    returns(uint256 needAmount) {
         return 0;
     }
 
@@ -63,7 +68,9 @@ contract Massive is IModel, DecodeData {
         address,
         bytes32,
         bytes
-    ) external returns(uint256){
+    ) external
+        onlyGamblingManager
+    returns(uint256) {
         return 0;
     }
 
@@ -71,16 +78,17 @@ contract Massive is IModel, DecodeData {
         bytes32,
         address,
         bytes32
-    ) external returns(uint256 amount){
-        require(msg.sender == gamblingManager);
-
+    ) external
+        onlyGamblingManager
+    returns(uint256 amount) {
         return 0;
     }
 
     function cancelBet(
         bytes32,
         address
-    ) external {
-        require(msg.sender == gamblingManager);
+    ) external
+        onlyGamblingManager
+    {
     }
 }
