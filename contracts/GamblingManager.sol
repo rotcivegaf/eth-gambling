@@ -4,6 +4,8 @@ import "./interfaces/Token.sol";
 import "./interfaces/IModel.sol";
 import "./interfaces/IOracle.sol";
 
+import "./utils/Ownable.sol";
+
 
 contract BalanceManagerEvents {
     event Deposit(
@@ -29,7 +31,7 @@ contract BalanceManagerEvents {
 }
 
 
-contract BalanceManager is BalanceManagerEvents{
+contract BalanceManager is BalanceManagerEvents {
     // [wallet/contract, currency] to balance
     mapping (address => mapping (address => uint256)) public balanceOf;
 
@@ -260,7 +262,7 @@ contract GamblingManagerEvents {
 }
 
 
-contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents {
+contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Ownable {
     struct Bet {
         address currency;
         uint256 balance;
