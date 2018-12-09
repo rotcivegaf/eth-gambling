@@ -19,5 +19,4 @@ module.exports = {
             network_id: '*', // eslint-disable-line camelcase
         },
     },
-
 };
