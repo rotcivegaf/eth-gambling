@@ -1,74 +1,157 @@
 pragma solidity ^0.4.24;
 
 import "./interfaces/Token.sol";
+import "./interfaces/IBalanceManager.sol";
+import "./interfaces/IGamblingManager.sol";
 import "./interfaces/IModel.sol";
 import "./interfaces/IOracle.sol";
 
 import "./utils/Ownable.sol";
 
 
-contract BalanceManagerEvents {
-    event Deposited(
-        address indexed from,
-        address indexed to,
-        address indexed currency,
-        uint256 amount
-    );
+contract BalanceManager is IBalanceManager {
+    string private constant _name = "Ethereum Gambling Network";
+    string private constant _symbol = "EGN";
+    // [wallet/contract, token] to balance
+    mapping (address => mapping (address => uint256)) internal _balanceOf;
 
-    event Withdrawed(
-        address indexed from,
-        address indexed to,
-        address indexed currency,
-        uint256 amount
-    );
+    // [wallet/contract(owner), wallet/contract(spender), token] to _allowance
+    mapping (address =>
+        mapping (address =>
+            mapping (address => uint256)
+        )
+    ) internal _allowance;
 
-    event InsideTransfered(
-        address indexed from,
-        address indexed to,
-        address indexed currency,
-        uint256 amount
-    );
-}
+    function () public payable {
+        _balanceOf[msg.sender][ETH] += msg.value;
 
-
-contract BalanceManager is BalanceManagerEvents {
-    // [wallet/contract, currency] to balance
-    mapping (address => mapping (address => uint256)) public balanceOf;
-
-    function () external payable {
-        balanceOf[msg.sender][0x0] += msg.value;
-
-        emit Deposited(
+        emit Deposit(
             msg.sender,
             msg.sender,
-            0x0,
+            ETH,
             msg.value
         );
     }
 
+    function name() external view returns (string) {
+        return _name;
+    }
+
+    function symbol() external view returns (string) {
+        return _symbol;
+    }
+
+    function totalSupply(address _token) external view returns (uint256 internalSupply) {
+        return _token == ETH ? address(this).balance : Token(_token).balanceOf(address(this));
+    }
+
+    function balanceOf(
+        address _owner,
+        address _token
+    ) external view returns (uint256) {
+        return _balanceOf[_owner][_token];
+    }
+
+    function allowance(
+        address _owner,
+        address _spender,
+        address _token
+    ) external view returns (uint256) {
+        return _allowance[_owner][_spender][_token];
+    }
+
+    function transfer (
+        address _to,
+        address _token,
+        uint256 _value
+    ) external returns(bool) {
+        require(_to != 0x0, "_to should not be 0x0");
+
+        // Here check toBalance underflow
+        require(_balanceOf[msg.sender][_token] >= _value, "Insufficient founds to transfer");
+
+        _balanceOf[msg.sender][_token] -= _value;
+        // Yes, this can overflow but who wants a token what has an astronomical number of token?
+        _balanceOf[_to][_token] += _value;
+
+        emit Transfer(
+            msg.sender,
+            _to,
+            _token,
+            _value
+        );
+
+        return true;
+    }
+
+    function transferFrom(
+        address _from,
+        address _to,
+        address _token,
+        uint256 _value
+    ) external returns (bool success) {
+        require(_to != 0x0, "_to should not be 0x0");
+
+        // Here check _allowance underflow
+        require(_allowance[_from][msg.sender][_token] >= _value, "Insufficient _allowance to transferFrom");
+        _allowance[_from][msg.sender][_token] -= _value;
+
+        // Here check toBalance underflow
+        require(_balanceOf[_from][_token] >= _value, "Insufficient founds to transferFrom");
+        _balanceOf[_from][_token] -= _value;
+        // Yes, this can overflow but who wants a token what has an astronomical number of token?
+        _balanceOf[_to][_token] += _value;
+
+        emit TransferFrom(
+            _from,
+            _to,
+            _token,
+            _value
+        );
+
+        return true;
+    }
+
+    function approve(
+        address _spender,
+        address _token,
+        uint256 _value
+    ) external returns (bool success) {
+        _allowance[msg.sender][_spender][_token] = _value;
+
+        emit Approval(
+            msg.sender,
+            _spender,
+            _token,
+            _value
+        );
+
+        return true;
+    }
+
     function deposit(
         address _to,
-        address _currency,
+        address _token,
         uint256 _amount
     ) external payable returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
 
-        if (_currency == 0x0)
+        if (_token == ETH)
             require(_amount == msg.value, "The amount should be equal to msg.value");
         else
             require(
-                Token(_currency).transferFrom(
+                Token(_token).transferFrom(
                     msg.sender, address(this), _amount) &&
                     msg.value == 0,
                 "Error pulling tokens or send ETH, in deposit"
             );
         // Yes, this can overflow but who wants a token what has an astrological number of token?
-        balanceOf[_to][_currency] += _amount;
+        _balanceOf[_to][_token] += _amount;
 
-        emit Deposited(
+        emit Deposit(
             msg.sender,
             _to,
-            _currency,
+            _token,
             _amount
         );
 
@@ -77,24 +160,24 @@ contract BalanceManager is BalanceManagerEvents {
 
     function withdraw(
         address _to,
-        address _currency,
-        uint256 _amount
+        address _token,
+        uint256 _value
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(balanceOf[msg.sender][_currency] >= _amount, "Insufficient founds to discount");
+        require(_balanceOf[msg.sender][_token] >= _value, "Insufficient founds to discount");
 
-        balanceOf[msg.sender][_currency] -= _amount;
+        _balanceOf[msg.sender][_token] -= _value;
 
-        if (_currency == 0x0)
-            _to.transfer(_amount);
+        if (_token == ETH)
+            _to.transfer(_value);
         else
-            require(Token(_currency).transfer(_to, _amount), "Error transfer tokens, in withdraw");
+            require(Token(_token).transfer(_to, _value), "Error transfer tokens, in withdraw");
 
-        emit Withdrawed(
+        emit Withdraw(
             msg.sender,
             _to,
-            _currency,
-            _amount
+            _token,
+            _value
         );
 
         return true;
@@ -102,44 +185,22 @@ contract BalanceManager is BalanceManagerEvents {
 
     function withdrawAll(
         address _to,
-        address _currency
+        address _token
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        uint256 addrBal = balanceOf[msg.sender][_currency];
-        balanceOf[msg.sender][_currency] = 0;
+        uint256 addrBal = _balanceOf[msg.sender][_token];
+        _balanceOf[msg.sender][_token] = 0;
 
-        if (_currency == 0x0)
+        if (_token == ETH)
             _to.transfer(addrBal);
         else
-            require(Token(_currency).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
+            require(Token(_token).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
 
-        emit Withdrawed(
+        emit Withdraw(
             msg.sender,
             _to,
-            _currency,
+            _token,
             addrBal
-        );
-
-        return true;
-    }
-
-    function insideTransfer (
-        address _to,
-        address _currency,
-        uint256 _amount
-    ) external returns(bool) {
-        require(_to != 0x0, "_to should not be 0x0");
-        require(balanceOf[msg.sender][_currency] >= _amount, "Insufficient founds to transfer");// Here check underflow
-
-        balanceOf[msg.sender][_currency] -= _amount;
-        // Yes, this can overflow but who wants a token what has an astronomical number of token?
-        balanceOf[_to][_currency] += _amount;
-
-        emit InsideTransfered(
-            msg.sender,
-            _to,
-            _currency,
-            _amount
         );
 
         return true;
@@ -166,7 +227,7 @@ contract IdHelper {
 
     function buildId2(
         address _creator,
-        address _currency,
+        address _token,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
@@ -179,7 +240,7 @@ contract IdHelper {
                 uint8(2),
                 address(this),
                 _creator,
-                _currency,
+                _token,
                 _model,
                 _modelData,
                 _oracle,
@@ -206,77 +267,17 @@ contract IdHelper {
 }
 
 
-contract GamblingManagerEvents {
-    event Created(
-        address indexed _creator,
-        bytes32 indexed _id,
-        uint256 _nonce,
-        bytes _modelData,
-        bytes _oracleData
-    );
-
-    event Created2(
-        address indexed _creator,
-        bytes32 indexed _id,
-        uint256 _salt,
-        bytes _modelData,
-        bytes _oracleData
-    );
-
-    event Created3(
-        address indexed _creator,
-        bytes32 indexed _id,
-        uint256 _salt,
-        bytes _modelData,
-        bytes _oracleData
-    );
-
-    event Played(
-        bytes32 indexed _id,
-        bytes32 _option,
-        uint256 _amount,
-        bytes _oracleData
-    );
-
-    event CreatedPlayed(
-        address indexed _creator,
-        bytes32 indexed _id,
-        uint256 _nonce,
-        bytes _modelData,
-        bytes32 _option,
-        uint256 _amount,
-        bytes _oracleData
-    );
-
-    event Collected(
-        address indexed _collecter,
-        address indexed _player,
-        bytes32 indexed _id,
-        bytes32 _winner,
-        uint256 _amount
-    );
-
-    event Canceled(
-        address indexed _creator,
-        bytes32 indexed _id
-    );
-}
-
-
-contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Ownable {
+contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable {
     struct Bet {
-        address currency;
+        address token;
         uint256 balance;
-
         IModel model;
-        IOracle oracle;
-        bytes32 eventId;
     }
 
     mapping(bytes32 => Bet) public bets;
 
     function create(
-        address _currency,
+        address _token,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
@@ -294,9 +295,9 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
             )
         );
 
-        _create(
+        uint256 usedAmount = _create(
             betId,
-            _currency,
+            _token,
             _model,
             _modelData,
             _oracle,
@@ -307,6 +308,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         emit Created(
             msg.sender,
             betId,
+            usedAmount,
             nonce,
             _modelData,
             _oracleData
@@ -314,7 +316,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
     }
 
     function create2(
-        address _currency,
+        address _token,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
@@ -327,7 +329,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
                 uint8(2),
                 address(this),
                 msg.sender,
-                _currency,
+                _token,
                 _model,
                 _modelData,
                 _oracle,
@@ -337,9 +339,9 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
             )
         );
 
-        _create(
+        uint256 usedAmount = _create(
             betId,
-            _currency,
+            _token,
             _model,
             _modelData,
             _oracle,
@@ -350,6 +352,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         emit Created2(
             msg.sender,
             betId,
+            usedAmount,
             _salt,
             _modelData,
             _oracleData
@@ -357,7 +360,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
     }
 
     function create3(
-        address _currency,
+        address _token,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
@@ -374,9 +377,9 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
             )
         );
 
-        _create(
+        uint256 usedAmount = _create(
             betId,
-            _currency,
+            _token,
             _model,
             _modelData,
             _oracle,
@@ -387,6 +390,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         emit Created3(
             msg.sender,
             betId,
+            usedAmount,
             salt,
             _modelData,
             _oracleData
@@ -396,11 +400,10 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
     function play(
         bytes32 _betId,
         bytes32 _option,
+        uint256 _maxAmount,
         bytes _oracleData
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
-
-        require(bet.oracle.validatePlay(bet.eventId, _option, _oracleData), "Bet validation fail");
 
         uint256 needAmount = bet.model.playBet({
             _id: _betId,
@@ -410,10 +413,11 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
 
         // Substract balance from BalanceManager
         require(
-            balanceOf[msg.sender][bet.currency] >= needAmount,
-            "Insufficient founds to discount from wallet/contract"
+            _balanceOf[msg.sender][bet.token] >= needAmount &&
+            needAmount <= _maxAmount,
+            "Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount"
         );
-        balanceOf[msg.sender][bet.currency] -= needAmount;
+        _balanceOf[msg.sender][bet.token] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
 
@@ -427,79 +431,32 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
         return true;
     }
 
-    function createPlay(
-        address _currency,
-        IModel _model,
-        bytes _modelData,
-        IOracle _oracle,
-        bytes32 _eventId,
-        bytes32 _option,
-        bytes _oracleData
-    ) external returns(bytes32 betId) {
-        require(_oracle.validateCreatePlay(_eventId, _option, _oracleData), "Create and play validation fail");
-
-        uint256 nonce = nonces[msg.sender]++;
-        betId = keccak256(
-            abi.encodePacked(
-                uint8(1),
-                address(this),
-                msg.sender,
-                nonce
-            )
-        );
-
-        require(address(bets[betId].model) == 0x0, "The bet is already created");
-
-        uint256 needAmount = _model.createPlayBet({
-            _id: betId,
-            _player: msg.sender,
-            _option: _option,
-            _data: _modelData
-        });
-
-        // Substract balance from BalanceManager
-        require(balanceOf[msg.sender][_currency] >= needAmount, "Insufficient founds to discount from wallet/contract");
-        balanceOf[msg.sender][_currency] -= needAmount;
-
-        bets[betId] = Bet({
-            currency: _currency,
-            balance: needAmount,
-            model: _model,
-            oracle: _oracle,
-            eventId: _eventId
-        });
-
-        emit CreatedPlayed(
-            msg.sender,
-            betId,
-            nonce,
-            _modelData,
-            _option,
-            needAmount,
-            _oracleData
-        );
-    }
-
     function collect(
         bytes32 _betId,
-        address _player
+        address _player,
+        uint256 _tip
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
 
-        bytes32 winner = bet.oracle.whoWon(bet.eventId);
-        uint256 collectAmount = bet.model.collectBet(_betId, _player, winner);
+        uint256 collectAmount = bet.model.collectBet(_betId, _player);
+
+        // Send the tip to the owner
+        if (_tip != 0) {
+            require(collectAmount >= _tip, "Underflow");
+            collectAmount = collectAmount - _tip;
+            _balanceOf[owner][bet.token] += _tip;
+        }
 
         // Substract balance from Bet
         require(bet.balance >= collectAmount, "Insufficient founds to discount from bet balance");
         bet.balance -= collectAmount;
         // Add balance to BalanceManager
-        balanceOf[_player][bet.currency] += collectAmount;
+        _balanceOf[_player][bet.token] += collectAmount;
 
         emit Collected(
             msg.sender,
             _player,
             _betId,
-            winner,
             collectAmount
         );
 
@@ -517,7 +474,7 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
 
         if (bet.balance != 0) {
             // Add balance to BalanceManager
-            balanceOf[msg.sender][bet.currency] += bet.balance;
+            _balanceOf[msg.sender][bet.token] += bet.balance;
         }
 
         emit Canceled(
@@ -530,26 +487,35 @@ contract GamblingManager is BalanceManager, IdHelper, GamblingManagerEvents, Own
 
     function _create(
         bytes32 _betId,
-        address _currency,
+        address _token,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
         bytes32 _eventId,
         bytes _oracleData
-    ) internal {
-        require(address(bets[_betId].model) == 0x0, "The bet is already created");
+    ) internal returns(uint256 needAmount){
+        require(bets[_betId].model == IModel(0x0), "The bet is already created");
 
-        require(_oracle.validateCreate(_eventId, _oracleData), "Create validation fail");
+        needAmount = _model.createBet(
+            _betId,
+            _modelData,
+            _oracle,
+            _eventId,
+            _oracleData
+        );
 
-        _model.createBet(_betId, _modelData);
+        // Substract balance from BalanceManager
+        require(
+            _balanceOf[msg.sender][_token] >= needAmount,
+            "Insufficient founds to discount from wallet/contract"
+        );
+
+        _balanceOf[msg.sender][_token] -= needAmount;
 
         bets[_betId] = Bet({
-            currency: _currency,
-            balance: 0,
-            model: _model,
-            oracle: _oracle,
-            eventId: _eventId
+            token: _token,
+            balance: needAmount,
+            model: _model
         });
-        // TODO  pay to creator???
     }
 }
