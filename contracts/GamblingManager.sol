@@ -302,6 +302,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         emit Created(
             msg.sender,
             betId,
+            _token,
             usedAmount,
             nonce,
             _modelData,
@@ -346,6 +347,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         emit Created2(
             msg.sender,
             betId,
+            _token,
             usedAmount,
             _salt,
             _modelData,
@@ -384,6 +386,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         emit Created3(
             msg.sender,
             betId,
+            _token,
             usedAmount,
             salt,
             _modelData,
@@ -417,8 +420,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
         emit Played(
             _betId,
-            _option,
             needAmount,
+            _option,
             _oracleData
         );
 

@@ -5,6 +5,7 @@ contract IGamblingManager {
     event Created(
         address indexed _creator,
         bytes32 indexed _id,
+        address _token,
         uint256 _amount,
         uint256 _nonce,
         bytes _modelData,
@@ -14,6 +15,7 @@ contract IGamblingManager {
     event Created2(
         address indexed _creator,
         bytes32 indexed _id,
+        address _token,
         uint256 _amount,
         uint256 _salt,
         bytes _modelData,
@@ -23,6 +25,7 @@ contract IGamblingManager {
     event Created3(
         address indexed _creator,
         bytes32 indexed _id,
+        address _token,
         uint256 _amount,
         uint256 _salt,
         bytes _modelData,
@@ -31,18 +34,8 @@ contract IGamblingManager {
 
     event Played(
         bytes32 indexed _id,
-        bytes32 _option,
         uint256 _amount,
-        bytes _oracleData
-    );
-
-    event CreatedPlayed(
-        address indexed _creator,
-        bytes32 indexed _id,
-        uint256 _nonce,
-        bytes _modelData,
         bytes32 _option,
-        uint256 _amount,
         bytes _oracleData
     );
 
