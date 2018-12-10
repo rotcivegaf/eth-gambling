@@ -6,12 +6,11 @@ import "./interfaces/IGamblingManager.sol";
 import "./interfaces/IModel.sol";
 import "./interfaces/IOracle.sol";
 
+import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
 
 
 contract BalanceManager is IBalanceManager {
-    string private constant _name = "Ethereum Gambling Network";
-    string private constant _symbol = "EGN";
     // [wallet/contract, token] to balance
     mapping (address => mapping (address => uint256)) internal _toBalance;
 
@@ -33,13 +32,6 @@ contract BalanceManager is IBalanceManager {
         );
     }
 
-    function name() external view returns (string) {
-        return _name;
-    }
-
-    function symbol() external view returns (string) {
-        return _symbol;
-    }
 
     function totalSupply(address _token) external view returns (uint256 internalSupply) {
         return _token == ETH ? address(this).balance : Token(_token).balanceOf(address(this));
@@ -267,7 +259,7 @@ contract IdHelper {
 }
 
 
-contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable {
+contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable, ERC721Base {
     struct Bet {
         address token;
         uint256 balance;
@@ -275,6 +267,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable 
     }
 
     mapping(bytes32 => Bet) public bets;
+
+    constructor() public ERC721Base("Ethereum Gambling Network", "EGN") { }
 
     function create(
         address _token,
@@ -511,6 +505,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable 
         );
 
         _toBalance[msg.sender][_token] -= needAmount;
+
+        _generate(uint256(_betId), msg.sender);
 
         bets[_betId] = Bet({
             token: _token,
