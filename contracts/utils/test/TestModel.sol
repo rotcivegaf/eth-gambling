@@ -2,16 +2,18 @@ pragma solidity ^0.4.24;
 
 import "../../interfaces/IModel.sol";
 
+import "../BytesUtils.sol";
 
-contract TestModel is IModel {
+
+contract TestModel is IModel, BytesUtils {
     function createBet(
         bytes32,
-        bytes,
+        bytes _modelData,
         address,
         bytes32,
         bytes
     ) external returns(uint256) {
-
+        return uint256(readBytes32(_modelData, 0));
     }
 
     function playBet(
