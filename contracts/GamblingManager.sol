@@ -13,7 +13,7 @@ contract BalanceManager is IBalanceManager {
     string private constant _name = "Ethereum Gambling Network";
     string private constant _symbol = "EGN";
     // [wallet/contract, token] to balance
-    mapping (address => mapping (address => uint256)) internal _balanceOf;
+    mapping (address => mapping (address => uint256)) internal _toBalance;
 
     // [wallet/contract(owner), wallet/contract(spender), token] to _allowance
     mapping (address =>
@@ -23,7 +23,7 @@ contract BalanceManager is IBalanceManager {
     ) internal _allowance;
 
     function () public payable {
-        _balanceOf[msg.sender][ETH] += msg.value;
+        _toBalance[msg.sender][ETH] += msg.value;
 
         emit Deposit(
             msg.sender,
@@ -49,7 +49,7 @@ contract BalanceManager is IBalanceManager {
         address _owner,
         address _token
     ) external view returns (uint256) {
-        return _balanceOf[_owner][_token];
+        return _toBalance[_owner][_token];
     }
 
     function allowance(
@@ -67,12 +67,12 @@ contract BalanceManager is IBalanceManager {
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
 
-        // Here check toBalance underflow
-        require(_balanceOf[msg.sender][_token] >= _value, "Insufficient founds to transfer");
+        // Here check _toBalance underflow
+        require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to transfer");
 
-        _balanceOf[msg.sender][_token] -= _value;
+        _toBalance[msg.sender][_token] -= _value;
         // Yes, this can overflow but who wants a token what has an astronomical number of token?
-        _balanceOf[_to][_token] += _value;
+        _toBalance[_to][_token] += _value;
 
         emit Transfer(
             msg.sender,
@@ -96,11 +96,11 @@ contract BalanceManager is IBalanceManager {
         require(_allowance[_from][msg.sender][_token] >= _value, "Insufficient _allowance to transferFrom");
         _allowance[_from][msg.sender][_token] -= _value;
 
-        // Here check toBalance underflow
-        require(_balanceOf[_from][_token] >= _value, "Insufficient founds to transferFrom");
-        _balanceOf[_from][_token] -= _value;
+        // Here check _toBalance underflow
+        require(_toBalance[_from][_token] >= _value, "Insufficient founds to transferFrom");
+        _toBalance[_from][_token] -= _value;
         // Yes, this can overflow but who wants a token what has an astronomical number of token?
-        _balanceOf[_to][_token] += _value;
+        _toBalance[_to][_token] += _value;
 
         emit TransferFrom(
             _from,
@@ -146,7 +146,7 @@ contract BalanceManager is IBalanceManager {
                 "Error pulling tokens or send ETH, in deposit"
             );
         // Yes, this can overflow but who wants a token what has an astrological number of token?
-        _balanceOf[_to][_token] += _amount;
+        _toBalance[_to][_token] += _amount;
 
         emit Deposit(
             msg.sender,
@@ -164,9 +164,9 @@ contract BalanceManager is IBalanceManager {
         uint256 _value
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        require(_balanceOf[msg.sender][_token] >= _value, "Insufficient founds to discount");
+        require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to discount");
 
-        _balanceOf[msg.sender][_token] -= _value;
+        _toBalance[msg.sender][_token] -= _value;
 
         if (_token == ETH)
             _to.transfer(_value);
@@ -188,8 +188,8 @@ contract BalanceManager is IBalanceManager {
         address _token
     ) external returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
-        uint256 addrBal = _balanceOf[msg.sender][_token];
-        _balanceOf[msg.sender][_token] = 0;
+        uint256 addrBal = _toBalance[msg.sender][_token];
+        _toBalance[msg.sender][_token] = 0;
 
         if (_token == ETH)
             _to.transfer(addrBal);
@@ -413,11 +413,11 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable 
 
         // Substract balance from BalanceManager
         require(
-            _balanceOf[msg.sender][bet.token] >= needAmount &&
+            _toBalance[msg.sender][bet.token] >= needAmount &&
             needAmount <= _maxAmount,
             "Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount"
         );
-        _balanceOf[msg.sender][bet.token] -= needAmount;
+        _toBalance[msg.sender][bet.token] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
 
@@ -444,14 +444,14 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable 
         if (_tip != 0) {
             require(collectAmount >= _tip, "Underflow");
             collectAmount = collectAmount - _tip;
-            _balanceOf[owner][bet.token] += _tip;
+            _toBalance[owner][bet.token] += _tip;
         }
 
         // Substract balance from Bet
         require(bet.balance >= collectAmount, "Insufficient founds to discount from bet balance");
         bet.balance -= collectAmount;
         // Add balance to BalanceManager
-        _balanceOf[_player][bet.token] += collectAmount;
+        _toBalance[_player][bet.token] += collectAmount;
 
         emit Collected(
             msg.sender,
@@ -474,7 +474,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable 
 
         if (bet.balance != 0) {
             // Add balance to BalanceManager
-            _balanceOf[msg.sender][bet.token] += bet.balance;
+            _toBalance[msg.sender][bet.token] += bet.balance;
         }
 
         emit Canceled(
@@ -506,11 +506,11 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable 
 
         // Substract balance from BalanceManager
         require(
-            _balanceOf[msg.sender][_token] >= needAmount,
+            _toBalance[msg.sender][_token] >= needAmount,
             "Insufficient founds to discount from wallet/contract"
         );
 
-        _balanceOf[msg.sender][_token] -= needAmount;
+        _toBalance[msg.sender][_token] -= needAmount;
 
         bets[_betId] = Bet({
             token: _token,
