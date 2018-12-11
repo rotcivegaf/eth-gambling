@@ -6,11 +6,10 @@ import "../BytesUtils.sol";
 
 
 contract TestModel is IModel, BytesUtils {
-    function createBet(
+  function createBet(
         bytes32,
         bytes _modelData,
         address,
-        bytes32,
         bytes
     ) external returns(uint256) {
         return uint256(readBytes32(_modelData, 0));

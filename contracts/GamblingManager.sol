@@ -220,10 +220,10 @@ contract IdHelper {
     function buildId2(
         address _creator,
         address _token,
+        uint256 _tip,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
-        bytes32 _eventId,
         bytes _oracleData,
         uint256 _salt
     ) external view returns (bytes32) {
@@ -233,10 +233,10 @@ contract IdHelper {
                 address(this),
                 _creator,
                 _token,
+                _tip,
                 _model,
                 _modelData,
                 _oracle,
-                _eventId,
                 _oracleData,
                 _salt
             )
@@ -272,10 +272,10 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
     function create(
         address _token,
+        uint256 _tip,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
-        bytes32 _eventId,
         bytes _oracleData
     ) external returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
@@ -289,13 +289,13 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             )
         );
 
-        uint256 usedAmount = _create(
+        uint256 amount = _create(
             betId,
             _token,
+            _tip,
             _model,
             _modelData,
             _oracle,
-            _eventId,
             _oracleData
         );
 
@@ -303,19 +303,20 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             msg.sender,
             betId,
             _token,
-            usedAmount,
-            nonce,
+            amount,
+            _tip,
             _modelData,
-            _oracleData
+            _oracleData,
+            nonce
         );
     }
 
     function create2(
         address _token,
+        uint256 _tip,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
-        bytes32 _eventId,
         bytes _oracleData,
         uint256 _salt
     ) external returns (bytes32 betId) {
@@ -325,22 +326,22 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
                 address(this),
                 msg.sender,
                 _token,
+                _tip,
                 _model,
                 _modelData,
                 _oracle,
-                _eventId,
                 _oracleData,
                 _salt
             )
         );
 
-        uint256 usedAmount = _create(
+        uint256 amount = _create(
             betId,
             _token,
+            _tip,
             _model,
             _modelData,
             _oracle,
-            _eventId,
             _oracleData
         );
 
@@ -348,38 +349,39 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             msg.sender,
             betId,
             _token,
-            usedAmount,
-            _salt,
+            amount,
+            _tip,
             _modelData,
-            _oracleData
+            _oracleData,
+            _salt
         );
     }
 
     function create3(
         address _token,
+        uint256 _tip,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
-        bytes32 _eventId,
         bytes _oracleData,
-        uint256 salt
+        uint256 _salt
     ) external returns(bytes32 betId) {
         betId = keccak256(
             abi.encodePacked(
                 uint8(3),
                 address(this),
                 msg.sender,
-                salt
+                _salt
             )
         );
 
-        uint256 usedAmount = _create(
+        uint256 amount = _create(
             betId,
             _token,
+            _tip,
             _model,
             _modelData,
             _oracle,
-            _eventId,
             _oracleData
         );
 
@@ -387,10 +389,11 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             msg.sender,
             betId,
             _token,
-            usedAmount,
-            salt,
+            amount,
+            _tip,
             _modelData,
-            _oracleData
+            _oracleData,
+            _salt
         );
     }
 
@@ -485,35 +488,42 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     function _create(
         bytes32 _betId,
         address _token,
+        uint256 _tip,
         IModel _model,
         bytes _modelData,
         IOracle _oracle,
-        bytes32 _eventId,
         bytes _oracleData
-    ) internal returns(uint256 needAmount){
+    ) internal returns(uint256 amount){
         require(bets[_betId].model == IModel(0x0), "The bet is already created");
 
-        needAmount = _model.createBet(
+        amount = _model.createBet(
             _betId,
             _modelData,
             _oracle,
-            _eventId,
             _oracleData
         );
 
+        // Send the tip to the owner
+        uint256 totalAmount = amount;
+        if (_tip != 0) {
+            totalAmount += _tip;
+            require(totalAmount >= _tip, "Overflow");
+            _toBalance[owner][_token] += _tip;
+        }
+
         // Substract balance from BalanceManager
         require(
-            _toBalance[msg.sender][_token] >= needAmount,
+            _toBalance[msg.sender][_token] >= totalAmount,
             "Insufficient founds to discount from wallet/contract"
         );
 
-        _toBalance[msg.sender][_token] -= needAmount;
+        _toBalance[msg.sender][_token] -= totalAmount;
 
         _generate(uint256(_betId), msg.sender);
 
         bets[_betId] = Bet({
             token: _token,
-            balance: needAmount,
+            balance: amount,
             model: _model
         });
     }

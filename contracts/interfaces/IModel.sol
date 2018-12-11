@@ -7,7 +7,6 @@ contract IModel {
         bytes32 _id,
         bytes _modelData,
         address _oracle,
-        bytes32 _eventId,
         bytes _oracleData
     ) external returns(uint256 needAmount);
 

@@ -71,10 +71,6 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
         return true;
     }
 
-    function validateCreatePlay(bytes32, bytes32, bytes) external view returns(bool) {
-        // TODO
-    }
-
     function whoWon(bytes32 _gameId) external view returns(bytes32) {
         Game storage game = games[_gameId];
         require(

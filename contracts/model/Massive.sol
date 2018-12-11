@@ -41,11 +41,13 @@ contract Massive is IModel, DecodeData {
     }
 
     function createBet(
-        bytes32 _id,
-        bytes
-    ) external
+          bytes32 _id,
+          bytes,
+          address,
+          bytes
+      ) external
         onlyGamblingManager
-    {
+    returns(uint256) {
         // (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({
@@ -60,17 +62,6 @@ contract Massive is IModel, DecodeData {
     ) external
         onlyGamblingManager
     returns(uint256 needAmount) {
-        return 0;
-    }
-
-    function createPlayBet(
-        bytes32,
-        address,
-        bytes32,
-        bytes
-    ) external
-        onlyGamblingManager
-    returns(uint256) {
         return 0;
     }
 

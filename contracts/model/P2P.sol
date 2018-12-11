@@ -64,11 +64,13 @@ contract P2P is IModel, DecodeData {
     }
 
     function createBet(
-        bytes32 _id,
-        bytes _data
+        bytes32,
+        bytes,
+        address,
+        bytes
     ) external
         onlyGamblingManager
-    {
+    returns(uint256) {
         revert("Not implements");
     }
 
@@ -171,7 +173,7 @@ contract P2P is IModel, DecodeData {
 
     function cancelBet(
         bytes32 _betId,
-        address _player
+        address
     ) external
         onlyGamblingManager
     {

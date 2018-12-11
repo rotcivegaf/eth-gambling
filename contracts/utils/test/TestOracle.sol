@@ -18,11 +18,6 @@ contract TestOracle is IOracle, BytesUtils {
             return true;
     }
 
-    function validateCreatePlay(bytes32, bytes32, bytes _data) external view returns(bool) {
-        if (readBytes32(_data, 0) == TRUE)
-            return true;
-    }
-
     function whoWon(bytes32 _eventId) external view returns(bytes32) {
         return _eventId;
     }
