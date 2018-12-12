@@ -18,9 +18,10 @@ contract TestModel is IModel, BytesUtils {
     function playBet(
         bytes32,
         address,
-        bytes32
+        bytes _modelData,
+        bytes
     ) external returns(uint256) {
-
+        return uint256(readBytes32(_modelData, 0));
     }
 
     function collectBet(

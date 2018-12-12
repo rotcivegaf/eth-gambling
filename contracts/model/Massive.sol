@@ -58,7 +58,8 @@ contract Massive is IModel, DecodeData {
     function playBet(
         bytes32,
         address,
-        bytes32
+        bytes,
+        bytes
     ) external
         onlyGamblingManager
     returns(uint256 needAmount) {

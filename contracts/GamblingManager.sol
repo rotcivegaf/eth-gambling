@@ -399,8 +399,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
     function play(
         bytes32 _betId,
-        bytes32 _option,
         uint256 _maxAmount,
+        bytes _modelData,
         bytes _oracleData
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
@@ -408,7 +408,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         uint256 needAmount = bet.model.playBet({
             _id: _betId,
             _player: msg.sender,
-            _option: _option
+            _modelData: _modelData,
+            _oracleData: _oracleData
         });
 
         // Substract balance from BalanceManager
@@ -424,7 +425,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         emit Played(
             _betId,
             needAmount,
-            _option,
+            _modelData,
             _oracleData
         );
 

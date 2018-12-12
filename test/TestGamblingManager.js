@@ -1297,7 +1297,7 @@ contract('GamblingManager', function (accounts) {
                 (await balanceOf(creator, ETH)).should.be.bignumber.equal(prevBalGC.sub(totalAmount));
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
             });
-
+/*
             it('Function create with Token', async () => {
                 const nonce = await gamblingManager.nonces(creator);
 
@@ -1623,8 +1623,8 @@ contract('GamblingManager', function (accounts) {
                     'Overflow for higth tip'
                 );
             });
-        });
-/*
+    */    });
+
         describe('Function play', function () {
             it('Should play a bet with ETH', async () => {
                 const id = await gamblingManager.buildId(
@@ -1634,9 +1634,9 @@ contract('GamblingManager', function (accounts) {
 
                 await gamblingManager.create(
                     ETH,
-                    tip,
+                    '0',
                     model.address,
-                    RETURN_TRUE,
+                    bytes320x,
                     address0x,
                     bytes320x,
                     { from: creator }
@@ -1649,12 +1649,13 @@ contract('GamblingManager', function (accounts) {
                     { from: depositer, value: amount }
                 );
 
-                await savePrevBalances();
+                await saveETHPrevBalances();
 
                 const amountOption = toHexBytes32(6953);
                 const Played = await Helper.toEvents(
                     () => gamblingManager.play(
                         id,
+                        maxUint('256'),
                         amountOption,
                         bytes320x,
                         { from: player1 }
@@ -1663,8 +1664,8 @@ contract('GamblingManager', function (accounts) {
                 );
                 // For event
                 assert.equal(Played._id, id);
-                assert.equal(Played._option, amountOption);
-                Played._value.should.be.bignumber.equal(amountOption);
+                Played._amount.should.be.bignumber.equal(amountOption);
+                assert.equal(Played._modelData, amountOption);
                 assert.equal(Played._oracleData, bytes320x);
 
                 const bet = await gamblingManager.bets(id);
@@ -1673,14 +1674,10 @@ contract('GamblingManager', function (accounts) {
                 assert.equal(bet[I_MODEL], model.address);
 
                 // Check ETH balance
-                web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
                 (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.sub(amountOption));
-                // Check Token balance
-                (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
-                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
-                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T);
+                web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
             });
-
+/*
             it('Should play a bet with Token', async () => {
                 const id = await gamblingManager.buildId(
                     creator,
@@ -1689,9 +1686,9 @@ contract('GamblingManager', function (accounts) {
 
                 await gamblingManager.create(
                     token.address,
-                    tip,
+                    '0',
                     model.address,
-                    RETURN_TRUE,
+                    bytes320x,
                     address0x,
                     bytes320x,
                     { from: creator }
@@ -1746,9 +1743,9 @@ contract('GamblingManager', function (accounts) {
 
                 await gamblingManager.create(
                     ETH,
-                    tip,
+                    '0',
                     model.address,
-                    RETURN_TRUE,
+                    bytes320x,
                     address0x,
                     bytes320x,
                     { from: creator }
@@ -1781,9 +1778,9 @@ contract('GamblingManager', function (accounts) {
 
                 await gamblingManager.create(
                     ETH,
-                    tip,
+                    '0',
                     model.address,
-                    RETURN_TRUE,
+                    bytes320x,
                     address0x,
                     bytes320x,
                     { from: creator }
@@ -1815,9 +1812,9 @@ contract('GamblingManager', function (accounts) {
 
                 await gamblingManager.create(
                     token.address,
-                    tip,
+                    '0',
                     model.address,
-                    RETURN_TRUE,
+                    bytes320x,
                     address0x,
                     bytes320x,
                     { from: creator }
@@ -1848,9 +1845,9 @@ contract('GamblingManager', function (accounts) {
 
                 await gamblingManager.create(
                     token.address,
-                    tip,
+                    '0',
                     model.address,
-                    RETURN_TRUE,
+                    bytes320x,
                     address0x,
                     bytes320x,
                     { from: creator }
@@ -1871,9 +1868,9 @@ contract('GamblingManager', function (accounts) {
                     ),
                     'Insufficient founds to discount from wallet/contract'
                 );
-            });
+            });*/
         });
-
+/*
         describe('Function collect', function () {
             it('Should collect a bet in ETH', async () => {
                 const id = await gamblingManager.buildId(

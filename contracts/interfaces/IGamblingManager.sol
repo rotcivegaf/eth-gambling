@@ -38,7 +38,7 @@ contract IGamblingManager {
     event Played(
         bytes32 indexed _id,
         uint256 _amount,
-        bytes32 _option,
+        bytes _modelData,
         bytes _oracleData
     );
 

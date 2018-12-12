@@ -13,7 +13,8 @@ contract IModel {
     function playBet(
         bytes32 _id,
         address _player,
-        bytes32 _option
+        bytes _modelData,
+        bytes _oracleData
     ) external returns(uint256 needAmount);
 
     function collectBet(
