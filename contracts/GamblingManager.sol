@@ -507,7 +507,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         uint256 totalAmount = amount;
         if (_tip != 0) {
             totalAmount += _tip;
-            require(totalAmount >= _tip, "Overflow");
+            require(totalAmount >= _tip, "Overflow for higth tip");
             _toBalance[owner][_token] += _tip;
         }
 

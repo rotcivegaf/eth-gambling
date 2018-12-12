@@ -1609,9 +1609,20 @@ contract('GamblingManager', function (accounts) {
                 );
             });
 
-            // TODO if en _create
-
-
+            it('Try overflow with higth tip', async () => {
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.create(
+                        ETH,
+                        maxUint('256'),
+                        model.address,
+                        toHexBytes32(maxUint('256')),
+                        address0x,
+                        '',
+                        { from: creator }
+                    ),
+                    'Overflow for higth tip'
+                );
+            });
         });
 /*
         describe('Function play', function () {
