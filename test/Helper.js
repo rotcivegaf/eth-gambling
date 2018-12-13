@@ -29,7 +29,8 @@ module.exports.tryCatchRevert = async (promise, message) => {
         );
         return;
     }
-    assert.fail('Expected throw not received');
+    console.log('Expected throw not received');
+    assert.fail();
 };
 
 module.exports.toEvents = async (promise, ...events) => {

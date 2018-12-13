@@ -1297,7 +1297,7 @@ contract('GamblingManager', function (accounts) {
                 (await balanceOf(creator, ETH)).should.be.bignumber.equal(prevBalGC.sub(totalAmount));
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
             });
-/*
+
             it('Function create with Token', async () => {
                 const nonce = await gamblingManager.nonces(creator);
 
@@ -1623,7 +1623,7 @@ contract('GamblingManager', function (accounts) {
                     'Overflow for higth tip'
                 );
             });
-    */    });
+        });
 
         describe('Function play', function () {
             it('Should play a bet with ETH', async () => {
@@ -1677,7 +1677,7 @@ contract('GamblingManager', function (accounts) {
                 (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.sub(amountOption));
                 web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
             });
-/*
+
             it('Should play a bet with Token', async () => {
                 const id = await gamblingManager.buildId(
                     creator,
@@ -1703,70 +1703,35 @@ contract('GamblingManager', function (accounts) {
                     { from: depositer }
                 );
 
-                await savePrevBalances();
+                await saveTokenPrevBalances();
 
                 const amountOption = toHexBytes32(6953);
                 const Played = await Helper.toEvents(
                     () => gamblingManager.play(
                         id,
+                        maxUint('256'),
                         amountOption,
-                        RETURN_TRUE,
+                        bytes320x,
                         { from: player1 }
                     ),
                     'Played'
                 );
+
                 // For event
                 assert.equal(Played._id, id);
-                assert.equal(Played._option, amountOption);
-                Played._value.should.be.bignumber.equal(amountOption);
-                assert.equal(Played._oracleData, RETURN_TRUE);
+                Played._amount.should.be.bignumber.equal(amountOption);
+                assert.equal(Played._modelData, amountOption);
+                assert.equal(Played._oracleData, bytes320x);
 
                 const bet = await gamblingManager.bets(id);
                 assert.equal(bet[I_TOKEN], token.address);
                 bet[I_BALANCE].should.be.bignumber.equal(amountOption);
                 assert.equal(bet[I_MODEL], model.address);
 
-                // Check ETH balance
-                web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
-                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1);
                 // Check Token balance
-                (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
-                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
                 (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T.sub(amountOption));
-            });
-
-            it('Try play a bet and validation return false', async () => {
-                const id = await gamblingManager.buildId(
-                    creator,
-                    await gamblingManager.nonces(creator)
-                );
-
-                await gamblingManager.create(
-                    ETH,
-                    '0',
-                    model.address,
-                    bytes320x,
-                    address0x,
-                    bytes320x,
-                    { from: creator }
-                );
-
-                await gamblingManager.deposit(
-                    player1,
-                    ETH,
-                    amount,
-                    { from: depositer, value: amount }
-                );
-
-                await Helper.tryCatchRevert(
-                    () => gamblingManager.play(
-                        id,
-                        bytes320x,
-                        RETURN_FALSE,
-                        { from: player1 }
-                    ),
-                    'Bet validation fail'
-                );
+                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
+                (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
             });
 
             it('Try play a bet without ETH balance', async () => {
@@ -1792,14 +1757,52 @@ contract('GamblingManager', function (accounts) {
                     { from: player1 }
                 );
 
+                // Without balance
                 await Helper.tryCatchRevert(
                     () => gamblingManager.play(
                         id,
+                        maxUint('256'),
                         amountOption,
+                        bytes320x,
+                        { from: player1 }
+                    ),
+                    'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
+                );
+
+                await gamblingManager.deposit(
+                    player1,
+                    ETH,
+                    amount,
+                    { from: depositer, value: amount }
+                );
+
+                // With max amount low
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        0,
+                        amountOption,
+                        bytes320x,
+                        { from: player1 }
+                    ),
+                    'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
+                );
+
+                await gamblingManager.withdrawAll(
+                    accounts[8],
+                    ETH,
+                    { from: player1 }
+                );
+
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        maxUint('256'),
+                        toHexBytes32(-1),
                         RETURN_TRUE,
                         { from: player1 }
                     ),
-                    'Insufficient founds to discount from wallet/contract'
+                    'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
                 );
             });
 
@@ -1826,31 +1829,37 @@ contract('GamblingManager', function (accounts) {
                     { from: player1 }
                 );
 
+                // Without balance
                 await Helper.tryCatchRevert(
                     () => gamblingManager.play(
                         id,
+                        maxUint('256'),
                         amountOption,
-                        RETURN_TRUE,
+                        bytes320x,
                         { from: player1 }
                     ),
-                    'Insufficient founds to discount from wallet/contract'
-                );
-            });
-
-            it('Try overflow with the return of model.playBet', async () => {
-                const id = await gamblingManager.buildId(
-                    creator,
-                    await gamblingManager.nonces(creator)
+                    'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
                 );
 
-                await gamblingManager.create(
+                await token.setBalance(depositer, amount);
+                await token.approve(gamblingManager.address, amount, { from: depositer });
+                await gamblingManager.deposit(
+                    player1,
                     token.address,
-                    '0',
-                    model.address,
-                    bytes320x,
-                    address0x,
-                    bytes320x,
-                    { from: creator }
+                    amount,
+                    { from: depositer }
+                );
+
+                // With max amount low
+                await Helper.tryCatchRevert(
+                    () => gamblingManager.play(
+                        id,
+                        0,
+                        amountOption,
+                        bytes320x,
+                        { from: player1 }
+                    ),
+                    'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
                 );
 
                 await gamblingManager.withdrawAll(
@@ -1862,13 +1871,14 @@ contract('GamblingManager', function (accounts) {
                 await Helper.tryCatchRevert(
                     () => gamblingManager.play(
                         id,
+                        maxUint('256'),
                         toHexBytes32(-1),
                         RETURN_TRUE,
                         { from: player1 }
                     ),
-                    'Insufficient founds to discount from wallet/contract'
+                    'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
                 );
-            });*/
+            });
         });
 /*
         describe('Function collect', function () {
@@ -2312,6 +2322,7 @@ contract('GamblingManager', function (accounts) {
                 await Helper.tryCatchRevert(
                     () => gamblingManager.play(
                         id,
+                        maxUint('256'),
                         toHexBytes32(1),
                         RETURN_TRUE,
                         { from: creatorPlayer }
