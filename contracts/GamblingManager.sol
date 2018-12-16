@@ -405,7 +405,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
 
-        uint256 needAmount = bet.model.playBet({
+        uint256 needAmount = bet.model.play({
             _id: _betId,
             _player: msg.sender,
             _modelData: _modelData,
@@ -434,12 +434,14 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
     function collect(
         bytes32 _betId,
-        address _player,
-        uint256 _tip
+        address _beneficiary,
+        uint256 _tip,
+        bytes _modelData,
+        bytes _oracleData
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
 
-        uint256 collectAmount = bet.model.collectBet(_betId, _player);
+        uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _modelData, _oracleData);
 
         // Send the tip to the owner
         if (_tip != 0) {
@@ -465,11 +467,13 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function cancel(
-        bytes32 _betId
+        bytes32 _betId,
+        bytes _modelData,
+        bytes _oracleData
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
 
-        bet.model.cancelBet(_betId, msg.sender);
+        bet.model.cancel(_betId, msg.sender, _modelData, _oracleData);
 
         delete (bet.model);
 
@@ -497,7 +501,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     ) internal returns(uint256 amount){
         require(bets[_betId].model == IModel(0x0), "The bet is already created");
 
-        amount = _model.createBet(
+        amount = _model.create(
             _betId,
             _modelData,
             _oracle,

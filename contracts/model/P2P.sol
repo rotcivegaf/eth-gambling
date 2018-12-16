@@ -63,7 +63,7 @@ contract P2P is IModel, DecodeData {
         gamblingManager = _gamblingManager;
     }
 
-    function createBet(
+    function create(
         bytes32,
         bytes,
         address,
@@ -74,7 +74,7 @@ contract P2P is IModel, DecodeData {
         revert("Not implements");
     }
 
-    function playBet(
+    function play(
         bytes32 _betId,
         address _player,
         bytes,
@@ -100,7 +100,7 @@ contract P2P is IModel, DecodeData {
 
         @return The amount needed to place the bet
     */
-    function createPlayBet(
+    function createPlay(
         bytes32 _id,
         address _player,
         bytes32 _option,
@@ -134,23 +134,24 @@ contract P2P is IModel, DecodeData {
             anyone can collect a bet without be the player A or B.
 
         @param _player Who play the bet, can be the player A or B.
-        @param _winner Must be returned by the oracle of the bet,
-            it may be option A or B and if not, the bet is considered a draw.
 
         @return The amount that will be transferred to the _player
     */
-    function collectBet(
+    function collect(
         bytes32 _betId,
         address _player,
-        bytes32 _winner
+        bytes,
+        bytes
     ) external
         onlyGamblingManager
     returns(uint256 amount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB != 0x0, "The bet its not taken");
 
-
         require(bet.playerA == _player || bet.playerB == _player, "");
+    bytes32 _winner;
+    // @param _winner Must be returned by the oracle of the bet,
+    //     it may be option A or B and if not, the bet is considered a draw.
 
         if (_winner == bet.playerAOption && _player == bet.playerA) {
             amount = bet.playerAPay + bet.playerBPay;
@@ -172,9 +173,11 @@ contract P2P is IModel, DecodeData {
         bet.playerBPay = 0;
     }
 
-    function cancelBet(
+    function cancel(
         bytes32 _betId,
-        address
+        address,
+        bytes,
+        bytes
     ) external
         onlyGamblingManager
     {

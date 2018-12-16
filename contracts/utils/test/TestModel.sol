@@ -6,7 +6,7 @@ import "../BytesUtils.sol";
 
 
 contract TestModel is IModel, BytesUtils {
-  function createBet(
+  function create(
         bytes32,
         bytes _modelData,
         address,
@@ -15,7 +15,7 @@ contract TestModel is IModel, BytesUtils {
         return uint256(readBytes32(_modelData, 0));
     }
 
-    function playBet(
+    function play(
         bytes32,
         address,
         bytes _modelData,
@@ -24,16 +24,20 @@ contract TestModel is IModel, BytesUtils {
         return uint256(readBytes32(_modelData, 0));
     }
 
-    function collectBet(
+    function collect(
         bytes32,
-        address
+        address,
+        bytes _modelData,
+        bytes
     ) external returns(uint256) {
-
+        return uint256(readBytes32(_modelData, 0));
     }
 
-    function cancelBet(
+    function cancel(
         bytes32,
-        address
+        address,
+        bytes,
+        bytes
     ) external {
 
     }

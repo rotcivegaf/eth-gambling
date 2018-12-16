@@ -40,7 +40,7 @@ contract Massive is IModel, DecodeData {
         gamblingManager = _gamblingManager;
     }
 
-    function createBet(
+    function create(
           bytes32 _id,
           bytes,
           address,
@@ -55,7 +55,7 @@ contract Massive is IModel, DecodeData {
         });
     }
 
-    function playBet(
+    function play(
         bytes32,
         address,
         bytes,
@@ -66,19 +66,22 @@ contract Massive is IModel, DecodeData {
         return 0;
     }
 
-    function collectBet(
+    function collect(
         bytes32,
         address,
-        bytes32
+        bytes,
+        bytes
     ) external
         onlyGamblingManager
     returns(uint256 amount) {
         return 0;
     }
 
-    function cancelBet(
+    function cancel(
         bytes32,
-        address
+        address,
+        bytes,
+        bytes
     ) external
         onlyGamblingManager
     {
