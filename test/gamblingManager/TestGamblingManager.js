@@ -131,7 +131,7 @@ contract('GamblingManager', function (accounts) {
         token = await TestToken.new({ from: owner });
         model = await TestModel.new({ from: owner });
     });
-/*
+
     describe('IdHelper contract test', function () {
         it('function buildId', async () => {
             const nonce = bn('1515121');
@@ -871,7 +871,7 @@ contract('GamblingManager', function (accounts) {
             );
         });
     });
-*/
+
     describe('Function collect', function () {
         it('Should collect a bet', async () => {
             const id = await gamblingManager.buildId(
