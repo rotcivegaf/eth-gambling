@@ -44,9 +44,10 @@ contract IGamblingManager {
 
     event Collected(
         address indexed _collecter,
-        address indexed _player,
+        address indexed _beneficiary,
         bytes32 indexed _id,
-        uint256 _amount
+        uint256 _amount,
+        uint256 _tip
     );
 
     event Canceled(

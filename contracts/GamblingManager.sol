@@ -32,7 +32,6 @@ contract BalanceManager is IBalanceManager {
         );
     }
 
-
     function totalSupply(address _token) external view returns (uint256 internalSupply) {
         return _token == ETH ? address(this).balance : Token(_token).balanceOf(address(this));
     }
@@ -439,28 +438,27 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes _modelData,
         bytes _oracleData
     ) external returns(bool) {
+        require(_beneficiary != 0x0, "_beneficiary should not be 0x0");
         Bet storage bet = bets[_betId];
 
         uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _modelData, _oracleData);
+        require(collectAmount <= bet.balance && collectAmount >= _tip, "Insufficient founds to discount from bet balance");
 
         // Send the tip to the owner
-        if (_tip != 0) {
-            require(collectAmount >= _tip, "Underflow");
-            collectAmount = collectAmount - _tip;
+        if (_tip != 0)
             _toBalance[owner][bet.token] += _tip;
-        }
 
         // Substract balance from Bet
-        require(bet.balance >= collectAmount, "Insufficient founds to discount from bet balance");
         bet.balance -= collectAmount;
         // Add balance to BalanceManager
-        _toBalance[_player][bet.token] += collectAmount;
+        _toBalance[_beneficiary][bet.token] += collectAmount - _tip;
 
         emit Collected(
             msg.sender,
-            _player,
+            _beneficiary,
             _betId,
-            collectAmount
+            collectAmount,
+            _tip
         );
 
         return true;
@@ -532,4 +530,6 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             model: _model
         });
     }
+
+    // TODO create with ERC721
 }
