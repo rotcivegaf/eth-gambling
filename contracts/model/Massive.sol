@@ -84,6 +84,6 @@ contract Massive is IModel, DecodeData {
         bytes
     ) external
         onlyGamblingManager
-    {
+    returns(bool) {
     }
 }

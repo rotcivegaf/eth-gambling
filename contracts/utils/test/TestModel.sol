@@ -6,7 +6,9 @@ import "../BytesUtils.sol";
 
 
 contract TestModel is IModel, BytesUtils {
-  function create(
+    bytes32 public constant TRUE = 0x0000000000000000000000000000000000000000000000000000000000000001;
+
+    function create(
         bytes32,
         bytes _modelData,
         address,
@@ -36,9 +38,9 @@ contract TestModel is IModel, BytesUtils {
     function cancel(
         bytes32,
         address,
-        bytes,
+        bytes _modelData,
         bytes
-    ) external {
-
+    ) external returns(bool) {
+        return readBytes32(_modelData, 0) == TRUE;
     }
 }

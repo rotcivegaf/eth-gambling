@@ -180,7 +180,7 @@ contract P2P is IModel, DecodeData {
         bytes
     ) external
         onlyGamblingManager
-    {
+    returns(bool) {
         require(bets[_betId].playerB == 0x0, "The bet its taken");
     }
 }

@@ -919,6 +919,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Collected._id, id);
             Collected._amount.should.be.bignumber.equal(amountReturned);
             Collected._tip.should.be.bignumber.equal('0');
+            assert.equal(Collected._modelData, amountReturnedBytes32);
+            assert.equal(Collected._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
@@ -977,6 +979,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Collected._id, id);
             Collected._amount.should.be.bignumber.equal(amountReturned);
             Collected._tip.should.be.bignumber.equal(tip);
+            assert.equal(Collected._modelData, amountReturnedBytes32);
+            assert.equal(Collected._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
@@ -1075,37 +1079,49 @@ contract('GamblingManager', function (accounts) {
             );
         });
     });
-/*
+
     describe('Function cancel', function () {
-        it('Should cancel a bet in ETH without balance', async () => {
+        it('Should cancel a bet in ETH with 0 balance', async () => {
             const id = await gamblingManager.buildId(
                 creator,
                 await gamblingManager.nonces(creator)
             );
 
+            await gamblingManager.deposit(
+                creator,
+                ETH,
+                totalAmount,
+                { from: depositer, value: totalAmount }
+            );
+
             await gamblingManager.create(
                 ETH,
-                tip,
+                '0',
                 model.address,
-                RETURN_TRUE,
+                totalAmountBytes32,
                 address0x,
                 bytes320x,
                 { from: creator }
             );
 
-            await savePrevBalances();
+            await saveETHPrevBalances(id);
 
             const Canceled = await Helper.toEvents(
                 () => gamblingManager.cancel(
                     id,
-                    { from: creatorPlayer }
+                    RETURN_TRUE,
+                    bytes320x,
+                    { from: creator }
                 ),
                 'Canceled'
             );
 
             // For event
-            assert.equal(Canceled._creator, creatorPlayer);
+            assert.equal(Canceled._creator, creator);
             assert.equal(Canceled._id, id);
+            Canceled._amount.should.be.bignumber.equal(totalAmount);
+            assert.equal(Canceled._modelData, RETURN_TRUE);
+            assert.equal(Canceled._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
@@ -1113,227 +1129,128 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], address0x);
 
             // Check ETH balance
+            (await balanceOf(creator, ETH)).should.be.bignumber.equal(prevBalGC.plus(totalAmount));
             web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
-            (await balanceOf(creatorPlayer, ETH)).should.be.bignumber.equal(prevBalGCP);
-            // Check Token balance
-            (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
-            (await token.balanceOf(creatorPlayer)).should.be.bignumber.equal(prevBalCPT);
-            (await balanceOf(creatorPlayer, token.address)).should.be.bignumber.equal(prevBalGCPT);
         });
 
-        it('Should cancel a bet in ETH with balance', async () => {
-            const id = await gamblingManager.buildId(
-                creatorPlayer,
-                await gamblingManager.nonces(creatorPlayer)
-            );
-            const amountEvent = toHexBytes32(31233);
-
-            await gamblingManager.deposit(
-                creatorPlayer,
-                ETH,
-                amountEvent,
-                { from: depositer, value: amountEvent }
-            );
-
-            await gamblingManager.createPlay(
-                ETH, // token
-                model.address,
-                RETURN_TRUE, // modelData
-                address0x,
-                amountEvent, // eventId
-                amountEvent, // option
-                bytes320x, // oracleData
-                { from: creatorPlayer }
-            );
-
-            await savePrevBalances();
-
-            const Canceled = await Helper.toEvents(
-                () => gamblingManager.cancel(
-                    id,
-                    { from: creatorPlayer }
-                ),
-                'Canceled'
-            );
-
-            // For event
-            assert.equal(Canceled._creator, creatorPlayer);
-            assert.equal(Canceled._id, id);
-
-            const bet = await gamblingManager.bets(id);
-            assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(amountEvent);
-            assert.equal(bet[I_MODEL], address0x);
-
-            // Check ETH balance
-            web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
-            (await balanceOf(creatorPlayer, ETH)).should.be.bignumber.equal(prevBalGCP.plus(amountEvent));
-            // Check Token balance
-            (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
-            (await token.balanceOf(creatorPlayer)).should.be.bignumber.equal(prevBalCPT);
-            (await balanceOf(creatorPlayer, token.address)).should.be.bignumber.equal(prevBalGCPT);
-        });
-
-        it('Should cancel a bet in Token without balance', async () => {
+        it('Should cancel a bet in ETH with 0 balance', async () => {
             const id = await gamblingManager.buildId(
                 creator,
                 await gamblingManager.nonces(creator)
             );
 
             await gamblingManager.create(
-                token.address,
-                tip,
+                ETH,
+                '0',
                 model.address,
-                RETURN_TRUE,
+                bytes320x,
                 address0x,
                 bytes320x,
                 { from: creator }
             );
 
-            await savePrevBalances();
+            await saveETHPrevBalances(id);
 
             const Canceled = await Helper.toEvents(
                 () => gamblingManager.cancel(
                     id,
-                    { from: creatorPlayer }
+                    RETURN_TRUE,
+                    bytes320x,
+                    { from: creator }
                 ),
                 'Canceled'
             );
 
             // For event
-            assert.equal(Canceled._creator, creatorPlayer);
+            assert.equal(Canceled._creator, creator);
             assert.equal(Canceled._id, id);
+            Canceled._amount.should.be.bignumber.equal(bn(0));
+            assert.equal(Canceled._modelData, RETURN_TRUE);
+            assert.equal(Canceled._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
-            assert.equal(bet[I_TOKEN], token.address);
+            assert.equal(bet[I_TOKEN], ETH);
             bet[I_BALANCE].should.be.bignumber.equal(bn(0));
             assert.equal(bet[I_MODEL], address0x);
 
             // Check ETH balance
+            (await balanceOf(creator, ETH)).should.be.bignumber.equal(prevBalGC);
             web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
-            (await balanceOf(creatorPlayer, ETH)).should.be.bignumber.equal(prevBalGCP);
-            // Check Token balance
-            (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
-            (await token.balanceOf(creatorPlayer)).should.be.bignumber.equal(prevBalCPT);
-            (await balanceOf(creatorPlayer, token.address)).should.be.bignumber.equal(prevBalGCPT);
         });
 
-        it('Should cancel a bet in Token with balance', async () => {
+        it('Try cancel a canceled or unexist bet', async () => {
             const id = await gamblingManager.buildId(
-                creatorPlayer,
-                await gamblingManager.nonces(creatorPlayer)
+                creator,
+                await gamblingManager.nonces(creator)
             );
-            const amountEvent = toHexBytes32(31233);
 
-            await token.setBalance(depositer, amountEvent);
-            await token.approve(gamblingManager.address, amountEvent, { from: depositer });
-
-            await gamblingManager.deposit(
-                creatorPlayer,
+            await gamblingManager.create(
                 ETH,
-                amountEvent,
-                { from: depositer, value: amountEvent }
-            );
-
-            await gamblingManager.createPlay(
-                token.address, // token
+                '0',
                 model.address,
-                RETURN_TRUE, // modelData
+                bytes320x,
                 address0x,
-                amountEvent, // eventId
-                amountEvent, // option
-                bytes320x, // oracleData
-                { from: creatorPlayer }
-            );
-
-            await savePrevBalances();
-
-            const Canceled = await Helper.toEvents(
-                () => gamblingManager.cancel(
-                    id,
-                    { from: creatorPlayer }
-                ),
-                'Canceled'
-            );
-
-            // For event
-            assert.equal(Canceled._creator, creatorPlayer);
-            assert.equal(Canceled._id, id);
-
-            const bet = await gamblingManager.bets(id);
-            assert.equal(bet[I_TOKEN], token.address);
-            bet[I_BALANCE].should.be.bignumber.equal(amountEvent);
-            assert.equal(bet[I_MODEL], address0x);
-
-            // Check ETH balance
-            web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
-            (await balanceOf(creatorPlayer, ETH)).should.be.bignumber.equal(prevBalGCP);
-            // Check Token balance
-            (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
-            (await token.balanceOf(creatorPlayer)).should.be.bignumber.equal(prevBalCPT);
-            (await balanceOf(creatorPlayer, token.address)).should.be.bignumber.equal(prevBalGCPT.plus(amountEvent));
-        });
-
-        it('Try play, collect, cancel a cancel Bet', async () => {
-            const id = await gamblingManager.buildId(
-                creatorPlayer,
-                await gamblingManager.nonces(creatorPlayer)
-            );
-            const amountEvent = toHexBytes32(31233);
-
-            await gamblingManager.deposit(
-                creatorPlayer,
-                ETH,
-                amountEvent,
-                { from: depositer, value: amountEvent }
-            );
-
-            await gamblingManager.createPlay(
-                ETH, // token
-                model.address,
-                RETURN_TRUE, // modelData
-                address0x,
-                amountEvent, // eventId
-                amountEvent, // option
-                bytes320x, // oracleData
-                { from: creatorPlayer }
+                bytes320x,
+                { from: creator }
             );
 
             await gamblingManager.cancel(
                 id,
-                { from: creatorPlayer }
+                RETURN_TRUE,
+                bytes320x,
+                { from: creator }
             );
 
-            // play a canceled bet
-            await Helper.tryCatchRevert(
-                () => gamblingManager.play(
-                    id,
-                    maxUint('256'),
-                    toHexBytes32(1),
-                    RETURN_TRUE,
-                    { from: creatorPlayer }
-                ),
-                ''
-            );
-            // collect a canceled bet
-            await Helper.tryCatchRevert(
-                () => gamblingManager.collect(
-                    id,
-                    creatorPlayer,
-                    { from: creatorPlayer }
-                ),
-                ''
-            );
-            // cancel a canceled bet
+            // Canceled bet
             await Helper.tryCatchRevert(
                 () => gamblingManager.cancel(
                     id,
-                    { from: creatorPlayer }
+                    RETURN_TRUE,
+                    bytes320x,
+                    { from: creator }
                 ),
-                ''
+                'The bet its not exist or was canceled'
+            );
+
+            // unexist bet
+            await Helper.tryCatchRevert(
+                () => gamblingManager.cancel(
+                    bytes320x,
+                    RETURN_TRUE,
+                    bytes320x,
+                    { from: creator }
+                ),
+                'The bet its not exist or was canceled'
             );
         });
-    });*/
+
+        it('Try cancel a bet and model return false', async () => {
+            const id = await gamblingManager.buildId(
+                creator,
+                await gamblingManager.nonces(creator)
+            );
+
+            await gamblingManager.create(
+                ETH,
+                '0',
+                model.address,
+                bytes320x,
+                address0x,
+                bytes320x,
+                { from: creator }
+            );
+
+            await Helper.tryCatchRevert(
+                () => gamblingManager.cancel(
+                    id,
+                    bytes320x,
+                    bytes320x,
+                    { from: creator }
+                ),
+                'The bet cant cancel'
+            );
+        });
+    });
 
     it('Name and symbol functions', async () => {
         assert.equal(await gamblingManager.name(), 'Ethereum Gambling Network');

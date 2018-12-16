@@ -458,7 +458,9 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _beneficiary,
             _betId,
             collectAmount,
-            _tip
+            _tip,
+            _modelData,
+            _oracleData
         );
 
         return true;
@@ -470,19 +472,22 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes _oracleData
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
+        require(bet.model != address(0x0), "The bet its not exist or was canceled");
 
-        bet.model.cancel(_betId, msg.sender, _modelData, _oracleData);
+        require(bet.model.cancel(_betId, msg.sender, _modelData, _oracleData), "The bet cant cancel");
 
         delete (bet.model);
 
-        if (bet.balance != 0) {
-            // Add balance to BalanceManager
-            _toBalance[msg.sender][bet.token] += bet.balance;
-        }
+        uint256 balance = bet.balance;
+        bet.balance = 0;
+        _toBalance[msg.sender][bet.token] += balance;
 
         emit Canceled(
             msg.sender,
-            _betId
+            _betId,
+            balance,
+            _modelData,
+            _oracleData
         );
 
         return true;

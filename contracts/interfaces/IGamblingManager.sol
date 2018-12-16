@@ -47,11 +47,16 @@ contract IGamblingManager {
         address indexed _beneficiary,
         bytes32 indexed _id,
         uint256 _amount,
-        uint256 _tip
+        uint256 _tip,
+        bytes _modelData,
+        bytes _oracleData
     );
 
     event Canceled(
         address indexed _creator,
-        bytes32 indexed _id
+        bytes32 indexed _id,
+        uint256 _amount,
+        bytes _modelData,
+        bytes _oracleData
     );
 }

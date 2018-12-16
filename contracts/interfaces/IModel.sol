@@ -29,5 +29,5 @@ contract IModel {
         address _player,
         bytes _modelData,
         bytes _oracleData
-    ) external;
+    ) external returns(bool success);
 }
