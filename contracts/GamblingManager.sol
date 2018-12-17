@@ -283,7 +283,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes _modelData,
         IOracle _oracle,
         bytes _oracleData
-    ) external returns (bytes32 betId) {
+    ) external payable returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
         betId = keccak256(
@@ -325,7 +325,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IOracle _oracle,
         bytes _oracleData,
         uint256 _salt
-    ) external returns (bytes32 betId) {
+    ) external payable returns (bytes32 betId) {
         betId = keccak256(
             abi.encodePacked(
                 uint8(2),
@@ -371,7 +371,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IOracle _oracle,
         bytes _oracleData,
         uint256 _salt
-    ) external returns(bytes32 betId) {
+    ) external payable returns(bytes32 betId) {
         betId = keccak256(
             abi.encodePacked(
                 uint8(3),
@@ -408,7 +408,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         uint256 _maxAmount,
         bytes _modelData,
         bytes _oracleData
-    ) external returns(bool) {
+    ) external payable returns(bool) {
         Bet storage bet = bets[_betId];
 
         uint256 needAmount = bet.model.play({
@@ -418,12 +418,12 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _oracleData: _oracleData
         });
 
-        // Substract balance from BalanceManager
-        require(
-            _toBalance[msg.sender][bet.token] >= needAmount &&
-            needAmount <= _maxAmount,
-            "Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount"
-        );
+        require(needAmount <= _maxAmount, "The needAmount should be less than _maxAmount");
+
+
+        if (_toBalance[msg.sender][bet.token] < needAmount)
+            _deposit(msg.sender, bet.token, needAmount - _toBalance[msg.sender][bet.token]);
+
         _toBalance[msg.sender][bet.token] -= needAmount;
         // Add balance to Bet
         bet.balance += needAmount;
@@ -451,12 +451,13 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _modelData, _oracleData);
         require(collectAmount <= bet.balance && collectAmount >= _tip, "Insufficient founds to discount from bet balance");
 
+        // Substract balance from Bet
+        bet.balance -= collectAmount + _tip;
+
         // Send the tip to the owner
         if (_tip != 0)
             _toBalance[owner][bet.token] += _tip;
 
-        // Substract balance from Bet
-        bet.balance -= collectAmount;
         // Add balance to BalanceManager
         _toBalance[_beneficiary][bet.token] += collectAmount - _tip;
 
@@ -526,11 +527,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _toBalance[owner][_token] += _tip;
         }
 
-        // Substract balance from BalanceManager
-        require(
-            _toBalance[msg.sender][_token] >= totalAmount,
-            "Insufficient founds to discount from wallet/contract"
-        );
+        if (_toBalance[msg.sender][_token] < totalAmount)
+            _deposit(msg.sender, _token, totalAmount - _toBalance[msg.sender][_token]);
 
         _toBalance[msg.sender][_token] -= totalAmount;
 
