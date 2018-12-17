@@ -14,17 +14,14 @@ function bn (number) {
     return new BigNumber(number);
 }
 
-function maxUint (base) {
-    return bn('2').pow(bn(base)).sub(bn('1'));
-}
-
 const balanceOfSignature = Web3Utils.soliditySha3({ t: 'string', v: 'balanceOf(address,address)' }).slice(0, 10);
 const approveSignature = Web3Utils.soliditySha3({ t: 'string', v: 'approve(address,address,uint256)' }).slice(0, 10);
 
 const ETH = Web3Utils.padLeft('0x0', 40);
 const address0x = Web3Utils.padLeft('0x0', 40);
 
-const amount = bn('10000');
+const minAmount = bn('1');
+const maxAmount = bn('2').pow(bn('256')).sub(bn('1'));
 
 contract('BalanceManager', function (accounts) {
     const player1 = accounts[2];
@@ -98,23 +95,21 @@ contract('BalanceManager', function (accounts) {
             web3.eth.sendTransaction({
                 from: player1,
                 to: balanceManager.address,
-                value: amount,
+                value: minAmount,
             });
 
             // Check ETH balance
-            web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.plus(amount));
-            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.plus(amount));
+            web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.plus(minAmount));
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.plus(minAmount));
         });
 
         describe('function transfer', function () {
-            const transferAmount = bn('4567');
-
             it('Transfer ETH', async () => {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await saveETHPrevBalances();
@@ -124,7 +119,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.transfer(
                         player2,
                         ETH,
-                        transferAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Transfer'
@@ -133,23 +128,56 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Transfer._from, player1);
                 assert.equal(Transfer._to, player2);
                 assert.equal(Transfer._token, ETH);
-                Transfer._value.should.be.bignumber.equal(transferAmount);
+                Transfer._value.should.be.bignumber.equal(minAmount);
 
                 // Check ETH balance
                 web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM);
-                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(transferAmount));
-                (await balanceOf(player2, ETH)).should.be.bignumber.equal(prevBalBMP2.plus(transferAmount));
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(minAmount));
+                (await balanceOf(player2, ETH)).should.be.bignumber.equal(prevBalBMP2.plus(minAmount));
+                web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal);
+            });
+
+            it('Transfer half amount of balance in ETH', async () => {
+                await balanceManager.deposit(
+                    player1,
+                    ETH,
+                    bn('2'),
+                    { from: depositer, value: bn('2') }
+                );
+
+                await saveETHPrevBalances();
+                const prevPlayer2Bal = web3.eth.getBalance(player2);
+
+                const Transfer = await Helper.toEvents(
+                    () => balanceManager.transfer(
+                        player2,
+                        ETH,
+                        minAmount,
+                        { from: player1 }
+                    ),
+                    'Transfer'
+                );
+                // For event
+                assert.equal(Transfer._from, player1);
+                assert.equal(Transfer._to, player2);
+                assert.equal(Transfer._token, ETH);
+                Transfer._value.should.be.bignumber.equal(minAmount);
+
+                // Check ETH balance
+                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM);
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(minAmount));
+                (await balanceOf(player2, ETH)).should.be.bignumber.equal(prevBalBMP2.plus(minAmount));
                 web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal);
             });
 
             it('Transfer Token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -159,7 +187,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.transfer(
                         player2,
                         token.address,
-                        transferAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Transfer'
@@ -168,41 +196,77 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Transfer._from, player1);
                 assert.equal(Transfer._to, player2);
                 assert.equal(Transfer._token, token.address);
-                Transfer._value.should.be.bignumber.equal(transferAmount);
+                Transfer._value.should.be.bignumber.equal(minAmount);
 
                 // Check Token balance
                 (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT);
                 (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
                 (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T);
-                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(transferAmount));
-                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T.plus(transferAmount));
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(minAmount));
+                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T.plus(minAmount));
+            });
+
+            it('Transfer half amount of balance in Token', async () => {
+                await token.setBalance(depositer, bn('2'));
+                await token.approve(balanceManager.address, bn('2'), { from: depositer });
+
+                await balanceManager.deposit(
+                    player1,
+                    token.address,
+                    bn('2'),
+                    { from: depositer }
+                );
+
+                await saveTokenPrevBalances();
+
+                const Transfer = await Helper.toEvents(
+                    () => balanceManager.transfer(
+                        player2,
+                        token.address,
+                        minAmount,
+                        { from: player1 }
+                    ),
+                    'Transfer'
+                );
+                // For event
+                assert.equal(Transfer._from, player1);
+                assert.equal(Transfer._to, player2);
+                assert.equal(Transfer._token, token.address);
+                Transfer._value.should.be.bignumber.equal(minAmount);
+
+                // Check Token balance
+                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT);
+                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
+                (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T);
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(minAmount));
+                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T.plus(minAmount));
             });
 
             it('Try transfer to address 0x0', async () => {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await Helper.tryCatchRevert(
                     () => balanceManager.transfer(
                         address0x,
                         ETH,
-                        transferAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     '_to should not be 0x0'
                 );
 
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -210,7 +274,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.transfer(
                         address0x,
                         token.address,
-                        transferAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     '_to should not be 0x0'
@@ -228,7 +292,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.transfer(
                         player2,
                         ETH,
-                        transferAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Insufficient founds to transfer'
@@ -246,7 +310,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.transfer(
                         player2,
                         token.address,
-                        transferAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Insufficient founds to transfer'
@@ -255,14 +319,12 @@ contract('BalanceManager', function (accounts) {
         });
 
         describe('function transferFrom', function () {
-            const transferAmount = amount.dividedToIntegerBy(4);
-
             it('TransferFrom ETH', async () => {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await saveETHPrevBalances();
@@ -271,7 +333,7 @@ contract('BalanceManager', function (accounts) {
                 await approve(
                     approved,
                     ETH,
-                    transferAmount,
+                    minAmount,
                     player1
                 );
 
@@ -282,7 +344,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         player2,
                         ETH,
-                        transferAmount,
+                        minAmount,
                         { from: approved }
                     ),
                     'TransferFrom'
@@ -291,26 +353,72 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(TransferFrom._from, player1);
                 assert.equal(TransferFrom._to, player2);
                 assert.equal(TransferFrom._token, ETH);
-                TransferFrom._value.should.be.bignumber.equal(transferAmount);
+                TransferFrom._value.should.be.bignumber.equal(minAmount);
 
                 // Check _allowance
-                (await balanceManager.allowance(player1, approved, ETH)).should.be.bignumber.equal(prevAllowance.sub(transferAmount));
+                (await balanceManager.allowance(player1, approved, ETH)).should.be.bignumber.equal(prevAllowance.sub(minAmount));
 
                 // Check ETH balance
                 web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM);
-                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(transferAmount));
-                (await balanceOf(player2, ETH)).should.be.bignumber.equal(prevBalBMP2.plus(transferAmount));
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(minAmount));
+                (await balanceOf(player2, ETH)).should.be.bignumber.equal(prevBalBMP2.plus(minAmount));
+                web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal);
+            });
+
+            it('TransferFrom half amount of balance in ETH', async () => {
+                await balanceManager.deposit(
+                    player1,
+                    ETH,
+                    bn('2'),
+                    { from: depositer, value: bn('2') }
+                );
+
+                await saveETHPrevBalances();
+                const prevPlayer2Bal = web3.eth.getBalance(player2);
+
+                await approve(
+                    approved,
+                    ETH,
+                    minAmount,
+                    player1
+                );
+
+                const prevAllowance = await balanceManager.allowance(player1, approved, ETH);
+
+                const TransferFrom = await Helper.toEvents(
+                    () => balanceManager.transferFrom(
+                        player1,
+                        player2,
+                        ETH,
+                        minAmount,
+                        { from: approved }
+                    ),
+                    'TransferFrom'
+                );
+                // For event
+                assert.equal(TransferFrom._from, player1);
+                assert.equal(TransferFrom._to, player2);
+                assert.equal(TransferFrom._token, ETH);
+                TransferFrom._value.should.be.bignumber.equal(minAmount);
+
+                // Check _allowance
+                (await balanceManager.allowance(player1, approved, ETH)).should.be.bignumber.equal(prevAllowance.sub(minAmount));
+
+                // Check ETH balance
+                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM);
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(minAmount));
+                (await balanceOf(player2, ETH)).should.be.bignumber.equal(prevBalBMP2.plus(minAmount));
                 web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal);
             });
 
             it('TransferFrom Token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -319,7 +427,7 @@ contract('BalanceManager', function (accounts) {
                 await approve(
                     approved,
                     token.address,
-                    transferAmount,
+                    minAmount,
                     player1
                 );
 
@@ -330,7 +438,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         player2,
                         token.address,
-                        transferAmount,
+                        minAmount,
                         { from: approved }
                     ),
                     'TransferFrom'
@@ -339,31 +447,80 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(TransferFrom._from, player1);
                 assert.equal(TransferFrom._to, player2);
                 assert.equal(TransferFrom._token, token.address);
-                TransferFrom._value.should.be.bignumber.equal(transferAmount);
+                TransferFrom._value.should.be.bignumber.equal(minAmount);
 
                 // Check _allowance
-                (await balanceManager.allowance(player1, approved, token.address)).should.be.bignumber.equal(prevAllowance.sub(transferAmount));
+                (await balanceManager.allowance(player1, approved, token.address)).should.be.bignumber.equal(prevAllowance.sub(minAmount));
 
                 // Check Token balance
                 (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT);
                 (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
                 (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T);
-                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(transferAmount));
-                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T.plus(transferAmount));
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(minAmount));
+                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T.plus(minAmount));
+            });
+
+            it('TransferFrom half amount of balance in Token', async () => {
+                await token.setBalance(depositer, bn('2'));
+                await token.approve(balanceManager.address, bn('2'), { from: depositer });
+
+                await balanceManager.deposit(
+                    player1,
+                    token.address,
+                    bn('2'),
+                    { from: depositer }
+                );
+
+                await saveTokenPrevBalances();
+
+                await approve(
+                    approved,
+                    token.address,
+                    minAmount,
+                    player1
+                );
+
+                const prevAllowance = await balanceManager.allowance(player1, approved, token.address);
+
+                const TransferFrom = await Helper.toEvents(
+                    () => balanceManager.transferFrom(
+                        player1,
+                        player2,
+                        token.address,
+                        minAmount,
+                        { from: approved }
+                    ),
+                    'TransferFrom'
+                );
+                // For event
+                assert.equal(TransferFrom._from, player1);
+                assert.equal(TransferFrom._to, player2);
+                assert.equal(TransferFrom._token, token.address);
+                TransferFrom._value.should.be.bignumber.equal(minAmount);
+
+                // Check _allowance
+                (await balanceManager.allowance(player1, approved, token.address)).should.be.bignumber.equal(prevAllowance.sub(minAmount));
+
+                // Check Token balance
+                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT);
+                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
+                (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T);
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(minAmount));
+                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T.plus(minAmount));
             });
 
             it('Try TransferFrom to address 0x0', async () => {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await approve(
                     approved,
                     ETH,
-                    transferAmount,
+                    minAmount,
                     player1
                 );
 
@@ -372,26 +529,26 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         address0x,
                         ETH,
-                        transferAmount,
+                        minAmount,
                         { from: approved }
                     ),
                     '_to should not be 0x0'
                 );
 
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
                 await approve(
                     approved,
                     token.address,
-                    transferAmount,
+                    minAmount,
                     player1
                 );
 
@@ -400,7 +557,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         address0x,
                         token.address,
-                        transferAmount,
+                        minAmount,
                         { from: approved }
                     ),
                     '_to should not be 0x0'
@@ -411,14 +568,14 @@ contract('BalanceManager', function (accounts) {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await approve(
                     approved,
                     ETH,
-                    transferAmount,
+                    '0',
                     player1
                 );
 
@@ -427,26 +584,26 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         player2,
                         ETH,
-                        amount,
+                        minAmount,
                         { from: approved }
                     ),
                     'Insufficient _allowance to transferFrom'
                 );
 
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
                 await approve(
                     approved,
                     token.address,
-                    transferAmount,
+                    '0',
                     player1
                 );
 
@@ -455,7 +612,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         player2,
                         token.address,
-                        amount,
+                        minAmount,
                         { from: approved }
                     ),
                     'Insufficient _allowance to transferFrom'
@@ -472,7 +629,7 @@ contract('BalanceManager', function (accounts) {
                 await approve(
                     approved,
                     ETH,
-                    transferAmount,
+                    minAmount,
                     player1
                 );
 
@@ -481,7 +638,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         player2,
                         ETH,
-                        transferAmount,
+                        minAmount,
                         { from: approved }
                     ),
                     'Insufficient founds to transferFrom'
@@ -498,7 +655,7 @@ contract('BalanceManager', function (accounts) {
                 await approve(
                     approved,
                     token.address,
-                    transferAmount,
+                    minAmount,
                     player1
                 );
 
@@ -507,7 +664,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         player2,
                         token.address,
-                        transferAmount,
+                        minAmount,
                         { from: approved }
                     ),
                     'Insufficient founds to transferFrom'
@@ -516,7 +673,6 @@ contract('BalanceManager', function (accounts) {
         });
 
         describe('function approve', function () {
-            const approveAmount = bn('98959514');
             it('Approve ETH', async () => {
                 await saveETHPrevBalances();
                 const prevPlayer2Bal = web3.eth.getBalance(player2);
@@ -524,7 +680,7 @@ contract('BalanceManager', function (accounts) {
                 const txHash = await approve(
                     approved,
                     ETH,
-                    approveAmount,
+                    minAmount,
                     player1
                 );
                 // For event
@@ -535,10 +691,10 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(logs.topics[2], Web3Utils.padLeft(approved, 64));
                 assert.equal(logs.data.slice(0, 66), Web3Utils.padLeft(ETH, 64));
                 const value = Web3Utils.hexToNumberString('0x' + logs.data.slice(66));
-                assert.equal(value, approveAmount.toString());
+                assert.equal(value, minAmount.toString());
 
                 // Check _allowance
-                (await balanceManager.allowance(player1, approved, ETH)).should.be.bignumber.equal(approveAmount);
+                (await balanceManager.allowance(player1, approved, ETH)).should.be.bignumber.equal(minAmount);
 
                 // Check ETH balance
                 web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM);
@@ -553,7 +709,7 @@ contract('BalanceManager', function (accounts) {
                 const txHash = await approve(
                     approved,
                     token.address,
-                    approveAmount,
+                    minAmount,
                     player1
                 );
 
@@ -565,10 +721,10 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(logs.topics[2], Web3Utils.padLeft(approved, 64));
                 assert.equal(logs.data.slice(0, 66), Web3Utils.padLeft(token.address, 64));
                 const value = Web3Utils.hexToNumberString('0x' + logs.data.slice(66));
-                assert.equal(value, approveAmount.toString());
+                assert.equal(value, minAmount.toString());
 
                 // Check _allowance
-                (await balanceManager.allowance(player1, approved, token.address)).should.be.bignumber.equal(approveAmount);
+                (await balanceManager.allowance(player1, approved, token.address)).should.be.bignumber.equal(minAmount);
 
                 // Check Token balance
                 (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT);
@@ -586,8 +742,8 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.deposit(
                         player1,
                         ETH,
-                        amount,
-                        { from: depositer, value: amount }
+                        minAmount,
+                        { from: depositer, value: minAmount }
                     ),
                     'Deposit'
                 );
@@ -595,16 +751,16 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Deposit._from, depositer);
                 assert.equal(Deposit._to, player1);
                 assert.equal(Deposit._token, ETH);
-                Deposit._value.should.be.bignumber.equal(amount);
+                Deposit._value.should.be.bignumber.equal(minAmount);
 
                 // Check ETH balance
-                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.plus(amount));
-                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.plus(amount));
+                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.plus(minAmount));
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.plus(minAmount));
             });
 
             it('Deposit Token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await saveTokenPrevBalances();
 
@@ -612,7 +768,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.deposit(
                         player1,
                         token.address,
-                        amount,
+                        minAmount,
                         { from: depositer }
                     ),
                     'Deposit'
@@ -621,19 +777,17 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Deposit._from, depositer);
                 assert.equal(Deposit._to, player1);
                 assert.equal(Deposit._token, token.address);
-                Deposit._value.should.be.bignumber.equal(amount);
+                Deposit._value.should.be.bignumber.equal(minAmount);
 
                 // Check Token balance
-                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.plus(amount));
+                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.plus(minAmount));
                 (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
-                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.plus(amount));
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.plus(minAmount));
             });
 
             it('Deposit a Token amount less than what the loanManager has approved and take only the low amount', async () => {
-                const lowAmount = bn('100');
-
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount.mul(bn('2')));
+                await token.approve(balanceManager.address, minAmount.mul(bn('2')), { from: depositer });
 
                 await saveTokenPrevBalances();
 
@@ -641,7 +795,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.deposit(
                         player1,
                         token.address,
-                        lowAmount,
+                        minAmount,
                         { from: depositer }
                     ),
                     'Deposit'
@@ -650,38 +804,38 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Deposit._from, depositer);
                 assert.equal(Deposit._to, player1);
                 assert.equal(Deposit._token, token.address);
-                Deposit._value.should.be.bignumber.equal(lowAmount);
+                Deposit._value.should.be.bignumber.equal(minAmount);
 
                 // Check Token balance
-                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.plus(lowAmount));
+                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.plus(minAmount));
                 (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
-                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.plus(lowAmount));
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.plus(minAmount));
             });
 
             it('Try deposit ETH with token as token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await Helper.tryCatchRevert(
                     () => balanceManager.deposit(
                         player1,
                         token.address,
-                        amount,
-                        { from: depositer, value: amount }
+                        minAmount,
+                        { from: depositer, value: minAmount }
                     ),
                     'Error pulling tokens or send ETH, in deposit'
                 );
             });
 
             it('Try deposit token with ETH as token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await Helper.tryCatchRevert(
                     () => balanceManager.deposit(
                         player1,
                         ETH,
-                        amount,
+                        minAmount,
                         { from: depositer }
                     ),
                     'The amount should be equal to msg.value'
@@ -689,14 +843,14 @@ contract('BalanceManager', function (accounts) {
             });
 
             it('Try deposit to address 0x0', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await Helper.tryCatchRevert(
                     () => balanceManager.deposit(
                         address0x,
                         token.address,
-                        amount,
+                        minAmount,
                         { from: depositer }
                     ),
                     '_to should not be 0x0'
@@ -706,7 +860,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.deposit(
                         address0x,
                         ETH,
-                        amount,
+                        minAmount,
                         { from: depositer }
                     ),
                     '_to should not be 0x0'
@@ -722,7 +876,7 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         ETH,
                         higthAmount,
-                        { from: depositer, value: amount }
+                        { from: depositer, value: minAmount }
                     ),
                     'The amount should be equal to msg.value'
                 );
@@ -732,21 +886,21 @@ contract('BalanceManager', function (accounts) {
                         player1,
                         ETH,
                         lowAmount,
-                        { from: depositer, value: amount }
+                        { from: depositer, value: minAmount }
                     ),
                     'The amount should be equal to msg.value'
                 );
             });
 
             it('Try deposit Token without approbe', async () => {
-                await token.setBalance(depositer, amount);
+                await token.setBalance(depositer, minAmount);
 
                 await Helper.tryCatchRevert(
                     () => balanceManager.deposit(
                         player1,
                         token.address,
-                        amount,
-                        { from: depositer, value: amount }
+                        minAmount,
+                        { from: depositer, value: minAmount }
                     ),
                     'Error pulling tokens or send ETH, in deposit'
                 );
@@ -754,24 +908,22 @@ contract('BalanceManager', function (accounts) {
         });
 
         describe('function withdraw', function () {
-            const withdrawAmount = bn('2000');
-
             it('Withdraw ETH', async () => {
-                await saveETHPrevBalances();
-                const prevPlayer2Bal = web3.eth.getBalance(player2);
-
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount.mul(bn('2')),
+                    { from: depositer, value: minAmount.mul(bn('2')) }
                 );
+
+                await saveETHPrevBalances();
+                const prevPlayer2Bal = web3.eth.getBalance(player2);
 
                 const Withdraw = await Helper.toEvents(
                     () => balanceManager.withdraw(
                         player2,
                         ETH,
-                        withdrawAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Withdraw'
@@ -780,22 +932,54 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Withdraw._from, player1);
                 assert.equal(Withdraw._to, player2);
                 assert.equal(Withdraw._token, ETH);
-                Withdraw._value.should.be.bignumber.equal(withdrawAmount);
+                Withdraw._value.should.be.bignumber.equal(minAmount);
 
                 // Check ETH balance
-                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.plus(amount).sub(withdrawAmount));
-                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.plus(amount).sub(withdrawAmount));
-                web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal.add(withdrawAmount));
+                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.sub(minAmount));
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(minAmount));
+                web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal.add(minAmount));
+            });
+
+            it('Withdraw half amount of balance in ETH', async () => {
+                await balanceManager.deposit(
+                    player1,
+                    ETH,
+                    minAmount.mul(bn('2')),
+                    { from: depositer, value: minAmount.mul(bn('2')) }
+                );
+
+                await saveETHPrevBalances();
+                const prevPlayer2Bal = web3.eth.getBalance(player2);
+
+                const Withdraw = await Helper.toEvents(
+                    () => balanceManager.withdraw(
+                        player2,
+                        ETH,
+                        minAmount,
+                        { from: player1 }
+                    ),
+                    'Withdraw'
+                );
+                // For event
+                assert.equal(Withdraw._from, player1);
+                assert.equal(Withdraw._to, player2);
+                assert.equal(Withdraw._token, ETH);
+                Withdraw._value.should.be.bignumber.equal(minAmount);
+
+                // Check ETH balance
+                web3.eth.getBalance(balanceManager.address).should.be.bignumber.equal(prevBalBM.sub(minAmount));
+                (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalBMP1.sub(minAmount));
+                web3.eth.getBalance(player2).should.be.bignumber.equal(prevPlayer2Bal.add(minAmount));
             });
 
             it('Withdraw Token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -805,7 +989,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.withdraw(
                         player2,
                         token.address,
-                        withdrawAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Withdraw'
@@ -815,13 +999,50 @@ contract('BalanceManager', function (accounts) {
                 assert.equal(Withdraw._from, player1);
                 assert.equal(Withdraw._to, player2);
                 assert.equal(Withdraw._token, token.address);
-                Withdraw._value.should.be.bignumber.equal(withdrawAmount);
+                Withdraw._value.should.be.bignumber.equal(minAmount);
 
                 // Check Token balance
-                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.sub(withdrawAmount));
+                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.sub(minAmount));
                 (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
-                (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T.plus(withdrawAmount));
-                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(withdrawAmount));
+                (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T.plus(minAmount));
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(minAmount));
+                (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T);
+            });
+
+            it('Withdraw half amount of balance in Token', async () => {
+                await token.setBalance(depositer, minAmount.mul(bn('2')));
+                await token.approve(balanceManager.address, minAmount.mul(bn('2')), { from: depositer });
+
+                await balanceManager.deposit(
+                    player1,
+                    token.address,
+                    minAmount.mul(bn('2')),
+                    { from: depositer }
+                );
+
+                await saveTokenPrevBalances();
+
+                const Withdraw = await Helper.toEvents(
+                    () => balanceManager.withdraw(
+                        player2,
+                        token.address,
+                        minAmount,
+                        { from: player1 }
+                    ),
+                    'Withdraw'
+                );
+
+                // For event
+                assert.equal(Withdraw._from, player1);
+                assert.equal(Withdraw._to, player2);
+                assert.equal(Withdraw._token, token.address);
+                Withdraw._value.should.be.bignumber.equal(minAmount);
+
+                // Check Token balance
+                (await token.balanceOf(balanceManager.address)).should.be.bignumber.equal(prevBalBMT.sub(minAmount));
+                (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
+                (await token.balanceOf(player2)).should.be.bignumber.equal(prevBalP2T.plus(minAmount));
+                (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalBMP1T.sub(minAmount));
                 (await balanceOf(player2, token.address)).should.be.bignumber.equal(prevBalBMP2T);
             });
 
@@ -829,27 +1050,27 @@ contract('BalanceManager', function (accounts) {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await Helper.tryCatchRevert(
                     () => balanceManager.withdraw(
                         address0x,
                         ETH,
-                        withdrawAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     '_to should not be 0x0'
                 );
 
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -857,7 +1078,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.withdraw(
                         address0x,
                         token.address,
-                        withdrawAmount,
+                        minAmount,
                         { from: player1 }
                     ),
                     '_to should not be 0x0'
@@ -869,7 +1090,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.withdraw(
                         player2,
                         ETH,
-                        maxUint('256'),
+                        maxAmount,
                         { from: player1 }
                     ),
                     'Insufficient founds to discount'
@@ -881,7 +1102,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.withdraw(
                         player2,
                         token.address,
-                        maxUint('256'),
+                        maxAmount,
                         { from: player1 }
                     ),
                     'Insufficient founds to discount'
@@ -889,13 +1110,13 @@ contract('BalanceManager', function (accounts) {
             });
 
             it('Try withdraw Token and the transfer returns false', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -903,7 +1124,7 @@ contract('BalanceManager', function (accounts) {
                     () => balanceManager.withdraw(
                         Helper.returnFalseAddress,
                         token.address,
-                        amount,
+                        minAmount,
                         { from: player1 }
                     ),
                     'Error transfer tokens, in withdraw'
@@ -916,8 +1137,8 @@ contract('BalanceManager', function (accounts) {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await saveETHPrevBalances();
@@ -945,13 +1166,13 @@ contract('BalanceManager', function (accounts) {
             });
 
             it('Withdraw all Token', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -984,8 +1205,8 @@ contract('BalanceManager', function (accounts) {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    amount,
-                    { from: depositer, value: amount }
+                    minAmount,
+                    { from: depositer, value: minAmount }
                 );
 
                 await Helper.tryCatchRevert(
@@ -997,13 +1218,13 @@ contract('BalanceManager', function (accounts) {
                     '_to should not be 0x0'
                 );
 
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
@@ -1080,13 +1301,13 @@ contract('BalanceManager', function (accounts) {
             });
 
             it('Try withdraw all Token and the transfer returns false', async () => {
-                await token.setBalance(depositer, amount);
-                await token.approve(balanceManager.address, amount, { from: depositer });
+                await token.setBalance(depositer, minAmount);
+                await token.approve(balanceManager.address, minAmount, { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    amount,
+                    minAmount,
                     { from: depositer }
                 );
 
