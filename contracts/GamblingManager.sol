@@ -449,17 +449,16 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         Bet storage bet = bets[_betId];
 
         uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _modelData, _oracleData);
-        require(collectAmount <= bet.balance && collectAmount >= _tip, "Insufficient founds to discount from bet balance");
 
-        // Substract balance from Bet
-        bet.balance -= collectAmount + _tip;
+        require(collectAmount <= bet.balance, "Insufficient founds to discount from bet balance");
+        bet.balance -= collectAmount;
 
-        // Send the tip to the owner
-        if (_tip != 0)
+        if (_tip != 0){
+            require(collectAmount >= _tip, "The tip its to higth");
             _toBalance[owner][bet.token] += _tip;
-
-        // Add balance to BalanceManager
-        _toBalance[_beneficiary][bet.token] += collectAmount - _tip;
+            collectAmount -= _tip;
+        }
+        _toBalance[_beneficiary][bet.token] += collectAmount;
 
         emit Collected(
             msg.sender,
