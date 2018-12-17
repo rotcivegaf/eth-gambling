@@ -30,10 +30,10 @@ const ETH = Web3Utils.padLeft('0x0', 40);
 const address0x = Web3Utils.padLeft('0x0', 40);
 const bytes320x = toHexBytes32('0x0');
 
-const amount = bn('10000');
-const amountBytes32 = toHexBytes32(amount);
-const tip = bn('566');
-const totalAmount = amount.plus(tip);
+const minAmount = bn('1');
+const minAmountBytes32 = toHexBytes32(minAmount);
+const tip = bn('1');
+const totalAmount = minAmount.plus(tip);
 const totalAmountBytes32 = toHexBytes32(totalAmount);
 const one = '0x01';
 const two = '0x02';
@@ -261,7 +261,7 @@ contract('GamblingManager', function (accounts) {
                     ETH,
                     tip,
                     model.address,
-                    amountBytes32,
+                    minAmountBytes32,
                     address0x,
                     '',
                     { from: creator }
@@ -272,15 +272,15 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Created._creator, creator);
             assert.equal(Created._id, id);
             assert.equal(Created._token, ETH);
-            Created._amount.should.be.bignumber.equal(amount);
+            Created._amount.should.be.bignumber.equal(minAmount);
             Created._tip.should.be.bignumber.equal(tip);
-            assert.equal(Created._modelData, amountBytes32);
+            assert.equal(Created._modelData, minAmountBytes32);
             assert.equal(Created._oracleData, '0x');
             Created._nonce.should.be.bignumber.equal(nonce);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(amount);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
@@ -314,7 +314,7 @@ contract('GamblingManager', function (accounts) {
                     token.address,
                     tip,
                     model.address,
-                    amountBytes32,
+                    minAmountBytes32,
                     address0x,
                     RETURN_TRUE,
                     { from: creator }
@@ -325,15 +325,15 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Created._creator, creator);
             assert.equal(Created._id, id);
             assert.equal(Created._token, token.address);
-            Created._amount.should.be.bignumber.equal(amount);
+            Created._amount.should.be.bignumber.equal(minAmount);
             Created._tip.should.be.bignumber.equal(tip);
-            assert.equal(Created._modelData, amountBytes32);
+            assert.equal(Created._modelData, minAmountBytes32);
             assert.equal(Created._oracleData, RETURN_TRUE);
             Created._nonce.should.be.bignumber.equal(nonce);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], token.address);
-            bet[I_BALANCE].should.be.bignumber.equal(amount);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
@@ -352,7 +352,7 @@ contract('GamblingManager', function (accounts) {
                 ETH,
                 tip,
                 model.address,
-                amountBytes32,
+                minAmountBytes32,
                 _oracle,
                 RETURN_TRUE,
                 salt
@@ -372,7 +372,7 @@ contract('GamblingManager', function (accounts) {
                     ETH,
                     tip,
                     model.address,
-                    amountBytes32,
+                    minAmountBytes32,
                     _oracle,
                     RETURN_TRUE,
                     salt,
@@ -384,15 +384,15 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Created2._creator, creator);
             assert.equal(Created2._id, id);
             assert.equal(Created2._token, ETH);
-            Created2._amount.should.be.bignumber.equal(amount);
+            Created2._amount.should.be.bignumber.equal(minAmount);
             Created2._tip.should.be.bignumber.equal(tip);
-            assert.equal(Created2._modelData, amountBytes32);
+            assert.equal(Created2._modelData, minAmountBytes32);
             assert.equal(Created2._oracleData, RETURN_TRUE);
             Created2._salt.should.be.bignumber.equal(salt);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(amount);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
@@ -410,7 +410,7 @@ contract('GamblingManager', function (accounts) {
                 token.address,
                 tip,
                 model.address,
-                amountBytes32,
+                minAmountBytes32,
                 _oracle,
                 RETURN_TRUE,
                 salt
@@ -433,7 +433,7 @@ contract('GamblingManager', function (accounts) {
                     token.address,
                     tip,
                     model.address,
-                    amountBytes32,
+                    minAmountBytes32,
                     _oracle,
                     RETURN_TRUE,
                     salt,
@@ -445,15 +445,15 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Created2._creator, creator);
             assert.equal(Created2._id, id);
             assert.equal(Created2._token, token.address);
-            Created2._amount.should.be.bignumber.equal(amount);
+            Created2._amount.should.be.bignumber.equal(minAmount);
             Created2._tip.should.be.bignumber.equal(tip);
-            assert.equal(Created2._modelData, amountBytes32);
+            assert.equal(Created2._modelData, minAmountBytes32);
             assert.equal(Created2._oracleData, RETURN_TRUE);
             Created2._salt.should.be.bignumber.equal(salt);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], token.address);
-            bet[I_BALANCE].should.be.bignumber.equal(amount);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
@@ -486,7 +486,7 @@ contract('GamblingManager', function (accounts) {
                     ETH,
                     tip,
                     model.address,
-                    amountBytes32,
+                    minAmountBytes32,
                     _oracle,
                     RETURN_TRUE,
                     salt,
@@ -498,15 +498,15 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Created3._creator, creator);
             assert.equal(Created3._id, id);
             assert.equal(Created3._token, ETH);
-            Created3._amount.should.be.bignumber.equal(amount);
+            Created3._amount.should.be.bignumber.equal(minAmount);
             Created3._tip.should.be.bignumber.equal(tip);
-            assert.equal(Created3._modelData, amountBytes32);
+            assert.equal(Created3._modelData, minAmountBytes32);
             assert.equal(Created3._oracleData, RETURN_TRUE);
             Created3._salt.should.be.bignumber.equal(salt);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(amount);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
@@ -541,7 +541,7 @@ contract('GamblingManager', function (accounts) {
                     token.address,
                     tip,
                     model.address,
-                    amountBytes32,
+                    minAmountBytes32,
                     _oracle,
                     RETURN_TRUE,
                     salt,
@@ -553,15 +553,15 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Created3._creator, creator);
             assert.equal(Created3._id, id);
             assert.equal(Created3._token, token.address);
-            Created3._amount.should.be.bignumber.equal(amount);
+            Created3._amount.should.be.bignumber.equal(minAmount);
             Created3._tip.should.be.bignumber.equal(tip);
-            assert.equal(Created3._modelData, amountBytes32);
+            assert.equal(Created3._modelData, minAmountBytes32);
             assert.equal(Created3._oracleData, RETURN_TRUE);
             Created3._salt.should.be.bignumber.equal(salt);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], token.address);
-            bet[I_BALANCE].should.be.bignumber.equal(amount);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
@@ -569,6 +569,96 @@ contract('GamblingManager', function (accounts) {
             (await balanceOf(creator, token.address)).should.be.bignumber.equal(prevBalGCT.sub(totalAmount));
             (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
             (await token.balanceOf(creator)).should.be.bignumber.equal(prevBalCT);
+        });
+
+        it('Should create a bet with ETH and should deposit the remaining amount', async () => {
+            const nonce = await gamblingManager.nonces(creator);
+
+            const id = await gamblingManager.buildId(
+                creator,
+                nonce
+            );
+
+            await saveETHPrevBalances(id);
+
+            const Created = await Helper.toEvents(
+                () => gamblingManager.create(
+                    ETH,
+                    '0',
+                    model.address,
+                    minAmountBytes32,
+                    address0x,
+                    '',
+                    { from: creator, value: minAmount }
+                ),
+                'Created'
+            );
+
+            assert.equal(Created._creator, creator);
+            assert.equal(Created._id, id);
+            assert.equal(Created._token, ETH);
+            Created._amount.should.be.bignumber.equal(minAmount);
+            Created._tip.should.be.bignumber.equal('0');
+            assert.equal(Created._modelData, minAmountBytes32);
+            assert.equal(Created._oracleData, '0x');
+            Created._nonce.should.be.bignumber.equal(nonce);
+
+            const bet = await gamblingManager.bets(id);
+            assert.equal(bet[I_TOKEN], ETH);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
+            assert.equal(bet[I_MODEL], model.address);
+
+            // Check ETH balance
+            (await balanceOf(owner, ETH)).should.be.bignumber.equal(prevBalGO);
+            (await balanceOf(creator, ETH)).should.be.bignumber.equal(prevBalGC);
+            web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG.plus(minAmount));
+        });
+
+        it('Should create a bet with Token and should deposit the remaining amount', async () => {
+            const nonce = await gamblingManager.nonces(creator);
+
+            const id = await gamblingManager.buildId(
+                creator,
+                nonce
+            );
+
+            await token.setBalance(creator, minAmount);
+            await token.approve(gamblingManager.address, minAmount, { from: creator });
+
+            await saveTokenPrevBalances(id);
+
+            const Created = await Helper.toEvents(
+                () => gamblingManager.create(
+                    token.address,
+                    '0',
+                    model.address,
+                    minAmountBytes32,
+                    address0x,
+                    RETURN_TRUE,
+                    { from: creator }
+                ),
+                'Created'
+            );
+
+            assert.equal(Created._creator, creator);
+            assert.equal(Created._id, id);
+            assert.equal(Created._token, token.address);
+            Created._amount.should.be.bignumber.equal(minAmount);
+            Created._tip.should.be.bignumber.equal('0');
+            assert.equal(Created._modelData, minAmountBytes32);
+            assert.equal(Created._oracleData, RETURN_TRUE);
+            Created._nonce.should.be.bignumber.equal(nonce);
+
+            const bet = await gamblingManager.bets(id);
+            assert.equal(bet[I_TOKEN], token.address);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
+            assert.equal(bet[I_MODEL], model.address);
+
+            // Check Token balance
+            (await balanceOf(owner, token.address)).should.be.bignumber.equal(prevBalGOT);
+            (await balanceOf(creator, token.address)).should.be.bignumber.equal(prevBalGCT);
+            (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT.plus(minAmount));
+            (await token.balanceOf(creator)).should.be.bignumber.equal(prevBalCT.sub(minAmount));
         });
 
         it('Try create an identical bet', async () => {
@@ -636,18 +726,17 @@ contract('GamblingManager', function (accounts) {
             await gamblingManager.deposit(
                 player1,
                 ETH,
-                amount,
-                { from: depositer, value: amount }
+                minAmount,
+                { from: depositer, value: minAmount }
             );
 
             await saveETHPrevBalances(id);
 
-            const amountOption = toHexBytes32(6953);
             const Played = await Helper.toEvents(
                 () => gamblingManager.play(
                     id,
                     maxUint('256'),
-                    amountOption,
+                    minAmountBytes32,
                     bytes320x,
                     { from: player1 }
                 ),
@@ -655,17 +744,17 @@ contract('GamblingManager', function (accounts) {
             );
             // For event
             assert.equal(Played._id, id);
-            Played._amount.should.be.bignumber.equal(amountOption);
-            assert.equal(Played._modelData, amountOption);
+            Played._amount.should.be.bignumber.equal(minAmount);
+            assert.equal(Played._modelData, minAmountBytes32);
             assert.equal(Played._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(amountOption);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.sub(amountOption));
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.sub(minAmount));
             web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
         });
 
@@ -685,23 +774,22 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await token.setBalance(depositer, amount);
-            await token.approve(gamblingManager.address, amount, { from: depositer });
+            await token.setBalance(depositer, minAmount);
+            await token.approve(gamblingManager.address, minAmount, { from: depositer });
             await gamblingManager.deposit(
                 player1,
                 token.address,
-                amount,
+                minAmount,
                 { from: depositer }
             );
 
             await saveTokenPrevBalances(id);
 
-            const amountOption = toHexBytes32(6953);
             const Played = await Helper.toEvents(
                 () => gamblingManager.play(
                     id,
                     maxUint('256'),
-                    amountOption,
+                    minAmountBytes32,
                     bytes320x,
                     { from: player1 }
                 ),
@@ -710,19 +798,158 @@ contract('GamblingManager', function (accounts) {
 
             // For event
             assert.equal(Played._id, id);
-            Played._amount.should.be.bignumber.equal(amountOption);
-            assert.equal(Played._modelData, amountOption);
+            Played._amount.should.be.bignumber.equal(minAmount);
+            assert.equal(Played._modelData, minAmountBytes32);
             assert.equal(Played._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], token.address);
-            bet[I_BALANCE].should.be.bignumber.equal(amountOption);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
-            (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T.sub(amountOption));
+            (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T.sub(minAmount));
             (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T);
             (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT);
+        });
+
+        it('Should play a bet with ETH and should deposit the remaining amount', async () => {
+            const id = await gamblingManager.buildId(
+                creator,
+                await gamblingManager.nonces(creator)
+            );
+
+            await gamblingManager.create(
+                ETH,
+                '0',
+                model.address,
+                bytes320x,
+                address0x,
+                bytes320x,
+                { from: creator }
+            );
+
+            const events = await Helper.toEvents(
+                () => gamblingManager.play(
+                    id,
+                    maxUint('256'),
+                    minAmountBytes32,
+                    bytes320x,
+                    { from: player1, value: minAmount }
+                ),
+                'Played',
+                'Deposit'
+            );
+
+            const Played = events[0];
+            assert.equal(Played._id, id);
+            Played._amount.should.be.bignumber.equal(minAmount);
+            assert.equal(Played._modelData, minAmountBytes32);
+            assert.equal(Played._oracleData, bytes320x);
+            const Deposit = events[1];
+            assert.equal(Deposit._from, player1);
+            assert.equal(Deposit._to, player1);
+            assert.equal(Deposit._token, ETH);
+            Deposit._value.should.be.bignumber.equal(minAmount);
+
+            const bet = await gamblingManager.bets(id);
+            assert.equal(bet[I_TOKEN], ETH);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
+            assert.equal(bet[I_MODEL], model.address);
+
+            // Check ETH balance
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.sub(minAmount));
+            web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG.plus(minAmount));
+        });
+
+        it('Should play a bet with Token and should deposit the remaining amount', async () => {
+            const id = await gamblingManager.buildId(
+                creator,
+                await gamblingManager.nonces(creator)
+            );
+
+            await gamblingManager.create(
+                token.address,
+                '0',
+                model.address,
+                bytes320x,
+                address0x,
+                bytes320x,
+                { from: creator }
+            );
+
+            await token.setBalance(player1, minAmount);
+            await token.approve(gamblingManager.address, minAmount, { from: player1 });
+
+            await saveTokenPrevBalances(id);
+
+            const events = await Helper.toEvents(
+                () => gamblingManager.play(
+                    id,
+                    maxUint('256'),
+                    minAmountBytes32,
+                    bytes320x,
+                    { from: player1 }
+                ),
+                'Played',
+                'Deposit'
+            );
+            const Played = events[0];
+            assert.equal(Played._id, id);
+            Played._amount.should.be.bignumber.equal(minAmount);
+            assert.equal(Played._modelData, minAmountBytes32);
+            assert.equal(Played._oracleData, bytes320x);
+            const Deposit = events[1];
+            assert.equal(Deposit._from, player1);
+            assert.equal(Deposit._to, player1);
+            assert.equal(Deposit._token, token.address);
+            Deposit._value.should.be.bignumber.equal(minAmount);
+
+            const bet = await gamblingManager.bets(id);
+            assert.equal(bet[I_TOKEN], token.address);
+            bet[I_BALANCE].should.be.bignumber.equal(minAmount);
+            assert.equal(bet[I_MODEL], model.address);
+
+            // Check Token balance
+            (await balanceOf(player1, token.address)).should.be.bignumber.equal(prevBalGP1T);
+            (await token.balanceOf(player1)).should.be.bignumber.equal(prevBalP1T.sub(minAmount));
+            (await token.balanceOf(gamblingManager.address)).should.be.bignumber.equal(prevBalGT.plus(minAmount));
+        });
+
+        it('Try play a bet with low maxAmount', async () => {
+            const id = await gamblingManager.buildId(
+                creator,
+                await gamblingManager.nonces(creator)
+            );
+
+            await gamblingManager.create(
+                ETH,
+                '0',
+                model.address,
+                bytes320x,
+                address0x,
+                bytes320x,
+                { from: creator }
+            );
+
+            await gamblingManager.deposit(
+                player1,
+                ETH,
+                minAmount,
+                { from: depositer, value: minAmount }
+            );
+
+            // With max amount low
+            await Helper.tryCatchRevert(
+                () => gamblingManager.play(
+                    id,
+                    0,
+                    minAmountBytes32,
+                    bytes320x,
+                    { from: player1 }
+                ),
+                'The needAmount should be less than _maxAmount'
+            );
         });
 
         it('Try play a bet without ETH balance', async () => {
@@ -757,43 +984,19 @@ contract('GamblingManager', function (accounts) {
                     bytes320x,
                     { from: player1 }
                 ),
-                'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
+                'The amount should be equal to msg.value'
             );
 
-            await gamblingManager.deposit(
-                player1,
-                ETH,
-                amount,
-                { from: depositer, value: amount }
-            );
-
-            // With max amount low
-            await Helper.tryCatchRevert(
-                () => gamblingManager.play(
-                    id,
-                    0,
-                    amountOption,
-                    bytes320x,
-                    { from: player1 }
-                ),
-                'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
-            );
-
-            await gamblingManager.withdrawAll(
-                accounts[8],
-                ETH,
-                { from: player1 }
-            );
-
+            // Try overflow
             await Helper.tryCatchRevert(
                 () => gamblingManager.play(
                     id,
                     maxUint('256'),
                     toHexBytes32(-1),
-                    RETURN_TRUE,
+                    bytes320x,
                     { from: player1 }
                 ),
-                'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
+                'The amount should be equal to msg.value'
             );
         });
 
@@ -802,7 +1005,6 @@ contract('GamblingManager', function (accounts) {
                 creator,
                 await gamblingManager.nonces(creator)
             );
-            const amountOption = toHexBytes32(1);
 
             await gamblingManager.create(
                 token.address,
@@ -825,49 +1027,23 @@ contract('GamblingManager', function (accounts) {
                 () => gamblingManager.play(
                     id,
                     maxUint('256'),
-                    amountOption,
+                    minAmountBytes32,
                     bytes320x,
                     { from: player1 }
                 ),
-                'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
+                'Error pulling tokens or send ETH, in deposit'
             );
 
-            await token.setBalance(depositer, amount);
-            await token.approve(gamblingManager.address, amount, { from: depositer });
-            await gamblingManager.deposit(
-                player1,
-                token.address,
-                amount,
-                { from: depositer }
-            );
-
-            // With max amount low
+            // Try overflow
             await Helper.tryCatchRevert(
                 () => gamblingManager.play(
                     id,
-                    0,
-                    amountOption,
-                    bytes320x,
-                    { from: player1 }
-                ),
-                'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
-            );
-
-            await gamblingManager.withdrawAll(
-                accounts[8],
-                token.address,
-                { from: player1 }
-            );
-
-            await Helper.tryCatchRevert(
-                () => gamblingManager.play(
-                    id,
-                    maxUint('256'),
                     toHexBytes32(-1),
-                    RETURN_TRUE,
+                    maxUint('256'),
+                    bytes320x,
                     { from: player1 }
                 ),
-                'Insufficient founds to discount from wallet/contract or the needAmount its more than _maxAmount'
+                'Error pulling tokens or send ETH, in deposit'
             );
         });
     });
@@ -879,34 +1055,24 @@ contract('GamblingManager', function (accounts) {
                 await gamblingManager.nonces(creator)
             );
 
-            await gamblingManager.deposit(
-                creator,
-                ETH,
-                totalAmount,
-                { from: depositer, value: totalAmount }
-            );
-
             await gamblingManager.create(
                 ETH,
                 '0',
                 model.address,
-                totalAmountBytes32,
+                minAmountBytes32,
                 address0x,
                 bytes320x,
-                { from: creator }
+                { from: creator, value: minAmount }
             );
 
             await saveETHPrevBalances(id);
-
-            const amountReturned = amount.dividedToIntegerBy(bn('2'));
-            const amountReturnedBytes32 = toHexBytes32(amountReturned);
 
             const Collected = await Helper.toEvents(
                 () => gamblingManager.collect(
                     id,
                     player1,
                     '0',
-                    amountReturnedBytes32,
+                    minAmountBytes32,
                     bytes320x,
                     { from: creator }
                 ),
@@ -917,19 +1083,19 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._beneficiary, player1);
             assert.equal(Collected._id, id);
-            Collected._amount.should.be.bignumber.equal(amountReturned);
+            Collected._amount.should.be.bignumber.equal(minAmount);
             Collected._tip.should.be.bignumber.equal('0');
-            assert.equal(Collected._modelData, amountReturnedBytes32);
+            assert.equal(Collected._modelData, minAmountBytes32);
             assert.equal(Collected._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.sub(amountReturned));
+            bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.sub(minAmount));
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
             (await balanceOf(owner, ETH)).should.be.bignumber.equal(prevBalGO);
-            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.add(amountReturned));
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.add(minAmount));
             web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
         });
 
@@ -939,34 +1105,24 @@ contract('GamblingManager', function (accounts) {
                 await gamblingManager.nonces(creator)
             );
 
-            await gamblingManager.deposit(
-                creator,
-                ETH,
-                totalAmount,
-                { from: depositer, value: totalAmount }
-            );
-
             await gamblingManager.create(
                 ETH,
                 '0',
                 model.address,
-                totalAmountBytes32,
+                toHexBytes32(minAmount.plus(bn('1'))),
                 address0x,
                 bytes320x,
-                { from: creator }
+                { from: creator, value: minAmount.plus(bn('1')) }
             );
 
             await saveETHPrevBalances(id);
-
-            const amountReturned = amount.dividedToIntegerBy(bn('2'));
-            const amountReturnedBytes32 = toHexBytes32(amountReturned);
 
             const Collected = await Helper.toEvents(
                 () => gamblingManager.collect(
                     id,
                     player1,
                     tip,
-                    amountReturnedBytes32,
+                    minAmountBytes32,
                     bytes320x,
                     { from: creator }
                 ),
@@ -977,19 +1133,119 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._beneficiary, player1);
             assert.equal(Collected._id, id);
-            Collected._amount.should.be.bignumber.equal(amountReturned);
+            Collected._amount.should.be.bignumber.equal('0');
             Collected._tip.should.be.bignumber.equal(tip);
-            assert.equal(Collected._modelData, amountReturnedBytes32);
+            assert.equal(Collected._modelData, minAmountBytes32);
             assert.equal(Collected._oracleData, bytes320x);
 
             const bet = await gamblingManager.bets(id);
             assert.equal(bet[I_TOKEN], ETH);
-            bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.sub(amountReturned));
+            bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.sub(minAmount));
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
             (await balanceOf(owner, ETH)).should.be.bignumber.equal(prevBalGO.add(tip));
-            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.add(amountReturned.sub(tip)));
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1);
+            web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
+        });
+
+        it('Should collect a half amount of bet balance', async () => {
+            const id = await gamblingManager.buildId(
+                creator,
+                await gamblingManager.nonces(creator)
+            );
+
+            await gamblingManager.create(
+                ETH,
+                '0',
+                model.address,
+                toHexBytes32(minAmount.plus(bn('1'))),
+                address0x,
+                bytes320x,
+                { from: creator, value: minAmount.plus(bn('1')) }
+            );
+
+            await saveETHPrevBalances(id);
+
+            const Collected = await Helper.toEvents(
+                () => gamblingManager.collect(
+                    id,
+                    player1,
+                    '0',
+                    minAmountBytes32,
+                    bytes320x,
+                    { from: creator }
+                ),
+                'Collected'
+            );
+
+            // For event
+            assert.equal(Collected._collecter, creator);
+            assert.equal(Collected._beneficiary, player1);
+            assert.equal(Collected._id, id);
+            Collected._amount.should.be.bignumber.equal(minAmount);
+            Collected._tip.should.be.bignumber.equal('0');
+            assert.equal(Collected._modelData, minAmountBytes32);
+            assert.equal(Collected._oracleData, bytes320x);
+
+            const bet = await gamblingManager.bets(id);
+            assert.equal(bet[I_TOKEN], ETH);
+            bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.sub(minAmount));
+            assert.equal(bet[I_MODEL], model.address);
+
+            // Check ETH balance
+            (await balanceOf(owner, ETH)).should.be.bignumber.equal(prevBalGO);
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.add(minAmount));
+            web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
+        });
+
+        it('Should collect a bet with tip and only collect two ETH wei with tip', async () => {
+            const id = await gamblingManager.buildId(
+                creator,
+                await gamblingManager.nonces(creator)
+            );
+
+            await gamblingManager.create(
+                ETH,
+                '0',
+                model.address,
+                toHexBytes32(minAmount.plus(bn('2'))),
+                address0x,
+                bytes320x,
+                { from: creator, value: minAmount.plus(bn('2')) }
+            );
+
+            await saveETHPrevBalances(id);
+
+            const Collected = await Helper.toEvents(
+                () => gamblingManager.collect(
+                    id,
+                    player1,
+                    tip,
+                    toHexBytes32(minAmount.plus(tip)),
+                    bytes320x,
+                    { from: creator }
+                ),
+                'Collected'
+            );
+
+            // For event
+            assert.equal(Collected._collecter, creator);
+            assert.equal(Collected._beneficiary, player1);
+            assert.equal(Collected._id, id);
+            Collected._amount.should.be.bignumber.equal(minAmount);
+            Collected._tip.should.be.bignumber.equal(tip);
+            assert.equal(Collected._modelData, toHexBytes32(minAmount.plus(tip)));
+            assert.equal(Collected._oracleData, bytes320x);
+
+            const bet = await gamblingManager.bets(id);
+            assert.equal(bet[I_TOKEN], ETH);
+            bet[I_BALANCE].should.be.bignumber.equal(prevBalBet.sub(minAmount.plus(tip)));
+            assert.equal(bet[I_MODEL], model.address);
+
+            // Check ETH balance
+            (await balanceOf(owner, ETH)).should.be.bignumber.equal(prevBalGO.plus(tip));
+            (await balanceOf(player1, ETH)).should.be.bignumber.equal(prevBalGP1.plus(minAmount));
             web3.eth.getBalance(gamblingManager.address).should.be.bignumber.equal(prevBalG);
         });
 
@@ -1021,7 +1277,7 @@ contract('GamblingManager', function (accounts) {
                     id,
                     address0x,
                     tip,
-                    toHexBytes32(amount),
+                    minAmountBytes32,
                     bytes320x,
                     { from: creator }
                 ),
@@ -1075,7 +1331,7 @@ contract('GamblingManager', function (accounts) {
                     bytes320x,
                     { from: creator }
                 ),
-                'Insufficient founds to discount from bet balance'
+                'The tip its to higth'
             );
         });
     });
