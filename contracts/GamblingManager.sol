@@ -127,12 +127,21 @@ contract BalanceManager is IBalanceManager {
     ) external payable returns(bool) {
         require(_to != 0x0, "_to should not be 0x0");
 
+        _deposit(_to, _token, _amount);
+
+        return true;
+    }
+
+    function _deposit(
+        address _to,
+        address _token,
+        uint256 _amount
+    ) internal {
         if (_token == ETH)
             require(_amount == msg.value, "The amount should be equal to msg.value");
         else
             require(
-                Token(_token).transferFrom(
-                    msg.sender, address(this), _amount) &&
+                Token(_token).transferFrom(msg.sender, address(this), _amount) &&
                     msg.value == 0,
                 "Error pulling tokens or send ETH, in deposit"
             );
@@ -145,8 +154,6 @@ contract BalanceManager is IBalanceManager {
             _token,
             _amount
         );
-
-        return true;
     }
 
     function withdraw(
