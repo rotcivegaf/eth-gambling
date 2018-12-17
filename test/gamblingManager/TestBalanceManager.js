@@ -786,8 +786,8 @@ contract('BalanceManager', function (accounts) {
             });
 
             it('Deposit a Token amount less than what the loanManager has approved and take only the low amount', async () => {
-                await token.setBalance(depositer, minAmount.mul(bn('2')));
-                await token.approve(balanceManager.address, minAmount.mul(bn('2')), { from: depositer });
+                await token.setBalance(depositer, minAmount.plus(bn('1')));
+                await token.approve(balanceManager.address, minAmount.plus(bn('1')), { from: depositer });
 
                 await saveTokenPrevBalances();
 
@@ -912,8 +912,8 @@ contract('BalanceManager', function (accounts) {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    minAmount.mul(bn('2')),
-                    { from: depositer, value: minAmount.mul(bn('2')) }
+                    minAmount.plus(bn('1')),
+                    { from: depositer, value: minAmount.plus(bn('1')) }
                 );
 
                 await saveETHPrevBalances();
@@ -944,8 +944,8 @@ contract('BalanceManager', function (accounts) {
                 await balanceManager.deposit(
                     player1,
                     ETH,
-                    minAmount.mul(bn('2')),
-                    { from: depositer, value: minAmount.mul(bn('2')) }
+                    minAmount.plus(bn('1')),
+                    { from: depositer, value: minAmount.plus(bn('1')) }
                 );
 
                 await saveETHPrevBalances();
@@ -1010,13 +1010,13 @@ contract('BalanceManager', function (accounts) {
             });
 
             it('Withdraw half amount of balance in Token', async () => {
-                await token.setBalance(depositer, minAmount.mul(bn('2')));
-                await token.approve(balanceManager.address, minAmount.mul(bn('2')), { from: depositer });
+                await token.setBalance(depositer, minAmount.plus(bn('1')));
+                await token.approve(balanceManager.address, minAmount.plus(bn('1')), { from: depositer });
 
                 await balanceManager.deposit(
                     player1,
                     token.address,
-                    minAmount.mul(bn('2')),
+                    minAmount.plus(bn('1')),
                     { from: depositer }
                 );
 
