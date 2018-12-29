@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "../interfaces/IModel.sol";
 
@@ -9,7 +9,7 @@ contract DecodeData is BytesUtils {
     uint256 public constant L_CREATE_DATA = 20 + 32;// game + event Id
 
     function _decodeCreateData(
-        bytes _data
+        bytes memory _data
     ) internal pure returns (address, bytes32) {
         require(_data.length == L_CREATE_DATA, "Invalid create data length");
         (bytes32 game, bytes32 eventId) = decode(_data, 20, 32);
@@ -41,11 +41,11 @@ contract Massive is IModel, DecodeData {
     }
 
     function create(
-          bytes32 _id,
-          bytes,
-          address,
-          bytes
-      ) external
+        bytes32 _id,
+        bytes calldata,
+        IOracle,
+        bytes calldata
+    ) external
         onlyGamblingManager
     returns(uint256) {
         // (address game, bytes32 eventId) = _decodeCreateData(_data);
@@ -58,8 +58,8 @@ contract Massive is IModel, DecodeData {
     function play(
         bytes32,
         address,
-        bytes,
-        bytes
+        bytes calldata,
+        bytes calldata
     ) external
         onlyGamblingManager
     returns(uint256 needAmount) {
@@ -69,8 +69,8 @@ contract Massive is IModel, DecodeData {
     function collect(
         bytes32,
         address,
-        bytes,
-        bytes
+        bytes calldata,
+        bytes calldata
     ) external
         onlyGamblingManager
     returns(uint256 amount) {
@@ -80,8 +80,8 @@ contract Massive is IModel, DecodeData {
     function cancel(
         bytes32,
         address,
-        bytes,
-        bytes
+        bytes calldata,
+        bytes calldata
     ) external
         onlyGamblingManager
     returns(bool) {

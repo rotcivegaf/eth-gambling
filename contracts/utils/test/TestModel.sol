@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "../../interfaces/IModel.sol";
 
@@ -10,9 +10,9 @@ contract TestModel is IModel, BytesUtils {
 
     function create(
         bytes32,
-        bytes _modelData,
         address,
-        bytes
+        bytes calldata _modelData,
+        bytes calldata
     ) external returns(uint256) {
         return uint256(readBytes32(_modelData, 0));
     }
@@ -20,8 +20,8 @@ contract TestModel is IModel, BytesUtils {
     function play(
         bytes32,
         address,
-        bytes _modelData,
-        bytes
+        bytes calldata _modelData,
+        bytes calldata
     ) external returns(uint256) {
         return uint256(readBytes32(_modelData, 0));
     }
@@ -29,8 +29,8 @@ contract TestModel is IModel, BytesUtils {
     function collect(
         bytes32,
         address,
-        bytes _modelData,
-        bytes
+        bytes calldata _modelData,
+        bytes calldata
     ) external returns(uint256) {
         return uint256(readBytes32(_modelData, 0));
     }
@@ -38,8 +38,8 @@ contract TestModel is IModel, BytesUtils {
     function cancel(
         bytes32,
         address,
-        bytes _modelData,
-        bytes
+        bytes calldata _modelData,
+        bytes calldata
     ) external returns(bool) {
         return readBytes32(_modelData, 0) == TRUE;
     }

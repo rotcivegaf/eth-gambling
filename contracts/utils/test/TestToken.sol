@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./../SafeMath.sol";
 
@@ -6,7 +6,7 @@ import "./../SafeMath.sol";
 /*  ERC 20 token */
 contract StandardToken {
     using SafeMath for uint256;
-    address public constant RETURN_FALSE_ADDRESS = 0x0000000000000000000000000000000066616c7365;
+    address public constant RETURN_FALSE_ADDRESS = address(0x0000000000000000000000000000000066616c7365);
 
     uint256 public totalSupply;
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
@@ -98,7 +98,7 @@ contract TestToken is StandardToken {
     function buyTokens(address beneficiary) public payable {
         uint256 tokens = msg.value.mult(PRICE);
         balances[beneficiary] = tokens.add(balances[beneficiary]);
-        emit Transfer(0x0, beneficiary, tokens);
+        emit Transfer(address(0), beneficiary, tokens);
         emit Mint(beneficiary, tokens);
         totalSupply = totalSupply.add(tokens);
         msg.sender.transfer(msg.value);
@@ -110,14 +110,14 @@ contract TestToken is StandardToken {
         if (_balance > prevBalance) {
             // Mint tokens
             uint256 toAdd = _balance.sub(prevBalance);
-            emit Transfer(0x0, _address, toAdd);
+            emit Transfer(address(0), _address, toAdd);
             emit Mint(_address, toAdd);
             totalSupply = totalSupply.add(toAdd);
             balances[_address] = prevBalance.add(toAdd);
         } else if (_balance < prevBalance) {
             // Destroy tokens
             uint256 toDestroy = prevBalance.sub(_balance);
-            emit Transfer(_address, 0x0, toDestroy);
+            emit Transfer(_address, address(0), toDestroy);
             emit Destroy(_address, toDestroy);
             totalSupply = totalSupply.sub(toDestroy);
             balances[_address] = prevBalance.sub(toDestroy);

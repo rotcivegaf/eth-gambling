@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 contract IBalanceManager {
@@ -20,5 +20,5 @@ contract IBalanceManager {
     function approve(address _spender, address _token, uint256 _value) external returns (bool success);
 
     function deposit(address _to, address _token, uint256 _value) external payable returns (bool success);
-    function withdraw(address _to, address _token, uint256 _value) external returns (bool success);
+    function withdraw(address payable _to, address _token, uint256 _value) external returns (bool success);
 }

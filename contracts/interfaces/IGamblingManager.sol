@@ -1,7 +1,7 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
-contract IGamblingManager {
+interface IGamblingManager {
     event Created(
         address indexed _creator,
         bytes32 indexed _id,

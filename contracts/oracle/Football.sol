@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "../utils/BytesUtils.sol";
 import "../utils/Ownable.sol";
@@ -10,7 +10,7 @@ contract DecodeOracleData is BytesUtils {
     uint256 public constant L_ORACLE_DATA = 32 + 32;  // creatorOption + playerOption
 
     function _decodeOracleData(
-        bytes _data
+        bytes memory _data
     ) internal pure returns (
         bytes32 creatorOption,
         bytes32 playerOption
@@ -46,7 +46,7 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
 
     mapping(bytes32 => Game) public games;
 
-    function validateCreate(bytes32 _eventId, bytes) external view returns(bool) {
+    function validateCreate(bytes32 _eventId, bytes calldata) external view returns(bool) {
         Game storage game = games[_eventId];
         require(
             now < game.noMoreBets && game.noMoreBets != 0,
@@ -56,7 +56,7 @@ contract Football is IOracle, DecodeOracleData, IdHelper, Ownable {
         return true;
     }
 
-    function validatePlay(bytes32 _eventId, bytes32 _option, bytes) external view returns(bool) {
+    function validatePlay(bytes32 _eventId, bytes32 _option, bytes calldata) external view returns(bool) {
         Game storage game = games[_eventId];
         require(
             now < game.noMoreBets && game.noMoreBets != 0,

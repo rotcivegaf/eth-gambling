@@ -1,13 +1,15 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.5.0;
+
 
 interface IERC721Receiver {
     function onERC721Received(
         address _operator,
         address _from,
         uint256 _tokenId,
-        bytes   _userData
+        bytes calldata _userData
     ) external returns (bytes4);
 }
+
 
 contract TestERC721Receiver is IERC721Receiver {
     address public lastOperator;
@@ -21,7 +23,7 @@ contract TestERC721Receiver is IERC721Receiver {
         address _operator,
         address _from,
         uint256 _tokenId,
-        bytes   _userData
+        bytes calldata _userData
     ) external returns (bytes4) {
         emit Received(_operator, _from, _tokenId, _userData);
         lastOperator = _operator;

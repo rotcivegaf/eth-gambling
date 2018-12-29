@@ -1,6 +1,7 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./../interfaces/IERC165.sol";
+
 
 /**
  * @title ERC165
@@ -32,20 +33,14 @@ contract ERC165 is IERC165 {
     /**
     * @dev implement supportsInterface(bytes4) using a lookup table
     */
-    function supportsInterface(bytes4 interfaceId)
-        external
-        view
-        returns (bool)
-    {
+    function supportsInterface(bytes4 interfaceId) external view returns (bool) {
         return _supportedInterfaces[interfaceId];
     }
 
     /**
     * @dev internal method for registering an interface
     */
-    function _registerInterface(bytes4 interfaceId)
-        internal
-    {
+    function _registerInterface(bytes4 interfaceId) internal {
         require(interfaceId != 0xffffffff, "Can't register 0xffffffff");
         _supportedInterfaces[interfaceId] = true;
     }

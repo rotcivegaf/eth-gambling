@@ -1,11 +1,11 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 
 contract Ownable {
     address public owner;
 
     modifier onlyOwner() {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "The owner should be the sender");
         _;
     }
 
@@ -19,7 +19,7 @@ contract Ownable {
         @param _to Address of the new owner
     */
     function transferTo(address _to) public onlyOwner returns (bool) {
-        require(_to != address(0));
+        require(_to != address(0), "_to should not be 0x0");
         owner = _to;
         return true;
     }

@@ -1,33 +1,35 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
+
+import "./IOracle.sol";
 
 
-contract IModel {
+interface IModel {
     // This methods should be sender by the GamblingManager
     function create(
         bytes32 _id,
-        bytes _modelData,
-        address _oracle,
-        bytes _oracleData
+        bytes calldata _modelData,
+        IOracle _oracle,
+        bytes calldata _oracleData
     ) external returns(uint256 needAmount);
 
     function play(
         bytes32 _id,
         address _player,
-        bytes _modelData,
-        bytes _oracleData
+        bytes calldata _modelData,
+        bytes calldata _oracleData
     ) external returns(uint256 needAmount);
 
     function collect(
         bytes32 _id,
         address _player,
-        bytes _modelData,
-        bytes _oracleData
+        bytes calldata _modelData,
+        bytes calldata _oracleData
     ) external returns(uint256 amount);
 
     function cancel(
         bytes32 _id,
         address _player,
-        bytes _modelData,
-        bytes _oracleData
+        bytes calldata _modelData,
+        bytes calldata _oracleData
     ) external returns(bool success);
 }

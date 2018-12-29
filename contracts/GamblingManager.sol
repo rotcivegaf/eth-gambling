@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.0;
 
 import "./interfaces/Token.sol";
 import "./interfaces/IBalanceManager.sol";
@@ -21,7 +21,7 @@ contract BalanceManager is IBalanceManager {
         )
     ) internal _allowance;
 
-    function () public payable {
+    function () external payable {
         _toBalance[msg.sender][ETH] += msg.value;
 
         emit Deposit(
@@ -56,7 +56,7 @@ contract BalanceManager is IBalanceManager {
         address _token,
         uint256 _value
     ) external returns(bool) {
-        require(_to != 0x0, "_to should not be 0x0");
+        require(_to != address(0), "_to should not be 0x0");
 
         // Here check _toBalance underflow
         require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to transfer");
@@ -81,7 +81,7 @@ contract BalanceManager is IBalanceManager {
         address _token,
         uint256 _value
     ) external returns (bool success) {
-        require(_to != 0x0, "_to should not be 0x0");
+        require(_to != address(0), "_to should not be 0x0");
 
         // Here check _allowance underflow
         require(_allowance[_from][msg.sender][_token] >= _value, "Insufficient _allowance to transferFrom");
@@ -125,7 +125,7 @@ contract BalanceManager is IBalanceManager {
         address _token,
         uint256 _amount
     ) external payable returns(bool) {
-        require(_to != 0x0, "_to should not be 0x0");
+        require(_to != address(0), "_to should not be 0x0");
 
         _deposit(_to, _token, _amount);
 
@@ -157,11 +157,11 @@ contract BalanceManager is IBalanceManager {
     }
 
     function withdraw(
-        address _to,
+        address payable _to,
         address _token,
         uint256 _value
     ) external returns(bool) {
-        require(_to != 0x0, "_to should not be 0x0");
+        require(_to != address(0), "_to should not be 0x0");
         require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to discount");
 
         _toBalance[msg.sender][_token] -= _value;
@@ -182,10 +182,10 @@ contract BalanceManager is IBalanceManager {
     }
 
     function withdrawAll(
-        address _to,
+        address payable _to,
         address _token
     ) external returns(bool) {
-        require(_to != 0x0, "_to should not be 0x0");
+        require(_to != address(0), "_to should not be 0x0");
         uint256 addrBal = _toBalance[msg.sender][_token];
         _toBalance[msg.sender][_token] = 0;
 
@@ -228,9 +228,9 @@ contract IdHelper {
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes _modelData,
+        bytes calldata _modelData,
         IOracle _oracle,
-        bytes _oracleData,
+        bytes calldata _oracleData,
         uint256 _salt
     ) external view returns (bytes32) {
         return keccak256(
@@ -280,9 +280,9 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes _modelData,
+        bytes calldata _modelData,
         IOracle _oracle,
-        bytes _oracleData
+        bytes calldata _oracleData
     ) external payable returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
@@ -321,9 +321,9 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes _modelData,
+        bytes calldata _modelData,
         IOracle _oracle,
-        bytes _oracleData,
+        bytes calldata _oracleData,
         uint256 _salt
     ) external payable returns (bytes32 betId) {
         betId = keccak256(
@@ -367,9 +367,9 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes _modelData,
+        bytes calldata _modelData,
         IOracle _oracle,
-        bytes _oracleData,
+        bytes calldata _oracleData,
         uint256 _salt
     ) external payable returns(bytes32 betId) {
         betId = keccak256(
@@ -406,8 +406,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     function play(
         bytes32 _betId,
         uint256 _maxAmount,
-        bytes _modelData,
-        bytes _oracleData
+        bytes calldata _modelData,
+        bytes calldata _oracleData
     ) external payable returns(bool) {
         Bet storage bet = bets[_betId];
 
@@ -442,10 +442,10 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes32 _betId,
         address _beneficiary,
         uint256 _tip,
-        bytes _modelData,
-        bytes _oracleData
+        bytes calldata _modelData,
+        bytes calldata _oracleData
     ) external returns(bool) {
-        require(_beneficiary != 0x0, "_beneficiary should not be 0x0");
+        require(_beneficiary != address(0), "_beneficiary should not be 0x0");
         Bet storage bet = bets[_betId];
 
         uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _modelData, _oracleData);
@@ -475,11 +475,11 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
     function cancel(
         bytes32 _betId,
-        bytes _modelData,
-        bytes _oracleData
+        bytes calldata _modelData,
+        bytes calldata _oracleData
     ) external returns(bool) {
         Bet storage bet = bets[_betId];
-        require(bet.model != address(0x0), "The bet its not exist or was canceled");
+        require(bet.model != IModel(0), "The bet its not exist or was canceled");
 
         require(bet.model.cancel(_betId, msg.sender, _modelData, _oracleData), "The bet cant cancel");
 
@@ -505,11 +505,11 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes _modelData,
+        bytes memory _modelData,
         IOracle _oracle,
-        bytes _oracleData
+        bytes memory _oracleData
     ) internal returns(uint256 amount){
-        require(bets[_betId].model == IModel(0x0), "The bet is already created");
+        require(bets[_betId].model == IModel(0), "The bet is already created");
 
         amount = _model.create(
             _betId,
