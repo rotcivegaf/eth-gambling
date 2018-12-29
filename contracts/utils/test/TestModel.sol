@@ -10,8 +10,8 @@ contract TestModel is IModel, BytesUtils {
 
     function create(
         bytes32,
-        address,
         bytes calldata _modelData,
+        IOracle,
         bytes calldata
     ) external returns(uint256) {
         return uint256(readBytes32(_modelData, 0));
