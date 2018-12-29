@@ -8,6 +8,8 @@ contract IBalanceManager {
     event Deposit(address indexed _from, address indexed _to, address _token, uint256 _value);
     event Withdraw(address indexed _from, address indexed _to, address _token, uint256 _value);
 
+    // function name() external view returns (string);
+    // function symbol() external view returns (string);
 
     address public constant ETH = 0x0000000000000000000000000000000000000000;
 
