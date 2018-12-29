@@ -7,14 +7,14 @@ import "../utils/BytesUtils.sol";
 
 contract DecodeData is BytesUtils {
     uint256 public constant L_CREATE_DATA = 20 + 32;// game + event Id
-
+/*
     function _decodeCreateData(
         bytes memory _data
     ) internal pure returns (address, bytes32) {
         require(_data.length == L_CREATE_DATA, "Invalid create data length");
         (bytes32 game, bytes32 eventId) = decode(_data, 20, 32);
         return (address(game), eventId);
-    }
+    }*/
 }
 
 
