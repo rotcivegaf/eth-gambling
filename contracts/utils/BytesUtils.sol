@@ -8,6 +8,7 @@ contract BytesUtils {
             o := mload(add(data, add(32, mul(32, index))))
         }
     }
+
     function read(bytes memory data, uint256 offset, uint256 length) internal pure returns (bytes32 o) {
         require(data.length >= offset + length, "Reading bytes out of bounds");
         require(length <= 32, "Length should be less than 32");

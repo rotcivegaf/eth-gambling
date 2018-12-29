@@ -44,7 +44,7 @@
     "ethjs-abi": "^0.2.1",
     "ganache-cli": "^6.1.8",
     "solidity-coverage": "^0.5.11",
-    "solium": "^1.1.8",
+    "solium": "^1.2.0",
     "truffle": "^5.0.0"
   }
 }

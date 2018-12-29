@@ -115,7 +115,7 @@ contract P2P is IModel, DecodeData {
         ) = _decodeCreatePlayData(_data);
 
         require(playerAPay > 0 && playerBPay > 0, "The pay amounts should not be 0");
-        require( _option != playerBOption, "The options should not be equal");
+        require(_option != playerBOption, "The options should not be equal");
 
         bets[_id] = Bet({
             playerA: _player,
@@ -149,9 +149,9 @@ contract P2P is IModel, DecodeData {
         require(bet.playerB != address(0), "The bet its not taken");
 
         require(bet.playerA == _player || bet.playerB == _player, "");
-    bytes32 _winner;
-    // @param _winner Must be returned by the oracle of the bet,
-    //     it may be option A or B and if not, the bet is considered a draw.
+        bytes32 _winner;
+        // @param _winner Must be returned by the oracle of the bet,
+        //     it may be option A or B and if not, the bet is considered a draw.
 
         if (_winner == bet.playerAOption && _player == bet.playerA) {
             amount = bet.playerAPay + bet.playerBPay;
