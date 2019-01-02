@@ -19,10 +19,6 @@ contract ERC721Base is ERC165 {
     bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
     bytes4 private constant ERC721_RECEIVED_LEGACY = 0xf0b9e5ba;
 
-    event Transfer(address indexed _from, address indexed _to, uint256 _tokenId);
-    event Approval(address indexed _owner, address indexed _approved, uint256 _tokenId);
-    event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
-
     bytes4 private constant ERC_721_INTERFACE = 0x80ac58cd;
     bytes4 private constant ERC_721_METADATA_INTERFACE = 0x5b5e139f;
     bytes4 private constant ERC_721_ENUMERATION_INTERFACE = 0x780e9d63;
