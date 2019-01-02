@@ -9,13 +9,9 @@ contract TestURIProvider is ERC721Base {
 
     constructor() public ERC721Base("Test ERC721", "TST") {}
 
-    function generate(
-        uint256 id,
-        address dest
-    ) external returns (bool) {
+    function generate(uint256 id, address dest) external {
         _generate(id, dest);
         assetId = id;
-        return true;
     }
 
     function tokenURI(uint256) external onlyHolder(assetId) view returns (string memory){
