@@ -1,36 +1,179 @@
 const TestERC721 = artifacts.require('./utils/test/ERC721Base/TestERC721.sol');
-// const TestERC721Receiver = artifacts.require('./utils/test/ERC721Base/TestERC721Receiver.sol');
+const TestERC721Receiver = artifacts.require('./utils/test/ERC721Base/TestERC721Receiver.sol');
 // const TestERC721NoReceiver = artifacts.require('./utils/test/ERC721Base/TestERC721NoReceiver.sol');
-// const TestERC721ReceiverLegacy = artifacts.require('./utils/test/ERC721Base/TestERC721ReceiverLegacy.sol');
+const TestERC721ReceiverLegacy = artifacts.require('./utils/test/ERC721Base/TestERC721ReceiverLegacy.sol');
 // const TestERC721ReceiverLegacyRaw = artifacts.require('./utils/test/ERC721Base/TestERC721ReceiverLegacyRaw.sol');
 // const TestERC721ReceiverMultiple = artifacts.require('./utils/test/ERC721Base/TestERC721ReceiverMultiple.sol');
 
-// const Helper = require('./Helper.js');
+const Helper = require('./Helper.js');
 
-// function bn (number) {
-//     return new web3.utils.BN(number);
-// }
+function bn (number) {
+    return new web3.utils.BN(number);
+}
 
-// function inc (number) {
-//     return number.add(bn('1'));
-// }
+function inc (number) {
+    return number.add(bn('1'));
+}
 
-// function dec (number) {
-//     return number.sub(bn('1'));
-// }
+function dec (number) {
+    return number.sub(bn('1'));
+}
+
+function maxUint (base) {
+    return bn('2').pow(bn(base)).sub(bn('1'));
+}
 
 contract('ERC721 Base', function (accounts) {
     let token;
-    // const user = accounts[1];
-    // const approved = accounts[2];
-    // const otherUser = accounts[3];
+    let receiver;
+    let receiverLegacy;
+    const user = accounts[1];
+    const approved = accounts[2];
+    const otherUser = accounts[3];
 
-    // const address0x = web3.utils.padLeft('0x0', 40);
+    const address0x = web3.utils.padLeft('0x0', 40);
 
     before('Create ERC721 Base', async function () {
         token = await TestERC721.new();
+        receiverLegacy = await TestERC721ReceiverLegacy.new();
+        receiver = await TestERC721Receiver.new();
     });
 
+    describe('Function tokenByIndex', async function () {
+        it('Should get asset id by the index', async function () {
+            const assetId = bn('51651851');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            assert.equal(await token.tokenByIndex(dec(await token.totalSupply())), assetId.toString());
+        });
+
+        it('Try get asset id by a higth index', async function () {
+            const assetId = bn('7777');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            await Helper.tryCatchRevert(
+                () => token.tokenByIndex(
+                    maxUint('256')
+                ),
+                'Index out of bounds'
+            );
+        });
+    });
+
+    describe('Function tokenOfOwnerByIndex', async function () {
+        it('Should get asset id of the owner by index of the asset', async function () {
+            const assetId = bn('959652');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            const getAsset = await token.tokenOfOwnerByIndex(
+                user,
+                dec(await token.balanceOf(user))
+            );
+
+            assert.equal(getAsset, assetId.toString());
+        });
+
+        it('Try get asset id of the address 0xx', async function () {
+            const assetId = bn('613213');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            const lastUserToken = dec(await token.balanceOf(user));
+
+            await Helper.tryCatchRevert(
+                () => token.tokenOfOwnerByIndex(
+                    address0x,
+                    lastUserToken
+                ),
+                '0x0 Is not a valid owner'
+            );
+        });
+
+        it('Try get asset id by a higth index', async function () {
+            const assetId = bn('65432156');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            await Helper.tryCatchRevert(
+                () => token.tokenOfOwnerByIndex(
+                    user,
+                    maxUint('256')
+                ),
+                'Index out of bounds'
+            );
+        });
+    });
+    /*
+    describe('Function isAuthorized', async function () {
+        it('Should be authorized to be the owner', async function () {
+            const assetId = bn('23442342');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            assert.isOk(await token.isAuthorized(user, assetId));
+        });
+
+        it('Should be authorized by the owner', async function () {
+            const assetId = bn('23442342');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            assert.isOk(await token.isAuthorized(user, assetId));
+        });
+
+        it('Should be authorized setApprovalForAll be the owner', async function () {
+            const assetId = bn('23442342');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            assert.isOk(await token.isAuthorized(user, assetId));
+        });
+
+        it('Try get asset id by a higth index', async function () {
+            const assetId = bn('23423432');
+
+            await token.generate(
+                assetId,
+                user
+            );
+
+            await Helper.tryCatchRevert(
+                () => token.isAuthorized(
+                    address0x,
+                    assetId
+                ),
+                '0x0 is an invalid operator'
+            );
+        });
+    });
+*/
     describe('Functional tests', async function () {
         it('Should generate a new NFTs and tansfer randomly', async function () {
             const assetIds = [];
@@ -78,10 +221,10 @@ contract('ERC721 Base', function (accounts) {
             }
         });
     });
-/*
+
     describe('Function _generate', async function () {
         it('Should generate a new NFT', async function () {
-            const assetId = bn('51651851');
+            const assetId = bn('62329');
             const prevBalUser = await token.balanceOf(user);
             const totalNFT = await token.totalSupply();
 
@@ -99,11 +242,12 @@ contract('ERC721 Base', function (accounts) {
 
             assert.equal(await token.ownerOf(assetId), user);
             assert.equal(await token.balanceOf(user), inc(prevBalUser).toString());
-            assert.equal(await token.indexOfAsset(assetId), totalNFT.toString());
-            assert.equal((await token.allTokens()).find(x => assetId), assetId.toString());
+            assert.equal(await token.indexOfAsset(assetId), prevBalUser.toString());
+            assert.equal(await token.totalSupply(), inc(totalNFT).toString());
+            assert.isOk((await token.allTokens()).some(x => x.toString() === assetId.toString()));
         });
 
-        it('Try GenerateShould generate a new NFT', async function () {
+        it('Try generate two same NFT', async function () {
             const assetId = bn('13201320320');
 
             await token.generate(
@@ -122,12 +266,17 @@ contract('ERC721 Base', function (accounts) {
     });
 
     describe('Function _doTransferFrom, safeTransfer, safeTransferFrom and the variants', async function () {
-        it('Perform a safeTransfer', async function () {
+        it('Perform a safeTransfer with approval', async function () {
             const assetId = bn('561651561');
             const auxAssetId = bn('9999956262');
             await token.generate(assetId, user);
             await token.generate(auxAssetId, user);
             await token.generate(bn('546165651651411'), otherUser);
+
+            const prevIndexOfAsset = await token.indexOfAsset(assetId);
+            const prevBalUser = await token.balanceOf(user);
+            const prevBalOtherUser = await token.balanceOf(otherUser);
+            const prevLengthUser = (await token.assetsOf(user, dec(prevBalUser)));
 
             await token.approve(
                 approved,
@@ -135,12 +284,8 @@ contract('ERC721 Base', function (accounts) {
                 { from: user }
             );
 
-            const prevIndexOfAsset = await token.indexOfAsset(assetId);
-            const prevBalUser = await token.balanceOf(user);
-            const prevBalOtherUser = await token.balanceOf(otherUser);
-
             const events = await Helper.toEvents(
-                () => token.safeTransferFrom(
+                () => token.transferFrom(
                     user,
                     otherUser,
                     assetId,
@@ -159,19 +304,123 @@ contract('ERC721 Base', function (accounts) {
             assert.equal(Transfer._tokenId, assetId.toString());
 
             assert.equal(await token.getApproved(assetId), address0x);
-            assert.equal(await token.ownerOf(assetId), otherUser);
+            assert.equal(await token.indexOfAsset(auxAssetId), prevIndexOfAsset.toString());
+            assert.equal(await token.assetsOf((user), dec(await token.balanceOf(user))), prevLengthUser.toString());
             assert.equal(await token.balanceOf(user), dec(prevBalUser).toString());
-            assert.equal(await token.balanceOf(otherUser), inc(prevBalOtherUser).toString());
-            assert.equal((await token.indexOfAsset(auxAssetId)).toString(), prevIndexOfAsset.toString());
+            assert.equal(await token.ownerOf(assetId), otherUser);
             assert.equal(await token.indexOfAsset(assetId), prevBalOtherUser.toString());
+            assert.equal(await token.balanceOf(otherUser), inc(prevBalOtherUser).toString());
         });
 
-/*
-        it('SafeTransfer legacy', async function () {
+        it('Perform a safeTransfer with ownership', async function () {
+            const assetId = bn('9959');
+            await token.generate(assetId, user);
+
+            await token.approve(
+                approved,
+                assetId,
+                { from: user }
+            );
+
+            const Transfer = await Helper.toEvents(
+                () => token.transferFrom(
+                    user,
+                    otherUser,
+                    assetId,
+                    { from: approved }
+                ),
+                'Transfer'
+            );
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, otherUser);
+            assert.equal(Transfer._tokenId, assetId.toString());
+
+            assert.equal(await token.ownerOf(assetId), otherUser);
+        });
+
+        it('Perform a safeTransfer with operator privileges', async function () {
+            const assetId = bn('989951');
+            await token.generate(assetId, user);
+
+            await token.setApprovalForAll(
+                approved,
+                true,
+                { from: user }
+            );
+
+            const Transfer = await Helper.toEvents(
+                () => token.transferFrom(
+                    user,
+                    otherUser,
+                    assetId,
+                    { from: approved }
+                ),
+                'Transfer'
+            );
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, otherUser);
+            assert.equal(Transfer._tokenId, assetId.toString());
+
+            assert.equal(await token.ownerOf(assetId), otherUser);
+        });
+
+        it('Try tansfer an asset to address 0x0', async function () {
+            const assetId = bn('65161');
+            await token.generate(assetId, user);
+
+            await Helper.tryCatchRevert(
+                () => token.transferFrom(
+                    user,
+                    address0x,
+                    assetId,
+                    { from: user }
+                ),
+                'Target can\'t be 0x0'
+            );
+        });
+
+        it('Try tansfer an asset without authorize', async function () {
+            const assetId = bn('111199876543');
+            await token.generate(assetId, user);
+
+            await Helper.tryCatchRevert(
+                () => token.transferFrom(
+                    user,
+                    otherUser,
+                    assetId,
+                    { from: otherUser }
+                ),
+                'msg.sender Not authorized'
+            );
+        });
+
+        it('safeTransferFrom legacy to a contract, safeTransferFrom(address,address,uint256)', async function () {
             const assetId = bn('894988913213216516516516516514796');
             await token.generate(assetId, user);
 
-            const receiver = await TestERC721ReceiverLegacy.new();
+            const Transfer = await Helper.toEvents(
+                () => token.safeTransferFrom(
+                    user,
+                    receiverLegacy.address,
+                    assetId,
+                    { from: user }
+                ),
+                'Transfer'
+            );
+
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, receiverLegacy.address);
+            assert.equal(Transfer._tokenId, assetId.toString());
+
+            assert.equal(await token.ownerOf(assetId), receiverLegacy.address);
+            assert.equal(await receiverLegacy.lastFrom(), user);
+            assert.equal(await receiverLegacy.lastTokenId(), assetId.toString());
+        });
+
+        it('safeTransferFrom to a contract, safeTransferFrom(address,address,uint256)', async function () {
+            const assetId = bn('9292632651');
+
+            await token.generate(assetId, user);
 
             const Transfer = await Helper.toEvents(
                 () => token.safeTransferFrom(
@@ -187,65 +436,62 @@ contract('ERC721 Base', function (accounts) {
             assert.equal(Transfer._to, receiver.address);
             assert.equal(Transfer._tokenId, assetId.toString());
 
+            assert.equal(await token.ownerOf(assetId), receiver.address);
+            assert.equal(await receiver.lastOperator(), user);
+            assert.equal(await receiver.lastFrom(), user);
+            assert.equal(await receiver.lastTokenId(), assetId.toString());
+        });
+        /*
+        it('SafeTransfer to a contract, safeTransferFrom(address,address,uint256,bytes)', async function () {
+            async function safeTransferFrom (_from, _to, _assetId, _userData, sender) {
+                const signature = web3.utils.soliditySha3({ t: 'string', v: 'safeTransferFrom(address,address,uint256,bytes)' }).slice(0, 10);
+                _assetId = web3.utils.numberToHex(_assetId);
+                const offset = web3.utils.numberToHex(bn('32').mul('3'));
 
+                return web3.eth.sendTransaction({
+                    from: sender,
+                    to: token.address,
+                    data: signature +
+                        web3.utils.padLeft(_from, 64).slice(2) +
+                        web3.utils.padLeft(_to, 64).slice(2) +
+                        web3.utils.padLeft(_assetId, 64).slice(2) +
+                        web3.utils.padLeft(offset, 64).slice(2) +
+                        web3.utils.padLeft(_userData, 64).slice(2), // TODO fix
+                });
+            }
+
+            const assetId = bn('61268456');
+            await token.generate(assetId, user);
+
+            const tx = await safeTransferFrom(
+                user,
+                receiver.address,
+                assetId,
+                [],
+                user
+            );
+                const Transfer = await Helper.toEvents(
+                    () => token.safeTransferFrom(
+                        user,
+                        receiver.address,
+                        assetId,
+                        [],
+                        { from: user }
+                    ),
+                    'Transfer'
+                );
+
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, receiver.address);
+            assert.equal(Transfer._tokenId, assetId.toString());
 
             assert.equal(await token.ownerOf(assetId), receiver.address);
             assert.equal(await receiver.lastFrom(), user);
             assert.equal(await receiver.lastTokenId(), assetId);
         });
-
-        address holder = _holderOf[_assetId];
-        _clearApproval(holder, _assetId);
-        _transferAsset(holder, _to, _assetId);
-
-        if (_doCheck && _to.isContract()) {
-            // Call dest contract
-            uint256 success;
-            bytes32 result;
-            // Perform check with the new safe call
-            // onERC721Received(address,address,uint256,bytes)
-            (success, result) = _noThrowCall(
-                _to,
-                abi.encodeWithSelector(
-                    ERC721_RECEIVED,
-                    msg.sender,
-                    holder,
-                    _assetId,
-                    _userData
-                )
-            );
-
-            if (success != 1 || result != ERC721_RECEIVED) {
-                // Try legacy safe call
-                // onERC721Received(address,uint256,bytes)
-                (success, result) = _noThrowCall(
-                    _to,
-                    abi.encodeWithSelector(
-                        ERC721_RECEIVED_LEGACY,
-                        holder,
-                        _assetId,
-                        _userData
-                    )
-                );
-            }
-        }
-
-
-        it('Should make a safeTransferFrom to a contract', async function () {
-            const assetId = bn('9292632651');
-            const receiver = await TestERC721Receiver.new();
-
-            await token.generate(assetId, user);
-            await token.safeTransferFrom(user, receiver.address, assetId);
-
-            assert.equal(await token.ownerOf(assetId), receiver.address);
-            assert.equal(await receiver.lastOperator(), user);
-            assert.equal(await receiver.lastFrom(), user);
-            assert.equal(await receiver.lastTokenId(), assetId);
-        }); */
-//    });
-
-
+        */
+    });
+});
 /*
     it('Test safeTransfer legacy witout fallback', async function () {
         const assetId = 3;
@@ -305,8 +551,6 @@ contract('ERC721 Base', function (accounts) {
     });
 
     it('Test approve a third party operator to manage all asset', async function () {
-        const assetId = 10;
-
         await token.generate(assetId, accounts[0]);
         await token.setApprovalForAll(accounts[1], true);
 
@@ -327,37 +571,6 @@ contract('ERC721 Base', function (accounts) {
 
         assert.equal(ownerOfAsset, accounts[2]);
     });
-
-    it('Test safeTransferFrom modifiers onlyAuthorized, isCurrentOwner,AddressDefined, isAuthorized ', async function () {
-        const assetId = 12;
-
-        await token.generate(assetId, accounts[0]);
-        try {
-            await token.safeTransferFrom(accounts[1], accounts[2], assetId);
-            assert(false);
-        } catch (err) {
-            assert(err);
-        }
-        try {
-            await token.safeTransferFrom(accounts[0], '0x0', assetId);
-            assert(false);
-        } catch (err) {
-            assert(err);
-        }
-        try {
-            await token.safeTransferFrom(accounts[0], accounts[2], 13);
-            assert(false);
-        } catch (err) {
-            assert(err);
-        }
-        try {
-            await token.isAuthorized('0x0', 12);
-            assert(false);
-        } catch (err) {
-            assert(err);
-        }
-    });
-
     it('test transferAsset that is not in the last position of the assetsOwner array', async function () {
         const assetId1 = 15;
         const assetId2 = 16;
@@ -397,19 +610,6 @@ contract('ERC721 Base', function (accounts) {
             assert(err);
         }
     });
-
-    it('test that an operator has been previously approved', async function () {
-        const assetId = 8;
-        await token.generate(assetId, accounts[0]);
-        await token.approve(accounts[1], assetId);
-        try {
-            await token.approve(accounts[1], assetId);
-            assert(true);
-        } catch (err) {
-            assert(err);
-        }
-    });
-
     it('Test functions that get information of tokens and owners', async function () {
         const assetId = 11;
 
@@ -431,6 +631,17 @@ contract('ERC721 Base', function (accounts) {
         assert.equal(allTokens.length, 11);
     });
 
+    it('test that an operator has been previously approved', async function () {
+        const assetId = 8;
+        await token.generate(assetId, accounts[0]);
+        await token.approve(accounts[1], assetId);
+        try {
+            await token.approve(accounts[1], assetId);
+            assert(true);
+        } catch (err) {
+            assert(err);
+        }
+    });
 
     it('Test that a token does not exists, and token is not from owner or index is out of bounds', async function () {
         const assetId = 13;
@@ -471,4 +682,3 @@ contract('ERC721 Base', function (accounts) {
         }
     });
 */
-});
