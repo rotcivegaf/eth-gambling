@@ -9,7 +9,7 @@ contract TestModel is IModel, BytesUtils {
     bytes32 public constant TRUE = 0x0000000000000000000000000000000000000000000000000000000000000001;
 
     function create(
-        bytes32,
+        uint256,
         bytes calldata _modelData,
         IOracle,
         bytes calldata
@@ -18,7 +18,7 @@ contract TestModel is IModel, BytesUtils {
     }
 
     function play(
-        bytes32,
+        uint256,
         address,
         bytes calldata _modelData,
         bytes calldata
@@ -27,7 +27,7 @@ contract TestModel is IModel, BytesUtils {
     }
 
     function collect(
-        bytes32,
+        uint256,
         address,
         bytes calldata _modelData,
         bytes calldata
@@ -36,7 +36,7 @@ contract TestModel is IModel, BytesUtils {
     }
 
     function cancel(
-        bytes32,
+        uint256,
         address,
         bytes calldata _modelData,
         bytes calldata

@@ -49,7 +49,7 @@ contract P2P is IModel, DecodeData {
         uint128 playerBPay; // Pay B to A
     }
 
-    mapping(bytes32 => Bet) public bets;
+    mapping(uint256 => Bet) public bets;
 
     address public gamblingManager;
 
@@ -64,7 +64,7 @@ contract P2P is IModel, DecodeData {
     }
 
     function create(
-        bytes32,
+        uint256,
         bytes calldata,
         IOracle,
         bytes calldata
@@ -75,7 +75,7 @@ contract P2P is IModel, DecodeData {
     }
 
     function play(
-        bytes32 _betId,
+        uint256 _betId,
         address _player,
         bytes calldata,
         bytes calldata
@@ -101,7 +101,7 @@ contract P2P is IModel, DecodeData {
         @return The amount needed to place the bet
     */
     function createPlay(
-        bytes32 _id,
+        uint256 _id,
         address _player,
         bytes32 _option,
         bytes calldata _data
@@ -138,7 +138,7 @@ contract P2P is IModel, DecodeData {
         @return The amount that will be transferred to the _player
     */
     function collect(
-        bytes32 _betId,
+        uint256 _betId,
         address _player,
         bytes calldata,
         bytes calldata
@@ -174,7 +174,7 @@ contract P2P is IModel, DecodeData {
     }
 
     function cancel(
-        bytes32 _betId,
+        uint256 _betId,
         address,
         bytes calldata,
         bytes calldata

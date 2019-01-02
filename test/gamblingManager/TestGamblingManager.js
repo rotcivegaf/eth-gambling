@@ -119,9 +119,11 @@ contract('GamblingManager', function (accounts) {
                 { t: 'uint256', v: nonce }
             );
 
-            const id = await gamblingManager.buildId(
-                creator,
-                nonce
+            const id = toHexBytes32(
+                await gamblingManager.buildId(
+                    creator,
+                    nonce
+                )
             );
 
             assert.equal(id, calcId);
@@ -147,15 +149,17 @@ contract('GamblingManager', function (accounts) {
                 { t: 'uint256', v: salt }
             );
 
-            const id = await gamblingManager.buildId2(
-                creator,
-                _token,
-                tip,
-                model.address,
-                modelData,
-                oracle,
-                oracleData,
-                salt
+            const id = toHexBytes32(
+                await gamblingManager.buildId2(
+                    creator,
+                    _token,
+                    tip,
+                    model.address,
+                    modelData,
+                    oracle,
+                    oracleData,
+                    salt
+                )
             );
 
             assert.equal(id, calcId);
@@ -181,15 +185,17 @@ contract('GamblingManager', function (accounts) {
                 { t: 'uint256', v: salt }
             );
 
-            const id = await gamblingManager.buildId2(
-                creator,
-                _token,
-                tip,
-                model.address,
-                modelData,
-                oracle,
-                oracleData,
-                salt
+            const id = toHexBytes32(
+                await gamblingManager.buildId2(
+                    creator,
+                    _token,
+                    tip,
+                    model.address,
+                    modelData,
+                    oracle,
+                    oracleData,
+                    salt
+                )
             );
 
             assert.equal(id, calcId);
@@ -205,9 +211,11 @@ contract('GamblingManager', function (accounts) {
                 { t: 'uint256', v: salt }
             );
 
-            const id = await gamblingManager.buildId3(
-                creator,
-                salt
+            const id = toHexBytes32(
+                await gamblingManager.buildId3(
+                    creator,
+                    salt
+                )
             );
 
             assert.equal(id, calcId);
@@ -246,7 +254,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created._creator, creator);
-            assert.equal(Created._id, id);
+            assert.equal(Created._id, id.toString());
             assert.equal(Created._token, ETH);
             assert.equal(Created._amount, minAmount.toString());
             assert.equal(Created._tip, tip.toString());
@@ -299,7 +307,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created._creator, creator);
-            assert.equal(Created._id, id);
+            assert.equal(Created._id, id.toString());
             assert.equal(Created._token, token.address);
             assert.equal(Created._amount, minAmount.toString());
             assert.equal(Created._tip, tip.toString());
@@ -358,7 +366,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created2._creator, creator);
-            assert.equal(Created2._id, id);
+            assert.equal(Created2._id, id.toString());
             assert.equal(Created2._token, ETH);
             assert.equal(Created2._amount, minAmount.toString());
             assert.equal(Created2._tip, tip.toString());
@@ -419,7 +427,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created2._creator, creator);
-            assert.equal(Created2._id, id);
+            assert.equal(Created2._id, id.toString());
             assert.equal(Created2._token, token.address);
             assert.equal(Created2._amount, minAmount.toString());
             assert.equal(Created2._tip, tip.toString());
@@ -472,7 +480,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created3._creator, creator);
-            assert.equal(Created3._id, id);
+            assert.equal(Created3._id, id.toString());
             assert.equal(Created3._token, ETH);
             assert.equal(Created3._amount, minAmount.toString());
             assert.equal(Created3._tip, tip.toString());
@@ -527,7 +535,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created3._creator, creator);
-            assert.equal(Created3._id, id);
+            assert.equal(Created3._id, id.toString());
             assert.equal(Created3._token, token.address);
             assert.equal(Created3._amount, minAmount.toString());
             assert.equal(Created3._tip, tip.toString());
@@ -571,7 +579,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created._creator, creator);
-            assert.equal(Created._id, id);
+            assert.equal(Created._id, id.toString());
             assert.equal(Created._token, ETH);
             assert.equal(Created._amount, minAmount.toString());
             assert.equal(Created._tip, '0');
@@ -617,7 +625,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             assert.equal(Created._creator, creator);
-            assert.equal(Created._id, id);
+            assert.equal(Created._id, id.toString());
             assert.equal(Created._token, token.address);
             assert.equal(Created._amount, minAmount.toString());
             assert.equal(Created._tip, '0');
@@ -719,7 +727,7 @@ contract('GamblingManager', function (accounts) {
                 'Played'
             );
             // For event
-            assert.equal(Played._id, id);
+            assert.equal(Played._id, id.toString());
             assert.equal(Played._amount, minAmount.toString());
             assert.equal(Played._modelData, minAmountBytes32);
             assert.equal(Played._oracleData, null);
@@ -773,7 +781,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             // For event
-            assert.equal(Played._id, id);
+            assert.equal(Played._id, id.toString());
             assert.equal(Played._amount, minAmount.toString());
             assert.equal(Played._modelData, minAmountBytes32);
             assert.equal(Played._oracleData, null);
@@ -818,7 +826,7 @@ contract('GamblingManager', function (accounts) {
             );
 
             const Played = events[0];
-            assert.equal(Played._id, id);
+            assert.equal(Played._id, id.toString());
             assert.equal(Played._amount, minAmount.toString());
             assert.equal(Played._modelData, minAmountBytes32);
             assert.equal(Played._oracleData, null);
@@ -871,7 +879,7 @@ contract('GamblingManager', function (accounts) {
                 'Deposit'
             );
             const Played = events[0];
-            assert.equal(Played._id, id);
+            assert.equal(Played._id, id.toString());
             assert.equal(Played._amount, minAmount.toString());
             assert.equal(Played._modelData, minAmountBytes32);
             assert.equal(Played._oracleData, null);
@@ -1058,7 +1066,7 @@ contract('GamblingManager', function (accounts) {
             // For event
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._beneficiary, player1);
-            assert.equal(Collected._id, id);
+            assert.equal(Collected._id, id.toString());
             assert.equal(Collected._amount, minAmount.toString());
             assert.equal(Collected._tip, '0');
             assert.equal(Collected._modelData, minAmountBytes32);
@@ -1108,7 +1116,7 @@ contract('GamblingManager', function (accounts) {
             // For event
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._beneficiary, player1);
-            assert.equal(Collected._id, id);
+            assert.equal(Collected._id, id.toString());
             assert.equal(Collected._amount, '0');
             assert.equal(Collected._tip, tip.toString());
             assert.equal(Collected._modelData, minAmountBytes32);
@@ -1158,7 +1166,7 @@ contract('GamblingManager', function (accounts) {
             // For event
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._beneficiary, player1);
-            assert.equal(Collected._id, id);
+            assert.equal(Collected._id, id.toString());
             assert.equal(Collected._amount, minAmount.toString());
             assert.equal(Collected._tip, '0');
             assert.equal(Collected._modelData, minAmountBytes32);
@@ -1208,7 +1216,7 @@ contract('GamblingManager', function (accounts) {
             // For event
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._beneficiary, player1);
-            assert.equal(Collected._id, id);
+            assert.equal(Collected._id, id.toString());
             assert.equal(Collected._amount, minAmount.toString());
             assert.equal(Collected._tip, tip.toString());
             assert.equal(Collected._modelData, toHexBytes32(minAmount.add(tip)));
@@ -1350,7 +1358,7 @@ contract('GamblingManager', function (accounts) {
 
             // For event
             assert.equal(Canceled._creator, creator);
-            assert.equal(Canceled._id, id);
+            assert.equal(Canceled._id, id.toString());
             assert.equal(Canceled._amount, totalAmount.toString());
             assert.equal(Canceled._modelData, RETURN_TRUE);
             assert.equal(Canceled._oracleData, bytes320x);
@@ -1395,7 +1403,7 @@ contract('GamblingManager', function (accounts) {
 
             // For event
             assert.equal(Canceled._creator, creator);
-            assert.equal(Canceled._id, id);
+            assert.equal(Canceled._id, id.toString());
             assert.equal(Canceled._amount, '0');
             assert.equal(Canceled._modelData, RETURN_TRUE);
             assert.equal(Canceled._oracleData, bytes320x);

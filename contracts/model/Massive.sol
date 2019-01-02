@@ -26,7 +26,7 @@ contract Massive is IModel, DecodeData {
         uint256 balance;
     }
 
-    mapping(bytes32 => Bet) public bets;
+    mapping(uint256 => Bet) public bets;
 
     address public gamblingManager;
 
@@ -41,7 +41,7 @@ contract Massive is IModel, DecodeData {
     }
 
     function create(
-        bytes32 _id,
+        uint256 _id,
         bytes calldata,
         IOracle,
         bytes calldata
@@ -56,7 +56,7 @@ contract Massive is IModel, DecodeData {
     }
 
     function play(
-        bytes32,
+        uint256,
         address,
         bytes calldata,
         bytes calldata
@@ -67,7 +67,7 @@ contract Massive is IModel, DecodeData {
     }
 
     function collect(
-        bytes32,
+        uint256,
         address,
         bytes calldata,
         bytes calldata
@@ -78,7 +78,7 @@ contract Massive is IModel, DecodeData {
     }
 
     function cancel(
-        bytes32,
+        uint256,
         address,
         bytes calldata,
         bytes calldata

@@ -212,13 +212,15 @@ contract IdHelper {
     function buildId(
         address _creator,
         uint256 _nonce
-    ) external view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                uint8(1),
-                address(this),
-                _creator,
-                _nonce
+    ) external view returns (uint256) {
+        return uint256(
+            keccak256(
+                abi.encodePacked(
+                    uint8(1),
+                    address(this),
+                    _creator,
+                    _nonce
+                )
             )
         );
     }
@@ -232,19 +234,21 @@ contract IdHelper {
         IOracle _oracle,
         bytes calldata _oracleData,
         uint256 _salt
-    ) external view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                uint8(2),
-                address(this),
-                _creator,
-                _token,
-                _tip,
-                _model,
-                _modelData,
-                _oracle,
-                _oracleData,
-                _salt
+    ) external view returns (uint256) {
+        return uint256(
+            keccak256(
+                abi.encodePacked(
+                    uint8(2),
+                    address(this),
+                    _creator,
+                    _token,
+                    _tip,
+                    _model,
+                    _modelData,
+                    _oracle,
+                    _oracleData,
+                    _salt
+                )
             )
         );
     }
@@ -252,13 +256,15 @@ contract IdHelper {
     function buildId3(
         address _creator,
         uint256 _salt
-    ) external view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                uint8(3),
-                address(this),
-                _creator,
-                _salt
+    ) external view returns (uint256) {
+        return uint256(
+            keccak256(
+                abi.encodePacked(
+                    uint8(3),
+                    address(this),
+                    _creator,
+                    _salt
+                )
             )
         );
     }
@@ -272,7 +278,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel model;
     }
 
-    mapping(bytes32 => Bet) public bets;
+    mapping(uint256 => Bet) public bets;
 
     constructor() public ERC721Base("Ethereum Gambling Network", "EGN") { }
 
@@ -283,15 +289,17 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes calldata _modelData,
         IOracle _oracle,
         bytes calldata _oracleData
-    ) external payable returns (bytes32 betId) {
+    ) external payable returns (uint256 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
-        betId = keccak256(
-            abi.encodePacked(
-                uint8(1),
-                address(this),
-                msg.sender,
-                nonce
+        betId = uint256(
+            keccak256(
+                abi.encodePacked(
+                    uint8(1),
+                    address(this),
+                    msg.sender,
+                    nonce
+                )
             )
         );
 
@@ -325,19 +333,21 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IOracle _oracle,
         bytes calldata _oracleData,
         uint256 _salt
-    ) external payable returns (bytes32 betId) {
-        betId = keccak256(
-            abi.encodePacked(
-                uint8(2),
-                address(this),
-                msg.sender,
-                _token,
-                _tip,
-                _model,
-                _modelData,
-                _oracle,
-                _oracleData,
-                _salt
+    ) external payable returns (uint256 betId) {
+        betId = uint256(
+            keccak256(
+                abi.encodePacked(
+                    uint8(2),
+                    address(this),
+                    msg.sender,
+                    _token,
+                    _tip,
+                    _model,
+                    _modelData,
+                    _oracle,
+                    _oracleData,
+                    _salt
+                )
             )
         );
 
@@ -371,13 +381,15 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IOracle _oracle,
         bytes calldata _oracleData,
         uint256 _salt
-    ) external payable returns(bytes32 betId) {
-        betId = keccak256(
-            abi.encodePacked(
-                uint8(3),
-                address(this),
-                msg.sender,
-                _salt
+    ) external payable returns(uint256 betId) {
+        betId = uint256(
+            keccak256(
+                abi.encodePacked(
+                    uint8(3),
+                    address(this),
+                    msg.sender,
+                    _salt
+                )
             )
         );
 
@@ -404,7 +416,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function play(
-        bytes32 _betId,
+        uint256 _betId,
         uint256 _maxAmount,
         bytes calldata _modelData,
         bytes calldata _oracleData
@@ -439,7 +451,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function collect(
-        bytes32 _betId,
+        uint256 _betId,
         address _beneficiary,
         uint256 _tip,
         bytes calldata _modelData,
@@ -474,7 +486,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function cancel(
-        bytes32 _betId,
+        uint256 _betId,
         bytes calldata _modelData,
         bytes calldata _oracleData
     ) external returns(bool) {
@@ -501,7 +513,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function _create(
-        bytes32 _betId,
+        uint256 _betId,
         address _token,
         uint256 _tip,
         IModel _model,

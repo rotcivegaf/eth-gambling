@@ -4,7 +4,7 @@ pragma solidity ^0.5.0;
 interface IGamblingManager {
     event Created(
         address indexed _creator,
-        bytes32 indexed _id,
+        uint256 indexed _id,
         address _token,
         uint256 _amount,
         uint256 _tip,
@@ -15,7 +15,7 @@ interface IGamblingManager {
 
     event Created2(
         address indexed _creator,
-        bytes32 indexed _id,
+        uint256 indexed _id,
         address _token,
         uint256 _amount,
         uint256 _tip,
@@ -26,7 +26,7 @@ interface IGamblingManager {
 
     event Created3(
         address indexed _creator,
-        bytes32 indexed _id,
+        uint256 indexed _id,
         address _token,
         uint256 _amount,
         uint256 _tip,
@@ -36,7 +36,7 @@ interface IGamblingManager {
     );
 
     event Played(
-        bytes32 indexed _id,
+        uint256 indexed _id,
         uint256 _amount,
         bytes _modelData,
         bytes _oracleData
@@ -45,7 +45,7 @@ interface IGamblingManager {
     event Collected(
         address indexed _collecter,
         address indexed _beneficiary,
-        bytes32 indexed _id,
+        uint256 indexed _id,
         uint256 _amount,
         uint256 _tip,
         bytes _modelData,
@@ -54,7 +54,7 @@ interface IGamblingManager {
 
     event Canceled(
         address indexed _creator,
-        bytes32 indexed _id,
+        uint256 indexed _id,
         uint256 _amount,
         bytes _modelData,
         bytes _oracleData
