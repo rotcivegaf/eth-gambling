@@ -2,23 +2,8 @@ pragma solidity ^0.5.0;
 
 import "../interfaces/IModel.sol";
 
-import "../utils/BytesUtils.sol";
 
-
-contract DecodeData is BytesUtils {
-    uint256 public constant L_CREATE_DATA = 20 + 32;// game + event Id
-/*
-    function _decodeCreateData(
-        bytes memory _data
-    ) internal pure returns (address, bytes32) {
-        require(_data.length == L_CREATE_DATA, "Invalid create data length");
-        (bytes32 game, bytes32 eventId) = decode(_data, 20, 32);
-        return (address(game), eventId);
-    }*/
-}
-
-
-contract Massive is IModel, DecodeData {
+contract Massive is IModel {
     struct Bet {
         mapping (address => uint256) playerToBalance;
         mapping (address => bytes32) playerToOption;
@@ -26,7 +11,7 @@ contract Massive is IModel, DecodeData {
         uint256 balance;
     }
 
-    mapping(uint256 => Bet) public bets;
+    mapping(bytes32 => Bet) public bets;
 
     address public gamblingManager;
 
@@ -40,14 +25,7 @@ contract Massive is IModel, DecodeData {
         gamblingManager = _gamblingManager;
     }
 
-    function create(
-        uint256 _id,
-        bytes calldata,
-        IOracle,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(uint256) {
+    function create(bytes32 _id, bytes32[] calldata) external onlyGamblingManager returns(uint256) {
         // (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({
@@ -55,35 +33,14 @@ contract Massive is IModel, DecodeData {
         });
     }
 
-    function play(
-        uint256,
-        address,
-        bytes calldata,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(uint256 needAmount) {
+    function play(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(uint256 needAmount) {
         return 0;
     }
 
-    function collect(
-        uint256,
-        address,
-        bytes calldata,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(uint256 amount) {
+    function collect(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(uint256 amount) {
         return 0;
     }
 
-    function cancel(
-        uint256,
-        address,
-        bytes calldata,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(bool) {
+    function cancel(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(bool) {
     }
 }

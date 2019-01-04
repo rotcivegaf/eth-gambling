@@ -2,44 +2,8 @@ pragma solidity ^0.5.0;
 
 import "../interfaces/IModel.sol";
 
-import "../utils/BytesUtils.sol";
 
-
-contract DecodeData is BytesUtils {
-    // player B option + player A pay + player B pay
-    uint256 public constant L_CREATE_PLAY_DATA = 32 + 16 + 16;
-
-    /**
-        @notice Decode bytes array and returns the parameters of create and play a bet
-
-        @dev The length of data should be L_CREATE_PLAY_DATA
-        @param _data Index of the loan
-            from-to bytes
-            0 -32: playerBOption
-            32-48: playerAPay
-            48-64: playerBPay
-
-        @return playerBOption The option that the second player should play
-        @return playerAPay The amount of the player A will pay to player B if he loses
-        @return playerBPay The amount of the player B will pay to player A if he loses
-    */
-    function _decodeCreatePlayData(
-        bytes memory _data
-    ) internal pure returns (bytes32, uint128, uint128) {
-        require(_data.length == L_CREATE_PLAY_DATA, "Invalid create data length");
-        (bytes32 playerBOption, bytes32 playerAPay, bytes32 playerBPay) = decode(
-            _data,
-            32,
-            16,
-            16
-        );
-
-        return (playerBOption, uint128(uint256(playerAPay)), uint128(uint256(playerBPay)));
-    }
-}
-
-
-contract P2P is IModel, DecodeData {
+contract P2P is IModel {
     struct Bet {
         address playerA;
         address playerB;
@@ -49,7 +13,7 @@ contract P2P is IModel, DecodeData {
         uint128 playerBPay; // Pay B to A
     }
 
-    mapping(uint256 => Bet) public bets;
+    mapping(bytes32 => Bet) public bets;
 
     address public gamblingManager;
 
@@ -63,25 +27,11 @@ contract P2P is IModel, DecodeData {
         gamblingManager = _gamblingManager;
     }
 
-    function create(
-        uint256,
-        bytes calldata,
-        IOracle,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(uint256) {
+    function create(bytes32, bytes32[] calldata) external onlyGamblingManager returns(uint256) {
         revert("Not implements");
     }
 
-    function play(
-        uint256 _betId,
-        address _player,
-        bytes calldata,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns (uint256 needAmount) {
+    function play(bytes32 _betId, address _player, bytes32[] calldata) external onlyGamblingManager returns (uint256 needAmount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB == address(0), "The bet its taken");
 
@@ -101,20 +51,14 @@ contract P2P is IModel, DecodeData {
         @return The amount needed to place the bet
     */
     function createPlay(
-        uint256 _id,
+        bytes32 _id,
         address _player,
         bytes32 _option,
-        bytes calldata _data
+        bytes32[] calldata _data
     ) external
         onlyGamblingManager
     returns(uint256 needAmount) {
-        (
-        bytes32 playerBOption,
-        uint128 playerAPay,
-        uint128  playerBPay
-        ) = _decodeCreatePlayData(_data);
-
-        require(playerAPay > 0 && playerBPay > 0, "The pay amounts should not be 0");
+/*        require(playerAPay > 0 && playerBPay > 0, "The pay amounts should not be 0");
         require(_option != playerBOption, "The options should not be equal");
 
         bets[_id] = Bet({
@@ -126,7 +70,7 @@ contract P2P is IModel, DecodeData {
             playerBPay: playerBPay
         });
 
-        needAmount = playerAPay > playerBPay ? playerAPay : playerBPay;
+        needAmount = playerAPay > playerBPay ? playerAPay : playerBPay;*/
     }
 
     /**
@@ -137,14 +81,7 @@ contract P2P is IModel, DecodeData {
 
         @return The amount that will be transferred to the _player
     */
-    function collect(
-        uint256 _betId,
-        address _player,
-        bytes calldata,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(uint256 amount) {
+    function collect(bytes32 _betId, address _player, bytes32[] calldata) external onlyGamblingManager returns(uint256 amount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB != address(0), "The bet its not taken");
 
@@ -173,14 +110,7 @@ contract P2P is IModel, DecodeData {
         bet.playerBPay = 0;
     }
 
-    function cancel(
-        uint256 _betId,
-        address,
-        bytes calldata,
-        bytes calldata
-    ) external
-        onlyGamblingManager
-    returns(bool) {
+    function cancel(bytes32 _betId, address, bytes32[] calldata) external onlyGamblingManager returns(bool) {
         require(bets[_betId].playerB == address(0), "The bet its taken");
     }
 }

@@ -212,15 +212,13 @@ contract IdHelper {
     function buildId(
         address _creator,
         uint256 _nonce
-    ) external view returns (uint256) {
-        return uint256(
-            keccak256(
-                abi.encodePacked(
-                    uint8(1),
-                    address(this),
-                    _creator,
-                    _nonce
-                )
+    ) external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                uint8(1),
+                address(this),
+                _creator,
+                _nonce
             )
         );
     }
@@ -230,25 +228,19 @@ contract IdHelper {
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes calldata _modelData,
-        IOracle _oracle,
-        bytes calldata _oracleData,
+        bytes32[] calldata _data,
         uint256 _salt
-    ) external view returns (uint256) {
-        return uint256(
-            keccak256(
-                abi.encodePacked(
-                    uint8(2),
-                    address(this),
-                    _creator,
-                    _token,
-                    _tip,
-                    _model,
-                    _modelData,
-                    _oracle,
-                    _oracleData,
-                    _salt
-                )
+    ) external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                uint8(2),
+                address(this),
+                _creator,
+                _token,
+                _tip,
+                _model,
+                _data,
+                _salt
             )
         );
     }
@@ -256,15 +248,13 @@ contract IdHelper {
     function buildId3(
         address _creator,
         uint256 _salt
-    ) external view returns (uint256) {
-        return uint256(
-            keccak256(
-                abi.encodePacked(
-                    uint8(3),
-                    address(this),
-                    _creator,
-                    _salt
-                )
+    ) external view returns (bytes32) {
+        return keccak256(
+            abi.encodePacked(
+                uint8(3),
+                address(this),
+                _creator,
+                _salt
             )
         );
     }
@@ -278,7 +268,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel model;
     }
 
-    mapping(uint256 => Bet) public bets;
+    mapping(bytes32 => Bet) public bets;
 
     constructor() public ERC721Base("Ethereum Gambling Network", "EGN") { }
 
@@ -286,20 +276,16 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes calldata _modelData,
-        IOracle _oracle,
-        bytes calldata _oracleData
-    ) external payable returns (uint256 betId) {
+        bytes32[] calldata _data
+    ) external payable returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
-        betId = uint256(
-            keccak256(
-                abi.encodePacked(
-                    uint8(1),
-                    address(this),
-                    msg.sender,
-                    nonce
-                )
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(1),
+                address(this),
+                msg.sender,
+                nonce
             )
         );
 
@@ -308,9 +294,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _token,
             _tip,
             _model,
-            _modelData,
-            _oracle,
-            _oracleData
+            _data
         );
 
         emit Created(
@@ -319,8 +303,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _token,
             amount,
             _tip,
-            _modelData,
-            _oracleData,
+            _data,
             nonce
         );
     }
@@ -329,25 +312,19 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes calldata _modelData,
-        IOracle _oracle,
-        bytes calldata _oracleData,
+        bytes32[] calldata _data,
         uint256 _salt
-    ) external payable returns (uint256 betId) {
-        betId = uint256(
-            keccak256(
-                abi.encodePacked(
-                    uint8(2),
-                    address(this),
-                    msg.sender,
-                    _token,
-                    _tip,
-                    _model,
-                    _modelData,
-                    _oracle,
-                    _oracleData,
-                    _salt
-                )
+    ) external payable returns (bytes32 betId) {
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(2),
+                address(this),
+                msg.sender,
+                _token,
+                _tip,
+                _model,
+                _data,
+                _salt
             )
         );
 
@@ -356,9 +333,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _token,
             _tip,
             _model,
-            _modelData,
-            _oracle,
-            _oracleData
+            _data
         );
 
         emit Created2(
@@ -367,8 +342,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _token,
             amount,
             _tip,
-            _modelData,
-            _oracleData,
+            _data,
             _salt
         );
     }
@@ -377,19 +351,15 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes calldata _modelData,
-        IOracle _oracle,
-        bytes calldata _oracleData,
+        bytes32[] calldata _data,
         uint256 _salt
-    ) external payable returns(uint256 betId) {
-        betId = uint256(
-            keccak256(
-                abi.encodePacked(
-                    uint8(3),
-                    address(this),
-                    msg.sender,
-                    _salt
-                )
+    ) external payable returns(bytes32 betId) {
+        betId = keccak256(
+            abi.encodePacked(
+                uint8(3),
+                address(this),
+                msg.sender,
+                _salt
             )
         );
 
@@ -398,9 +368,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _token,
             _tip,
             _model,
-            _modelData,
-            _oracle,
-            _oracleData
+            _data
         );
 
         emit Created3(
@@ -409,26 +377,15 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _token,
             amount,
             _tip,
-            _modelData,
-            _oracleData,
+            _data,
             _salt
         );
     }
 
-    function play(
-        uint256 _betId,
-        uint256 _maxAmount,
-        bytes calldata _modelData,
-        bytes calldata _oracleData
-    ) external payable returns(bool) {
+    function play(bytes32 _betId, uint256 _maxAmount, bytes32[] calldata _data) external payable returns(bool) {
         Bet storage bet = bets[_betId];
 
-        uint256 needAmount = bet.model.play({
-            _id: _betId,
-            _player: msg.sender,
-            _modelData: _modelData,
-            _oracleData: _oracleData
-        });
+        uint256 needAmount = bet.model.play(_betId, msg.sender, _data);
 
         require(needAmount <= _maxAmount, "The needAmount should be less than _maxAmount");
 
@@ -440,27 +397,19 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         // Add balance to Bet
         bet.balance += needAmount;
 
-        emit Played(
-            _betId,
-            needAmount,
-            _modelData,
-            _oracleData
-        );
-
-        return true;
+        emit Played(_betId, needAmount, _data);
     }
 
     function collect(
-        uint256 _betId,
+        bytes32 _betId,
         address _beneficiary,
         uint256 _tip,
-        bytes calldata _modelData,
-        bytes calldata _oracleData
-    ) external returns(bool) {
+        bytes32[] calldata _data
+    ) external {
         require(_beneficiary != address(0), "_beneficiary should not be 0x0");
         Bet storage bet = bets[_betId];
 
-        uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _modelData, _oracleData);
+        uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _data);
 
         require(collectAmount <= bet.balance, "Insufficient founds to discount from bet balance");
         bet.balance -= collectAmount;
@@ -478,22 +427,15 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             _betId,
             collectAmount,
             _tip,
-            _modelData,
-            _oracleData
+            _data
         );
-
-        return true;
     }
 
-    function cancel(
-        uint256 _betId,
-        bytes calldata _modelData,
-        bytes calldata _oracleData
-    ) external returns(bool) {
+    function cancel(bytes32 _betId, bytes32[] calldata _data) external {
         Bet storage bet = bets[_betId];
         require(bet.model != IModel(0), "The bet its not exist or was canceled");
 
-        require(bet.model.cancel(_betId, msg.sender, _modelData, _oracleData), "The bet cant cancel");
+        require(bet.model.cancel(_betId, msg.sender, _data), "The bet cant cancel");
 
         delete (bet.model);
 
@@ -501,34 +443,19 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bet.balance = 0;
         _toBalance[msg.sender][bet.token] += balance;
 
-        emit Canceled(
-            msg.sender,
-            _betId,
-            balance,
-            _modelData,
-            _oracleData
-        );
-
-        return true;
+        emit Canceled(msg.sender, _betId, balance, _data);
     }
 
     function _create(
-        uint256 _betId,
+        bytes32 _betId,
         address _token,
         uint256 _tip,
         IModel _model,
-        bytes memory _modelData,
-        IOracle _oracle,
-        bytes memory _oracleData
+        bytes32[] memory _data
     ) internal returns(uint256 amount){
         require(bets[_betId].model == IModel(0), "The bet is already created");
 
-        amount = _model.create(
-            _betId,
-            _modelData,
-            _oracle,
-            _oracleData
-        );
+        amount = _model.create(_betId, _data);
 
         // Send the tip to the owner
         uint256 totalAmount = amount;
@@ -551,6 +478,46 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             model: _model
         });
     }
+/*
+    function _create(
+        uint256 _betId,
+        address _token,
+        uint256 _tip,
+        IERC721 _ERC721,
+        uint256 _ERC721Id,
+        IModel _model,
+        bytes memory _modelData,
+        IOracle _oracle,
+        bytes memory _oracleData
+    ) internal returns(uint256 amount){
+        require(bets[_betId].model == IModel(0x0), "The bet is already created");
 
-    // TODO create with ERC721
+        amount = _model.create(
+            _betId,
+            _modelData,
+            _oracle,
+            _oracleData
+        );
+
+        // Send the tip to the owner
+        uint256 totalAmount = amount;
+        if (_tip != 0) {
+            totalAmount += _tip;
+            require(totalAmount >= _tip, "Overflow for higth tip");
+            _toBalance[owner][_token] += _tip;
+        }
+
+        if (_toBalance[msg.sender][_token] < totalAmount)
+            _deposit(msg.sender, _token, totalAmount - _toBalance[msg.sender][_token]);
+
+        _toBalance[msg.sender][_token] -= totalAmount;
+
+        _generate(_betId, msg.sender);
+
+        bets[_betId] = Bet({
+            token: _token,
+            balance: amount,
+            model: _model
+        });
+    }*/
 }

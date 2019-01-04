@@ -2,45 +2,26 @@ pragma solidity ^0.5.0;
 
 import "../../interfaces/IModel.sol";
 
-import "../BytesUtils.sol";
 
-
-contract TestModel is IModel, BytesUtils {
-    bytes32 public constant TRUE = 0x0000000000000000000000000000000000000000000000000000000000000001;
-
-    function create(
-        uint256,
-        bytes calldata _modelData,
-        IOracle,
-        bytes calldata
-    ) external returns(uint256) {
-        return uint256(readBytes32(_modelData, 0));
+contract TestModel is IModel {
+    function create(bytes32, bytes32[] calldata _data ) external returns(uint256) {
+        return foo(_data);
     }
 
-    function play(
-        uint256,
-        address,
-        bytes calldata _modelData,
-        bytes calldata
-    ) external returns(uint256) {
-        return uint256(readBytes32(_modelData, 0));
+    function play(bytes32, address, bytes32[] calldata _data) external returns(uint256) {
+        return foo(_data);
     }
 
-    function collect(
-        uint256,
-        address,
-        bytes calldata _modelData,
-        bytes calldata
-    ) external returns(uint256) {
-        return uint256(readBytes32(_modelData, 0));
+    function collect(bytes32, address, bytes32[] calldata _data) external returns(uint256) {
+        return foo(_data);
     }
 
-    function cancel(
-        uint256,
-        address,
-        bytes calldata _modelData,
-        bytes calldata
-    ) external returns(bool) {
-        return readBytes32(_modelData, 0) == TRUE;
+    function cancel(bytes32, address, bytes32[] calldata _data) external returns(bool) {
+        return foo(_data) == 1;
+    }
+
+    function foo(bytes32[] memory _data) internal pure returns(uint256) {
+        if(_data.length > 0)
+            return uint256(_data[0]);
     }
 }
