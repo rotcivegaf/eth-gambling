@@ -1246,7 +1246,7 @@ contract('GamblingManager', function (accounts) {
     });
 
     it('Name and symbol functions', async () => {
-        assert.equal(await gamblingManager.name(), 'Ethereum Gambling Network');
-        assert.equal(await gamblingManager.symbol(), 'EGN');
+        assert.equal(await gamblingManager.name(), 'Ethereum Gambling Bets');
+        assert.equal(await gamblingManager.symbol(), 'EGB');
     });
 });
