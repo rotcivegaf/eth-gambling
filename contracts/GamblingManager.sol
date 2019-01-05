@@ -176,7 +176,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
     mapping(bytes32 => Bet) public bets;
 
-    constructor() public ERC721Base("Ethereum Gambling Network", "EGN") { }
+    constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
     function create(
         address _token,
