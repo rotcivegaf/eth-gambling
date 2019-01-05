@@ -23,39 +23,22 @@ contract BalanceManager is IBalanceManager {
 
     function () external payable {
         _toBalance[msg.sender][ETH] += msg.value;
-
-        emit Deposit(
-            msg.sender,
-            msg.sender,
-            ETH,
-            msg.value
-        );
+        emit Deposit(msg.sender, msg.sender, ETH, msg.value);
     }
 
     function totalSupply(address _token) external view returns (uint256 internalSupply) {
         return _token == ETH ? address(this).balance : Token(_token).balanceOf(address(this));
     }
 
-    function balanceOf(
-        address _owner,
-        address _token
-    ) external view returns (uint256) {
+    function balanceOf(address _owner, address _token) external view returns (uint256) {
         return _toBalance[_owner][_token];
     }
 
-    function allowance(
-        address _owner,
-        address _spender,
-        address _token
-    ) external view returns (uint256) {
+    function allowance(address _owner, address _spender, address _token) external view returns (uint256) {
         return _allowance[_owner][_spender][_token];
     }
 
-    function transfer (
-        address _to,
-        address _token,
-        uint256 _value
-    ) external returns(bool) {
+    function transfer (address _to, address _token, uint256 _value) external returns(bool) {
         require(_to != address(0), "_to should not be 0x0");
 
         // Here check _toBalance underflow
@@ -65,22 +48,12 @@ contract BalanceManager is IBalanceManager {
         // Yes, this can overflow but who wants a token what has an astronomical number of token?
         _toBalance[_to][_token] += _value;
 
-        emit Transfer(
-            msg.sender,
-            _to,
-            _token,
-            _value
-        );
+        emit Transfer(msg.sender, _to, _token, _value);
 
         return true;
     }
 
-    function transferFrom(
-        address _from,
-        address _to,
-        address _token,
-        uint256 _value
-    ) external returns (bool success) {
+    function transferFrom(address _from, address _to, address _token, uint256 _value) external returns (bool success) {
         require(_to != address(0), "_to should not be 0x0");
 
         // Here check _allowance underflow
@@ -93,74 +66,40 @@ contract BalanceManager is IBalanceManager {
         // Yes, this can overflow but who wants a token what has an astronomical number of token?
         _toBalance[_to][_token] += _value;
 
-        emit TransferFrom(
-            _from,
-            _to,
-            _token,
-            _value
-        );
+        emit TransferFrom(_from, _to, _token, _value);
 
         return true;
     }
 
-    function approve(
-        address _spender,
-        address _token,
-        uint256 _value
-    ) external returns (bool success) {
+    function approve(address _spender, address _token, uint256 _value) external returns (bool success) {
         _allowance[msg.sender][_spender][_token] = _value;
-
-        emit Approval(
-            msg.sender,
-            _spender,
-            _token,
-            _value
-        );
+        emit Approval(msg.sender, _spender, _token, _value);
 
         return true;
     }
 
-    function deposit(
-        address _to,
-        address _token,
-        uint256 _amount
-    ) external payable returns(bool) {
+    function deposit(address _to, address _token, uint256 _amount) external payable returns(bool) {
         require(_to != address(0), "_to should not be 0x0");
-
         _deposit(_to, _token, _amount);
 
         return true;
     }
 
-    function _deposit(
-        address _to,
-        address _token,
-        uint256 _amount
-    ) internal {
+    function _deposit(address _to, address _token, uint256 _amount) internal {
         if (_token == ETH)
             require(_amount == msg.value, "The amount should be equal to msg.value");
         else
             require(
-                Token(_token).transferFrom(msg.sender, address(this), _amount) &&
-                    msg.value == 0,
+                Token(_token).transferFrom(msg.sender, address(this), _amount) && msg.value == 0,
                 "Error pulling tokens or send ETH, in deposit"
             );
         // Yes, this can overflow but who wants a token what has an astrological number of token?
         _toBalance[_to][_token] += _amount;
 
-        emit Deposit(
-            msg.sender,
-            _to,
-            _token,
-            _amount
-        );
+        emit Deposit(msg.sender, _to, _token, _amount);
     }
 
-    function withdraw(
-        address payable _to,
-        address _token,
-        uint256 _value
-    ) external returns(bool) {
+    function withdraw(address payable _to, address _token, uint256 _value) external returns(bool) {
         require(_to != address(0), "_to should not be 0x0");
         require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to discount");
 
@@ -171,20 +110,12 @@ contract BalanceManager is IBalanceManager {
         else
             require(Token(_token).transfer(_to, _value), "Error transfer tokens, in withdraw");
 
-        emit Withdraw(
-            msg.sender,
-            _to,
-            _token,
-            _value
-        );
+        emit Withdraw(msg.sender, _to, _token, _value);
 
         return true;
     }
 
-    function withdrawAll(
-        address payable _to,
-        address _token
-    ) external returns(bool) {
+    function withdrawAll(address payable _to, address _token) external returns(bool) {
         require(_to != address(0), "_to should not be 0x0");
         uint256 addrBal = _toBalance[msg.sender][_token];
         _toBalance[msg.sender][_token] = 0;
@@ -194,12 +125,7 @@ contract BalanceManager is IBalanceManager {
         else
             require(Token(_token).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
 
-        emit Withdraw(
-            msg.sender,
-            _to,
-            _token,
-            addrBal
-        );
+        emit Withdraw(msg.sender, _to, _token, addrBal);
 
         return true;
     }
@@ -209,18 +135,8 @@ contract BalanceManager is IBalanceManager {
 contract IdHelper {
     mapping(address => uint256) public nonces;
 
-    function buildId(
-        address _creator,
-        uint256 _nonce
-    ) external view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                uint8(1),
-                address(this),
-                _creator,
-                _nonce
-            )
-        );
+    function buildId(address _creator, uint256 _nonce) external view returns (bytes32) {
+        return keccak256(abi.encodePacked(uint8(1), address(this), _creator, _nonce));
     }
 
     function buildId2(
@@ -245,18 +161,8 @@ contract IdHelper {
         );
     }
 
-    function buildId3(
-        address _creator,
-        uint256 _salt
-    ) external view returns (bytes32) {
-        return keccak256(
-            abi.encodePacked(
-                uint8(3),
-                address(this),
-                _creator,
-                _salt
-            )
-        );
+    function buildId3(address _creator, uint256 _salt) external view returns (bytes32) {
+        return keccak256(abi.encodePacked(uint8(3), address(this), _creator, _salt));
     }
 }
 
