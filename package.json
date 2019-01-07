@@ -15,6 +15,7 @@
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
     "console": "truffle console",
+    "coverage": "bin/coverage.sh",
     "test": "bin/test.sh"
   },
   "repository": {
@@ -45,7 +46,8 @@
     "eslint-plugin-standard": "^3.1.0",
     "ethjs-abi": "^0.2.1",
     "ganache-cli": "^6.1.8",
-    "solidity-coverage": "^0.5.11",
+    "ganache-cli-coverage": "rotcivegaf/ganache-cli#coverage",
+    "solidity-coverage": "rotcivegaf/solidity-coverage",
     "solium": "^1.2.0",
     "truffle": "^5.0.0"
   }
