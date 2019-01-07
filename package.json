@@ -46,7 +46,7 @@
     "eslint-plugin-standard": "^3.1.0",
     "ethjs-abi": "^0.2.1",
     "ganache-cli": "^6.1.8",
-    "ganache-cli-coverage": "rotcivegaf/ganache-cli#coverage",
+    "ganache-cli-coverage": "agusx1211/ganache-cli#coverage",
     "solidity-coverage": "rotcivegaf/solidity-coverage",
     "solium": "^1.2.0",
     "truffle": "^5.0.0"
