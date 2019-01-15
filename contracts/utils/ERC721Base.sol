@@ -31,10 +31,7 @@ contract ERC721Base is IERC721, ERC165 {
 
     uint256[] public tokens;
 
-    constructor(
-        string memory name,
-        string memory symbol
-    ) public {
+    constructor(string memory name, string memory symbol) public {
         _name = name;
         _symbol = symbol;
 
@@ -156,21 +153,18 @@ contract ERC721Base is IERC721, ERC165 {
     /**
      * @dev Query whether an address has been authorized to move any assets on behalf of someone else
      * @param _operator the address that might be authorized
-     * @param _assetHolder the address that provided the authorization
+     * @param _owner the address that provided the authorization
      * @return bool true if the operator has been authorized to move any assets
      */
-    function isApprovedForAll(
-        address _operator,
-        address _assetHolder
-    ) external view returns (bool) {
-        return operators[_assetHolder][_operator];
+    function isApprovedForAll(address _operator, address _owner) external view returns (bool) {
+        return operators[_owner][_operator];
     }
 
     /**
      * @dev Query if an operator can move an asset.
      * @param _operator the address that might be authorized
      * @param _assetId the asset that has been `approved` for transfer
-     * @return bool true if the asset has been approved by the holder
+     * @return bool true if the asset has been approved by the owner
      */
     function isAuthorized(address _operator, uint256 _assetId) external view returns (bool) {
         require(_operator != address(0), "0x0 is an invalid operator");
@@ -200,15 +194,15 @@ contract ERC721Base is IERC721, ERC165 {
      * @param _assetId asset to approve
      */
     function approve(address _operator, uint256 _assetId) external {
-        address holder = _ownerOf[_assetId];
+        address owner = _ownerOf[_assetId];
         require(
-            msg.sender == holder || _approval[_assetId] == msg.sender || operators[holder][msg.sender],
+            msg.sender == owner || _approval[_assetId] == msg.sender || operators[owner][msg.sender],
             "msg.sender can't approve"
         );
 
         if (_approval[_assetId] != _operator) {
             _approval[_assetId] = _operator;
-            emit Approval(holder, _operator, _assetId);
+            emit Approval(owner, _operator, _assetId);
         }
     }
 
@@ -237,12 +231,8 @@ contract ERC721Base is IERC721, ERC165 {
      * @param _to address to receive the ownership of the asset
      * @param _assetId uint256 ID of the asset to be transferred
      */
-    function safeTransferFrom(
-        address _from,
-        address _to,
-        uint256 _assetId
-    ) external {
-        return _doTransferFrom(_from, _to, _assetId, "", true);
+    function safeTransferFrom(address _from, address _to, uint256 _assetId) external {
+        _doTransferFrom(_from, _to, _assetId, "", true);
     }
 
     /**
@@ -261,7 +251,7 @@ contract ERC721Base is IERC721, ERC165 {
         uint256 _assetId,
         bytes calldata _userData
     ) external {
-        return _doTransferFrom(_from, _to, _assetId, _userData, true);
+        _doTransferFrom(_from, _to, _assetId, _userData, true);
     }
 
     /**
@@ -274,7 +264,7 @@ contract ERC721Base is IERC721, ERC165 {
      * @param _assetId uint256 ID of the asset to be transferred
      */
     function transferFrom(address _from, address _to, uint256 _assetId) external {
-        return _doTransferFrom(_from, _to, _assetId, "", false);
+        _doTransferFrom(_from, _to, _assetId, "", false);
     }
 
     /**
@@ -356,10 +346,7 @@ contract ERC721Base is IERC721, ERC165 {
     // Utilities
     //
 
-    function _noThrowCall(
-        address _contract,
-        bytes memory _data
-    ) internal returns (uint256 success, bytes32 result) {
+    function _noThrowCall(address _contract, bytes memory _data) internal returns (uint256 success, bytes32 result) {
         assembly {
             let x := mload(0x40)
 
