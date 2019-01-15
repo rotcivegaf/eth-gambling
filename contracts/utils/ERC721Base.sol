@@ -142,10 +142,6 @@ contract ERC721Base is IERC721, ERC165 {
         return assetsOf[_owner].length;
     }
 
-    function allAssetsOf(address _owner) external view returns (uint256[] memory) {
-        return assetsOf[_owner];
-    }
-
     //
     // Authorization getters
     //
