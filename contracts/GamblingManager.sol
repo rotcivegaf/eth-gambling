@@ -1,135 +1,12 @@
 pragma solidity ^0.5.0;
 
-import "./interfaces/Token.sol";
-import "./interfaces/IBalanceManager.sol";
 import "./interfaces/IGamblingManager.sol";
 import "./interfaces/IModel.sol";
-import "./interfaces/IOracle.sol";
 
 import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
-
-
-contract BalanceManager is IBalanceManager {
-    // [wallet/contract, token] to balance
-    mapping (address => mapping (address => uint256)) internal _toBalance;
-
-    // [wallet/contract(owner), wallet/contract(spender), token] to _allowance
-    mapping (address =>
-        mapping (address =>
-            mapping (address => uint256)
-        )
-    ) internal _allowance;
-
-    function () external payable {
-        _toBalance[msg.sender][ETH] += msg.value;
-        emit Deposit(msg.sender, msg.sender, ETH, msg.value);
-    }
-
-    function totalSupply(address _token) external view returns (uint256 internalSupply) {
-        return _token == ETH ? address(this).balance : Token(_token).balanceOf(address(this));
-    }
-
-    function balanceOf(address _owner, address _token) external view returns (uint256) {
-        return _toBalance[_owner][_token];
-    }
-
-    function allowance(address _owner, address _spender, address _token) external view returns (uint256) {
-        return _allowance[_owner][_spender][_token];
-    }
-
-    function transfer (address _to, address _token, uint256 _value) external returns(bool) {
-        require(_to != address(0), "_to should not be 0x0");
-
-        // Here check _toBalance underflow
-        require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to transfer");
-
-        _toBalance[msg.sender][_token] -= _value;
-        // Yes, this can overflow but who wants a token what has an astronomical number of token?
-        _toBalance[_to][_token] += _value;
-
-        emit Transfer(msg.sender, _to, _token, _value);
-
-        return true;
-    }
-
-    function transferFrom(address _from, address _to, address _token, uint256 _value) external returns (bool success) {
-        require(_to != address(0), "_to should not be 0x0");
-
-        // Here check _allowance underflow
-        require(_allowance[_from][msg.sender][_token] >= _value, "Insufficient _allowance to transferFrom");
-        _allowance[_from][msg.sender][_token] -= _value;
-
-        // Here check _toBalance underflow
-        require(_toBalance[_from][_token] >= _value, "Insufficient founds to transferFrom");
-        _toBalance[_from][_token] -= _value;
-        // Yes, this can overflow but who wants a token what has an astronomical number of token?
-        _toBalance[_to][_token] += _value;
-
-        emit TransferFrom(_from, _to, _token, _value);
-
-        return true;
-    }
-
-    function approve(address _spender, address _token, uint256 _value) external returns (bool success) {
-        _allowance[msg.sender][_spender][_token] = _value;
-        emit Approval(msg.sender, _spender, _token, _value);
-
-        return true;
-    }
-
-    function deposit(address _to, address _token, uint256 _amount) external payable returns(bool) {
-        require(_to != address(0), "_to should not be 0x0");
-        _deposit(_to, _token, _amount);
-
-        return true;
-    }
-
-    function _deposit(address _to, address _token, uint256 _amount) internal {
-        if (_token == ETH)
-            require(_amount == msg.value, "The amount should be equal to msg.value");
-        else
-            require(
-                Token(_token).transferFrom(msg.sender, address(this), _amount) && msg.value == 0,
-                "Error pulling tokens or send ETH, in deposit"
-            );
-        // Yes, this can overflow but who wants a token what has an astrological number of token?
-        _toBalance[_to][_token] += _amount;
-
-        emit Deposit(msg.sender, _to, _token, _amount);
-    }
-
-    function withdraw(address payable _to, address _token, uint256 _value) external returns(bool) {
-        require(_to != address(0), "_to should not be 0x0");
-        require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to discount");
-
-        _toBalance[msg.sender][_token] -= _value;
-
-        if (_token == ETH)
-            _to.transfer(_value);
-        else
-            require(Token(_token).transfer(_to, _value), "Error transfer tokens, in withdraw");
-
-        emit Withdraw(msg.sender, _to, _token, _value);
-
-        return true;
-    }
-
-    function withdrawAll(address payable _to, address _token) external returns(bool) {
-        require(_to != address(0), "_to should not be 0x0");
-        uint256 addrBal = _toBalance[msg.sender][_token];
-        _toBalance[msg.sender][_token] = 0;
-
-        if (_token == ETH)
-            _to.transfer(addrBal);
-        else
-            require(Token(_token).transfer(_to, addrBal), "Error transfer tokens, in withdrawAll");
-
-        emit Withdraw(msg.sender, _to, _token, addrBal);
-
-        return true;
-    }
-}
+import "./utils/BalanceManager.sol";
+// import "./utils/ERC721Manager.sol";
 
 
 contract IdHelper {
@@ -174,7 +51,13 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel model;
     }
 
+    struct BetERC721 {
+        address ERC721;
+        uint256 ERC721Id;
+    }
+
     mapping(bytes32 => Bet) public bets;
+    mapping(bytes32 => BetERC721) public toBetERC721;
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
@@ -195,23 +78,9 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             )
         );
 
-        uint256 amount = _create(
-            betId,
-            _token,
-            _tip,
-            _model,
-            _data
-        );
+        _create(betId, _token, _tip, _model, _data);
 
-        emit Created(
-            msg.sender,
-            betId,
-            _token,
-            amount,
-            _tip,
-            _data,
-            nonce
-        );
+        emit Created(msg.sender, betId, _tip, _data, nonce);
     }
 
     function create2(
@@ -234,23 +103,9 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             )
         );
 
-        uint256 amount = _create(
-            betId,
-            _token,
-            _tip,
-            _model,
-            _data
-        );
+        _create(betId, _token, _tip, _model, _data);
 
-        emit Created2(
-            msg.sender,
-            betId,
-            _token,
-            amount,
-            _tip,
-            _data,
-            _salt
-        );
+        emit Created2(msg.sender, betId, _tip, _data, _salt);
     }
 
     function create3(
@@ -260,50 +115,60 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes32[] calldata _data,
         uint256 _salt
     ) external payable returns(bytes32 betId) {
-        betId = keccak256(
-            abi.encodePacked(
-                uint8(3),
-                address(this),
-                msg.sender,
-                _salt
-            )
-        );
+        betId = keccak256(abi.encodePacked(uint8(3), address(this), msg.sender, _salt));
 
-        uint256 amount = _create(
-            betId,
-            _token,
-            _tip,
-            _model,
-            _data
-        );
+        _create(betId, _token, _tip, _model, _data);
 
-        emit Created3(
-            msg.sender,
-            betId,
-            _token,
-            amount,
-            _tip,
-            _data,
-            _salt
-        );
+        emit Created3(msg.sender, betId, _tip, _data, _salt);
     }
 
-    function play(bytes32 _betId, uint256 _maxAmount, bytes32[] calldata _data) external payable returns(bool) {
+    function playWithToken(
+        bytes32 _betId,
+        uint256 _tip,
+        uint256 _maxAmount,
+        bytes32[] calldata _data
+    ) external payable returns(bool) {
         Bet storage bet = bets[_betId];
 
         uint256 needAmount = bet.model.play(_betId, msg.sender, _data);
+        uint256 total = needAmount;
 
-        require(needAmount <= _maxAmount, "The needAmount should be less than _maxAmount");
+        if (_tip != 0) {
+            total = needAmount + _tip;
+            require(total >= _tip, "overflow");
+            _toBalance[owner][bet.token] += _tip;
+        }
+        require(total <= _maxAmount , "The total must be less or equal than _maxAmount");
 
+        if (_toBalance[msg.sender][bet.token] < total)
+            _deposit(msg.sender, msg.sender, bet.token, total - _toBalance[msg.sender][bet.token]);
 
-        if (_toBalance[msg.sender][bet.token] < needAmount)
-            _deposit(msg.sender, bet.token, needAmount - _toBalance[msg.sender][bet.token]);
-
-        _toBalance[msg.sender][bet.token] -= needAmount;
+        _toBalance[msg.sender][bet.token] -= total;
         // Add balance to Bet
         bet.balance += needAmount;
 
-        emit Played(_betId, needAmount, _data);
+        emit PlayedToken(_betId, _tip, needAmount, _data);
+    }
+
+    function playWithERC721(
+        bytes32 _betId,
+        uint256 _tip,
+        address _ERC721,
+        uint256 _ERC721Id,
+        bytes32[] calldata _data
+    ) external payable returns(bool) {
+        Bet storage bet = bets[_betId];
+
+        bet.model.play(_betId, _ERC721, _ERC721Id, _data);
+
+        if (_tip != 0) {
+            if (_toBalance[msg.sender][bet.token] < _tip)
+                _deposit(msg.sender, msg.sender, bet.token, _tip - _toBalance[msg.sender][bet.token]);
+            _toBalance[owner][bet.token] += _tip;
+            _toBalance[msg.sender][bet.token] -= _tip;
+        }
+
+        event PlayedERC721(_betId, _tip, _ERC721, _ERC721Id, _data);
     }
 
     function collect(
@@ -331,8 +196,8 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             msg.sender,
             _beneficiary,
             _betId,
-            collectAmount,
             _tip,
+            collectAmount,
             _data
         );
     }
@@ -358,72 +223,38 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         uint256 _tip,
         IModel _model,
         bytes32[] memory _data
-    ) internal returns(uint256 amount){
+    ) internal {
         require(bets[_betId].model == IModel(0), "The bet is already created");
 
-        amount = _model.create(_betId, _data);
+        require(_model.create(_betId, _data), "Model.create return false");
 
         // Send the tip to the owner
-        uint256 totalAmount = amount;
         if (_tip != 0) {
-            totalAmount += _tip;
-            require(totalAmount >= _tip, "Overflow for higth tip");
+            require(_toBalance[msg.sender][_token] >= _tip, "Overflow for higth tip");
             _toBalance[owner][_token] += _tip;
+            _toBalance[msg.sender][_token] -= _tip;
         }
-
-        if (_toBalance[msg.sender][_token] < totalAmount)
-            _deposit(msg.sender, _token, totalAmount - _toBalance[msg.sender][_token]);
-
-        _toBalance[msg.sender][_token] -= totalAmount;
 
         _generate(uint256(_betId), msg.sender);
 
         bets[_betId] = Bet({
             token: _token,
-            balance: amount,
+            balance: 0,
             model: _model
         });
     }
 /*
-    function _create(
-        uint256 _betId,
-        address _token,
-        uint256 _tip,
-        IERC721 _ERC721,
-        uint256 _ERC721Id,
-        IModel _model,
-        bytes memory _modelData,
-        IOracle _oracle,
-        bytes memory _oracleData
-    ) internal returns(uint256 amount){
-        require(bets[_betId].model == IModel(0x0), "The bet is already created");
+    if (_toBalance[msg.sender][_token] < totalAmount)
+        _deposit(msg.sender, msg.sender, _token, totalAmount - _toBalance[msg.sender][_token]);
 
-        amount = _model.create(
-            _betId,
-            _modelData,
-            _oracle,
-            _oracleData
-        );
+    _toBalance[msg.sender][_token] -= totalAmount;
 
-        // Send the tip to the owner
-        uint256 totalAmount = amount;
-        if (_tip != 0) {
-            totalAmount += _tip;
-            require(totalAmount >= _tip, "Overflow for higth tip");
-            _toBalance[owner][_token] += _tip;
-        }
 
-        if (_toBalance[msg.sender][_token] < totalAmount)
-            _deposit(msg.sender, _token, totalAmount - _toBalance[msg.sender][_token]);
+    address _ERC721,
+    uint256 _ERC721Id,
 
-        _toBalance[msg.sender][_token] -= totalAmount;
-
-        _generate(_betId, msg.sender);
-
-        bets[_betId] = Bet({
-            token: _token,
-            balance: amount,
-            model: _model
-        });
+    if (_ERC721 != address(0)) {
+        //require(ERC721(_ERC721).transferFrom(, address(this), _ERC721Id));
+        toBetERC721[_betId] = BetERC721(_ERC721, _ERC721Id);
     }*/
 }

@@ -23,7 +23,6 @@ contract('BalanceManager', function (accounts) {
     const player2 = accounts[3];
     const depositer = accounts[5];
     const approved = accounts[7];
-    const otherAccount = accounts[7];
 
     let balanceManager;
     let token;
@@ -879,59 +878,6 @@ contract('BalanceManager', function (accounts) {
         });
     });
 
-    describe('function depositFrom', function () {
-        it('Deposit ETH from otherAccount', async () => {
-            await saveETHPrevBalances();
-            const Deposit = await Helper.toEvents(
-                () => balanceManager.depositFrom(
-                    otherAccount,
-                    player1,
-                    ETH,
-                    minAmount,
-                    { from: depositer, value: minAmount }
-                ),
-                'Deposit'
-            );
-            // For event
-            assert.equal(Deposit._from, otherAccount);
-            assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._token, ETH);
-            assert.equal(Deposit._value, minAmount.toString());
-
-            // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.add(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.add(minAmount).toString());
-        });
-
-        it('Deposit Token from otherAccount', async () => {
-            await token.setBalance(otherAccount, minAmount);
-            await token.approve(balanceManager.address, minAmount, { from: otherAccount });
-
-            await saveTokenPrevBalances();
-
-            const Deposit = await Helper.toEvents(
-                () => balanceManager.depositFrom(
-                    otherAccount,
-                    player1,
-                    token.address,
-                    minAmount,
-                    { from: depositer }
-                ),
-                'Deposit'
-            );
-            // For event
-            assert.equal(Deposit._from, otherAccount);
-            assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._token, token.address);
-            assert.equal(Deposit._value, minAmount.toString());
-
-            // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.add(minAmount).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.add(minAmount).toString());
-        });
-    });
-
     describe('function withdraw', function () {
         it('Withdraw ETH', async () => {
             await balanceManager.deposit(
@@ -1153,126 +1099,6 @@ contract('BalanceManager', function (accounts) {
                     { from: player1 }
                 ),
                 'Error transfer tokens, in withdraw'
-            );
-        });
-    });
-
-    describe('function withdrawFrom', function () {
-        it('Withdraw ETH from otherAccount', async () => {
-            await balanceManager.deposit(
-                player1,
-                ETH,
-                minAmount.add(bn('1')),
-                { from: depositer, value: minAmount.add(bn('1')) }
-            );
-
-            await balanceManager.approve(otherAccount, ETH, minAmount, { from: player1 });
-
-            await saveETHPrevBalances();
-            const prevPlayer2Bal = await getETHBalance(player2);
-
-            const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawFrom(
-                    player1,
-                    player2,
-                    ETH,
-                    minAmount,
-                    { from: otherAccount }
-                ),
-                'Withdraw'
-            );
-            // For event
-            assert.equal(Withdraw._from, player1);
-            assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._token, ETH);
-            assert.equal(Withdraw._value, minAmount.toString());
-
-            // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.add(minAmount).toString());
-        });
-
-        it('Withdraw Token from otherAccount', async () => {
-            await token.setBalance(depositer, minAmount);
-            await token.approve(balanceManager.address, minAmount, { from: depositer });
-
-            await balanceManager.deposit(
-                player1,
-                token.address,
-                minAmount,
-                { from: depositer }
-            );
-
-            await balanceManager.approve(otherAccount, token.address, minAmount, { from: player1 });
-
-            await saveTokenPrevBalances();
-
-            const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawFrom(
-                    player1,
-                    player2,
-                    token.address,
-                    minAmount,
-                    { from: otherAccount }
-                ),
-                'Withdraw'
-            );
-
-            // For event
-            assert.equal(Withdraw._from, player1);
-            assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._token, token.address);
-            assert.equal(Withdraw._value, minAmount.toString());
-
-            // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.sub(minAmount).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.add(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.toString());
-        });
-
-        it('Try withdraw ETH from otherAccount without allowance', async () => {
-            await balanceManager.deposit(
-                player1,
-                ETH,
-                minAmount.add(bn('1')),
-                { from: depositer, value: minAmount.add(bn('1')) }
-            );
-
-            await Helper.tryCatchRevert(
-                () => balanceManager.withdrawFrom(
-                    player1,
-                    player2,
-                    ETH,
-                    minAmount,
-                    { from: otherAccount }
-                ),
-                'Insufficient _allowance to transferFrom'
-            );
-        });
-
-        it('Try withdraw Token from otherAccount without allowance', async () => {
-            await token.setBalance(depositer, minAmount);
-            await token.approve(balanceManager.address, minAmount, { from: depositer });
-
-            await balanceManager.deposit(
-                player1,
-                token.address,
-                minAmount,
-                { from: depositer }
-            );
-
-            await Helper.tryCatchRevert(
-                () => balanceManager.withdrawFrom(
-                    player1,
-                    player2,
-                    token.address,
-                    minAmount,
-                    { from: otherAccount }
-                ),
-                'Insufficient _allowance to transferFrom'
             );
         });
     });

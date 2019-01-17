@@ -19,5 +19,8 @@ contract IBalanceManager {
     function approve(address _spender, address _token, uint256 _value) external returns (bool success);
 
     function deposit(address _to, address _token, uint256 _value) external payable returns (bool success);
+    function depositFrom(address _from, address _to, address _token, uint256 _value) external payable returns (bool success);
+
     function withdraw(address payable _to, address _token, uint256 _value) external returns (bool success);
+    function withdrawFrom(address _from, address payable _to, address _token, uint256 _value) external returns (bool success);
 }

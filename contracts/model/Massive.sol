@@ -25,7 +25,7 @@ contract Massive is IModel {
         gamblingManager = _gamblingManager;
     }
 
-    function create(bytes32 _id, bytes32[] calldata) external onlyGamblingManager returns(uint256) {
+    function create(bytes32 _id, bytes32[] calldata) external onlyGamblingManager returns(bool) {
         // (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({

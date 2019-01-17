@@ -4,8 +4,10 @@ import "../../interfaces/IModel.sol";
 
 
 contract TestModel is IModel {
-    function create(bytes32, bytes32[] calldata _data ) external returns(uint256) {
-        return foo(_data);
+    uint256 public constant FALSE = 1;
+
+    function create(bytes32, bytes32[] calldata _data ) external returns(bool) {
+        return foo(_data) != FALSE;
     }
 
     function play(bytes32, address, bytes32[] calldata _data) external returns(uint256) {
