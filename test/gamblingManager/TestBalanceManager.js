@@ -3,6 +3,9 @@ const TestToken = artifacts.require('./utils/test/TestToken.sol');
 const BalanceManager = artifacts.require('./BalanceManager.sol');
 
 const Helper = require('../Helper.js');
+const expect = require('chai')
+    .use(require('bn-chai')(web3.utils.BN))
+    .expect;
 
 function bn (number) {
     return new web3.utils.BN(number);
@@ -72,8 +75,8 @@ contract('BalanceManager', function (accounts) {
         });
 
         // Check ETH balance
-        assert.equal(await getETHBalance(balanceManager.address), prevBalBM.add(minAmount).toString());
-        assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.add(minAmount).toString());
+        expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.add(minAmount));
+        expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.add(minAmount));
     });
 
     describe('function transfer', function () {
@@ -101,13 +104,13 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
             assert.equal(Transfer._token, ETH);
-            assert.equal(Transfer._value, minAmount.toString());
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, ETH), prevBalBMP2.add(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
         });
 
         it('Transfer half amount of balance in ETH', async () => {
@@ -134,13 +137,13 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
             assert.equal(Transfer._token, ETH);
-            assert.equal(Transfer._value, minAmount.toString());
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, ETH), prevBalBMP2.add(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
         });
 
         it('Transfer Token', async () => {
@@ -169,14 +172,14 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
             assert.equal(Transfer._token, token.address);
-            assert.equal(Transfer._value, minAmount.toString());
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.add(minAmount).toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT);
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T.add(minAmount));
         });
 
         it('Transfer half amount of balance in Token', async () => {
@@ -205,14 +208,14 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
             assert.equal(Transfer._token, token.address);
-            assert.equal(Transfer._value, minAmount.toString());
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.add(minAmount).toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT);
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T.add(minAmount));
         });
 
         it('Try transfer to address 0x0', async () => {
@@ -326,16 +329,16 @@ contract('BalanceManager', function (accounts) {
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
             assert.equal(TransferFrom._token, ETH);
-            assert.equal(TransferFrom._value, minAmount.toString());
+            expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
-            assert.equal(await balanceManager.allowance(player1, approved, ETH), prevAllowance.sub(minAmount).toString());
+            expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, ETH), prevBalBMP2.add(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
         });
 
         it('TransferFrom half amount of balance in ETH', async () => {
@@ -372,16 +375,16 @@ contract('BalanceManager', function (accounts) {
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
             assert.equal(TransferFrom._token, ETH);
-            assert.equal(TransferFrom._value, minAmount.toString());
+            expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
-            assert.equal(await balanceManager.allowance(player1, approved, ETH), prevAllowance.sub(minAmount).toString());
+            expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, ETH), prevBalBMP2.add(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
         });
 
         it('TransferFrom Token', async () => {
@@ -420,17 +423,17 @@ contract('BalanceManager', function (accounts) {
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
             assert.equal(TransferFrom._token, token.address);
-            assert.equal(TransferFrom._value, minAmount.toString());
+            expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
-            assert.equal(await balanceManager.allowance(player1, approved, token.address), prevAllowance.sub(minAmount).toString());
+            expect(await balanceManager.allowance(player1, approved, token.address)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.add(minAmount).toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT);
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T.add(minAmount));
         });
 
         it('TransferFrom half amount of balance in Token', async () => {
@@ -469,17 +472,17 @@ contract('BalanceManager', function (accounts) {
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
             assert.equal(TransferFrom._token, token.address);
-            assert.equal(TransferFrom._value, minAmount.toString());
+            expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
-            assert.equal(await balanceManager.allowance(player1, approved, token.address), prevAllowance.sub(minAmount).toString());
+            expect(await balanceManager.allowance(player1, approved, token.address)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.add(minAmount).toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT);
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T.add(minAmount));
         });
 
         it('Try TransferFrom to address 0x0', async () => {
@@ -663,16 +666,16 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Approval._owner, player1);
             assert.equal(Approval._spender, approved);
             assert.equal(Approval._token, ETH);
-            assert.equal(Approval._value, minAmount.toString());
+            expect(Approval._value).to.eq.BN(minAmount);
 
             // Check _allowance
-            assert.equal(await balanceManager.allowance(player1, approved, ETH), minAmount.toString());
+            expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(minAmount);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.toString());
-            assert.equal(await balanceManager.balanceOf(player2, ETH), prevBalBMP2.toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1);
+            expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2);
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
         });
 
         it('Approve Token', async () => {
@@ -692,17 +695,17 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Approval._owner, player1);
             assert.equal(Approval._spender, approved);
             assert.equal(Approval._token, token.address);
-            assert.equal(Approval._value, minAmount.toString());
+            expect(Approval._value).to.eq.BN(minAmount);
 
             // Check _allowance
-            assert.equal(await balanceManager.allowance(player1, approved, token.address), minAmount.toString());
+            expect(await balanceManager.allowance(player1, approved, token.address)).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT);
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T);
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T);
         });
     });
 
@@ -722,11 +725,11 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Deposit._from, depositer);
             assert.equal(Deposit._to, player1);
             assert.equal(Deposit._token, ETH);
-            assert.equal(Deposit._value, minAmount.toString());
+            expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.add(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.add(minAmount).toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.add(minAmount));
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.add(minAmount));
         });
 
         it('Deposit Token', async () => {
@@ -748,12 +751,12 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Deposit._from, depositer);
             assert.equal(Deposit._to, player1);
             assert.equal(Deposit._token, token.address);
-            assert.equal(Deposit._value, minAmount.toString());
+            expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.add(minAmount).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.add(minAmount).toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT.add(minAmount));
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.add(minAmount));
         });
 
         it('Deposit a Token amount less than what the loanManager has approved and take only the low amount', async () => {
@@ -775,12 +778,12 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Deposit._from, depositer);
             assert.equal(Deposit._to, player1);
             assert.equal(Deposit._token, token.address);
-            assert.equal(Deposit._value, minAmount.toString());
+            expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.add(minAmount).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.add(minAmount).toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT.add(minAmount));
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.add(minAmount));
         });
 
         it('Try deposit ETH with token as token', async () => {
@@ -903,12 +906,12 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, ETH);
-            assert.equal(Withdraw._value, minAmount.toString());
+            expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.add(minAmount).toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.sub(minAmount));
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(minAmount));
         });
 
         it('Withdraw half amount of balance in ETH', async () => {
@@ -935,12 +938,12 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, ETH);
-            assert.equal(Withdraw._value, minAmount.toString());
+            expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.add(minAmount).toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.sub(minAmount));
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(minAmount));
         });
 
         it('Withdraw Token', async () => {
@@ -970,14 +973,14 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, token.address);
-            assert.equal(Withdraw._value, minAmount.toString());
+            expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.sub(minAmount).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.add(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT.sub(minAmount));
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T.add(minAmount));
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T);
         });
 
         it('Withdraw half amount of balance in Token', async () => {
@@ -1007,14 +1010,14 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, token.address);
-            assert.equal(Withdraw._value, minAmount.toString());
+            expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.sub(minAmount).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.add(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.sub(minAmount).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT.sub(minAmount));
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T.add(minAmount));
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T.sub(minAmount));
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T);
         });
 
         it('Try withdraw to address 0x0', async () => {
@@ -1128,12 +1131,12 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, ETH);
-            assert.equal(Withdraw._value, prevBalBMP1.toString());
+            expect(Withdraw._value).to.eq.BN(prevBalBMP1);
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.sub(prevBalBMP1).toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), bn('0').toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.add(prevBalBMP1).toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.sub(prevBalBMP1));
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN('0');
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(prevBalBMP1));
         });
 
         it('Withdraw all Token', async () => {
@@ -1162,14 +1165,14 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, token.address);
-            assert.equal(Withdraw._value, prevBalBMP1T.toString());
+            expect(Withdraw._value).to.eq.BN(prevBalBMP1T);
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.sub(prevBalBMP1T).toString());
-            assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.add(prevBalBMP1T).toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), bn(0).toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT.sub(prevBalBMP1T));
+            expect(await token.balanceOf(player1)).to.eq.BN(prevBalP1T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T.add(prevBalBMP1T));
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN('0');
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T);
         });
 
         it('Try withdraw all to address 0x0', async () => {
@@ -1231,12 +1234,12 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, ETH);
-            assert.equal(Withdraw._value, bn(0).toString());
+            expect(Withdraw._value).to.eq.BN('0');
 
             // Check ETH balance
-            assert.equal(await getETHBalance(balanceManager.address), prevBalBM.toString());
-            assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.toString());
-            assert.equal(await getETHBalance(player2), prevPlayer2Bal.toString());
+            expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
+            expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1);
+            expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
         });
 
         it('Withdraw all Token without balance', async () => {
@@ -1262,13 +1265,13 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
             assert.equal(Withdraw._token, token.address);
-            assert.equal(Withdraw._value, bn(0).toString());
+            expect(Withdraw._value).to.eq.BN('0');
 
             // Check Token balance
-            assert.equal(await token.balanceOf(balanceManager.address), prevBalBMT.toString());
-            assert.equal(await balanceManager.balanceOf(player1, token.address), prevBalBMP1T.toString());
-            assert.equal(await balanceManager.balanceOf(player2, token.address), prevBalBMP2T.toString());
-            assert.equal(await token.balanceOf(player2), prevBalP2T.toString());
+            expect(await token.balanceOf(balanceManager.address)).to.eq.BN(prevBalBMT);
+            expect(await balanceManager.balanceOf(player1, token.address)).to.eq.BN(prevBalBMP1T);
+            expect(await balanceManager.balanceOf(player2, token.address)).to.eq.BN(prevBalBMP2T);
+            expect(await token.balanceOf(player2)).to.eq.BN(prevBalP2T);
         });
 
         it('Try withdraw all Token and the transfer returns false', async () => {
