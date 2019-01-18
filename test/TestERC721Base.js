@@ -20,7 +20,7 @@ function dec (number) {
 }
 
 function maxUint (base) {
-    return bn('2').pow(bn(base)).sub(bn('1'));
+    return dec(bn('2').pow(bn(base)));
 }
 
 contract('ERC721 Base', function (accounts) {
