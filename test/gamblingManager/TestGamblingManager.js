@@ -21,8 +21,6 @@ async function getETHBalance (account) {
     return bn(await web3.eth.getBalance(account));
 };
 
-const balanceOfSignature = web3.utils.soliditySha3({ t: 'string', v: 'balanceOf(address,address)' }).slice(0, 10);
-
 const ETH = web3.utils.padLeft('0x0', 40);
 const address0x = web3.utils.padLeft('0x0', 40);
 const bytes320x = toHexBytes32('0x0');
@@ -69,23 +67,14 @@ contract('GamblingManager', function (accounts) {
 
     let prevBalBet; // previus balance of Bet on gamblingManager
 
-    async function balanceOf (_account, _token) {
-        const balance = await web3.eth.call({
-            to: gamblingManager.address,
-            data: balanceOfSignature + await web3.utils.padLeft(_account, 64).slice(2) + web3.utils.padLeft(_token, 64).slice(2),
-        });
-
-        return bn(await web3.utils.hexToNumberString(balance));
-    }
-
     async function saveETHPrevBalances (id) {
         prevBalG = await getETHBalance(gamblingManager.address);
 
         prevBalBet = (await gamblingManager.bets(id))[I_BALANCE];
 
-        prevBalGO = await balanceOf(owner, ETH);
-        prevBalGC = await balanceOf(creator, ETH);
-        prevBalGP1 = await balanceOf(player1, ETH);
+        prevBalGO = await gamblingManager.methods['balanceOf(address,address)'](owner, ETH);
+        prevBalGC = await gamblingManager.methods['balanceOf(address,address)'](creator, ETH);
+        prevBalGP1 = await gamblingManager.methods['balanceOf(address,address)'](player1, ETH);
     };
 
     async function saveTokenPrevBalances (id) {
@@ -96,9 +85,9 @@ contract('GamblingManager', function (accounts) {
         prevBalCT = await token.balanceOf(creator);
         prevBalP1T = await token.balanceOf(player1);
 
-        prevBalGOT = await balanceOf(owner, token.address);
-        prevBalGCT = await balanceOf(creator, token.address);
-        prevBalGP1T = await balanceOf(player1, token.address);
+        prevBalGOT = await gamblingManager.methods['balanceOf(address,address)'](owner, token.address);
+        prevBalGCT = await gamblingManager.methods['balanceOf(address,address)'](creator, token.address);
+        prevBalGP1T = await gamblingManager.methods['balanceOf(address,address)'](player1, token.address);
     };
 
     before('Deploy GamblingManager', async function () {
@@ -241,8 +230,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.add(tip).toString());
-            assert.equal(await balanceOf(creator, ETH), prevBalGC.sub(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH), prevBalGC.sub(tip).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -281,8 +270,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
-            assert.equal(await balanceOf(owner, token.address), prevBalGOT.add(tip).toString());
-            assert.equal(await balanceOf(creator, token.address), prevBalGCT.sub(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, token.address), prevBalGOT.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, token.address), prevBalGCT.sub(tip).toString());
             assert.equal(await token.balanceOf(gamblingManager.address), prevBalGT.toString());
             assert.equal(await token.balanceOf(creator), prevBalCT.toString());
         });
@@ -327,8 +316,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.add(tip).toString());
-            assert.equal(await balanceOf(creator, ETH), prevBalGC.sub(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH), prevBalGC.sub(tip).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -375,8 +364,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
-            assert.equal(await balanceOf(owner, token.address), prevBalGOT.add(tip).toString());
-            assert.equal(await balanceOf(creator, token.address), prevBalGCT.sub(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, token.address), prevBalGOT.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, token.address), prevBalGCT.sub(tip).toString());
             assert.equal(await token.balanceOf(gamblingManager.address), prevBalGT.toString());
             assert.equal(await token.balanceOf(creator), prevBalCT.toString());
         });
@@ -413,8 +402,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.add(tip).toString());
-            assert.equal(await balanceOf(creator, ETH), prevBalGC.sub(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH), prevBalGC.sub(tip).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -453,8 +442,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
-            assert.equal(await balanceOf(owner, token.address), prevBalGOT.add(tip).toString());
-            assert.equal(await balanceOf(creator, token.address), prevBalGCT.sub(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, token.address), prevBalGOT.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, token.address), prevBalGCT.sub(tip).toString());
             assert.equal(await token.balanceOf(gamblingManager.address), prevBalGT.toString());
             assert.equal(await token.balanceOf(creator), prevBalCT.toString());
         });
@@ -551,7 +540,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(player1, ETH), prevBalGP1.sub(minAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH), prevBalGP1.sub(minAmount).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -594,7 +583,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
-            assert.equal(await balanceOf(player1, token.address), prevBalGP1T.sub(minAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, token.address), prevBalGP1T.sub(minAmount).toString());
             assert.equal(await token.balanceOf(player1), prevBalP1T.toString());
             assert.equal(await token.balanceOf(gamblingManager.address), prevBalGT.toString());
         });
@@ -638,7 +627,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(player1, ETH), prevBalGP1.sub(minAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH), prevBalGP1.sub(minAmount).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.add(minAmount).toString());
         });
 
@@ -685,7 +674,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check Token balance
-            assert.equal(await balanceOf(player1, token.address), prevBalGP1T.toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, token.address), prevBalGP1T.toString());
             assert.equal(await token.balanceOf(player1), prevBalP1T.sub(minAmount).toString());
             assert.equal(await token.balanceOf(gamblingManager.address), prevBalGT.add(minAmount).toString());
         });
@@ -835,8 +824,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.toString());
-            assert.equal(await balanceOf(player1, ETH), prevBalGP1.add(minAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH), prevBalGP1.add(minAmount).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -881,8 +870,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.add(tip).toString());
-            assert.equal(await balanceOf(player1, ETH), prevBalGP1.toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH), prevBalGP1.toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -927,8 +916,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.toString());
-            assert.equal(await balanceOf(player1, ETH), prevBalGP1.add(minAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH), prevBalGP1.add(minAmount).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -973,8 +962,8 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], model.address);
 
             // Check ETH balance
-            assert.equal(await balanceOf(owner, ETH), prevBalGO.add(tip).toString());
-            assert.equal(await balanceOf(player1, ETH), prevBalGP1.add(minAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH), prevBalGO.add(tip).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH), prevBalGP1.add(minAmount).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -1082,7 +1071,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], address0x);
 
             // Check ETH balance
-            assert.equal(await balanceOf(creator, ETH), prevBalGC.add(totalAmount).toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH), prevBalGC.add(totalAmount).toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
@@ -1120,7 +1109,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet[I_MODEL], address0x);
 
             // Check ETH balance
-            assert.equal(await balanceOf(creator, ETH), prevBalGC.toString());
+            assert.equal(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH), prevBalGC.toString());
             assert.equal(await getETHBalance(gamblingManager.address), prevBalG.toString());
         });
 
