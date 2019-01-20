@@ -23,7 +23,7 @@ contract ERC721Base is IERC721, ERC165 {
 
     // What address owns an asset.
     mapping(uint256 => address) private _ownerOf;
-    mapping(address => uint256[]) public assetsOf;
+    mapping(address => uint256[]) public allAssetsOf;
     mapping(address => mapping(address => bool)) private operators;
     // What address has been particularly authorized to move an asset
     mapping(uint256 => address) private _approval;
@@ -94,6 +94,10 @@ contract ERC721Base is IERC721, ERC165 {
         return tokens;
     }
 
+    function assetsOf(address _owner) external view returns (uint256[] memory) {
+        return allAssetsOf[_owner];
+    }
+
     /**
     * @notice Enumerate valid NFTs
     * @dev Throws if `_index` >= `totalSupply()`.
@@ -117,8 +121,8 @@ contract ERC721Base is IERC721, ERC165 {
     */
     function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256) {
         require(_owner != address(0), "0x0 Is not a valid owner");
-        require(_index < assetsOf[_owner].length, "Index out of bounds");
-        return assetsOf[_owner][_index];
+        require(_index < allAssetsOf[_owner].length, "Index out of bounds");
+        return allAssetsOf[_owner][_index];
     }
 
     //
@@ -139,7 +143,7 @@ contract ERC721Base is IERC721, ERC165 {
      * @return uint256 representing the amount owned by the passed address
      */
     function balanceOf(address _owner) external view returns (uint256) {
-        return assetsOf[_owner].length;
+        return allAssetsOf[_owner].length;
     }
 
     //
@@ -192,7 +196,7 @@ contract ERC721Base is IERC721, ERC165 {
     function approve(address _operator, uint256 _assetId) external {
         address owner = _ownerOf[_assetId];
         require(
-            msg.sender == owner || _approval[_assetId] == msg.sender || operators[owner][msg.sender],
+            msg.sender == owner || operators[owner][msg.sender],
             "msg.sender can't approve"
         );
 
@@ -210,7 +214,7 @@ contract ERC721Base is IERC721, ERC165 {
         require(_ownerOf[_assetId] == address(0), "Asset already exists");
 
         _ownerOf[_assetId] = _beneficiary;
-        indexOfAsset[_assetId] = assetsOf[_beneficiary].push(_assetId) - 1;
+        indexOfAsset[_assetId] = allAssetsOf[_beneficiary].push(_assetId) - 1;
         tokens.push(_assetId);
 
         emit Transfer(address(0), _beneficiary, _assetId);
@@ -287,19 +291,19 @@ contract ERC721Base is IERC721, ERC165 {
         }
 
         uint256 assetIndex = indexOfAsset[_assetId];
-        uint256 lastAssetIndex = assetsOf[_from].length - 1;
+        uint256 lastAssetIndex = allAssetsOf[_from].length - 1;
 
         if (assetIndex != lastAssetIndex){
-            uint256 lastAssetId = assetsOf[_from][lastAssetIndex];
-            assetsOf[_from][assetIndex] = lastAssetId;
+            uint256 lastAssetId = allAssetsOf[_from][lastAssetIndex];
+            allAssetsOf[_from][assetIndex] = lastAssetId;
             indexOfAsset[lastAssetId] = assetIndex;
         }
 
-        assetsOf[_from].length--;
+        allAssetsOf[_from].length--;
 
         _ownerOf[_assetId] = _to;
 
-        indexOfAsset[_assetId] = assetsOf[_to].push(_assetId) - 1;
+        indexOfAsset[_assetId] = allAssetsOf[_to].push(_assetId) - 1;
 
         if (_doCheck && _to.isContract()) {
             // Perform check with the new safe call

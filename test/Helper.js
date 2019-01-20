@@ -34,11 +34,24 @@ module.exports.tryCatchRevert = async (promise, message) => {
 };
 
 module.exports.toEvents = async (promise, ...events) => {
-    const logs = (await promise()).logs;
-    let eventObjs = events.map(event => logs.find(log => log.event === event));
+    const logs = (await promise).logs;
+
+    let eventObjs = [].concat.apply(
+        [], events.map(
+            event => logs.filter(
+                log => log.event === event
+            )
+        )
+    );
+
     if (eventObjs.length === 0 || eventObjs.some(x => x === undefined)) {
-        assert.fail('The event dont find');
+        console.warn('\t\u001b[91m\u001b[2m\u001b[1mError: The event dont find');
+        assert.fail();
     }
     eventObjs = eventObjs.map(x => x.args);
     return (eventObjs.length === 1) ? eventObjs[0] : eventObjs;
+};
+
+module.exports.eventNotEmitted = async (receipt, eventName) => {
+    assert.equal(receipt.logs.length, 0, 'Should have not emitted the event ' + eventName);
 };
