@@ -194,6 +194,7 @@ contract('ERC721 Base', function (accounts) {
             await token.generate(auxAssetId, user);
             await token.generate(bn('546165651651411'), otherUser);
 
+            const prevIndexOfAsset = await token.indexOfAsset(assetId);
             const prevBalUser = await token.balanceOf(user);
             const prevLengthUser = (await token.assetsOf(user)).length;
 
@@ -226,10 +227,12 @@ contract('ERC721 Base', function (accounts) {
             expect(Transfer._tokenId).to.eq.BN(assetId);
 
             assert.equal(await token.getApproved(assetId), address0x);
+            expect(await token.indexOfAsset(auxAssetId)).to.eq.BN(prevIndexOfAsset);
             assert.equal((await token.assetsOf(user)).length, prevLengthUser - 1);
             expect(await token.balanceOf(user)).to.eq.BN(dec(prevBalUser));
 
             assert.equal(await token.ownerOf(assetId), otherUser);
+            expect(await token.indexOfAsset(assetId)).to.eq.BN(prevBalOtherUser);
             assert.equal((await token.assetsOf(otherUser)).length, prevLengthOtherUser + 1);
             expect(await token.balanceOf(otherUser)).to.eq.BN(inc(prevBalOtherUser));
         });
@@ -490,6 +493,7 @@ contract('ERC721 Base', function (accounts) {
 
             assert.equal(await token.ownerOf(assetId), user);
             expect(await token.balanceOf(user)).to.eq.BN(inc(prevBalUser));
+            expect(await token.indexOfAsset(assetId)).to.eq.BN(prevBalUser);
             expect(await token.totalSupply()).to.eq.BN(inc(totalNFT));
             assert.isOk((await token.allTokens()).some(x => x.toString() === assetId.toString()));
         });
