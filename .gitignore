@@ -4,3 +4,4 @@
 /coverage.json
 /coverage/
 .node-xmlhttprequest-sync-*
+/allFiredEvents
