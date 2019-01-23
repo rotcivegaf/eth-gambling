@@ -6,7 +6,6 @@ import "./interfaces/IModel.sol";
 import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
 import "./utils/BalanceManager.sol";
-// import "./utils/ERC721Manager.sol";
 
 
 contract IdHelper {
@@ -51,13 +50,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel model;
     }
 
-    struct BetERC721 {
-        address ERC721;
-        uint256 ERC721Id;
-    }
-
     mapping(bytes32 => Bet) public bets;
-    mapping(bytes32 => BetERC721) public toBetERC721;
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
@@ -122,7 +115,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         emit Created3(msg.sender, betId, _tip, _data, _salt);
     }
 
-    function playWithToken(
+    function play(
         bytes32 _betId,
         uint256 _tip,
         uint256 _maxAmount,
@@ -147,28 +140,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         // Add balance to Bet
         bet.balance += needAmount;
 
-        emit PlayedToken(_betId, _tip, needAmount, _data);
-    }
-
-    function playWithERC721(
-        bytes32 _betId,
-        uint256 _tip,
-        address _ERC721,
-        uint256 _ERC721Id,
-        bytes32[] calldata _data
-    ) external payable returns(bool) {
-        Bet storage bet = bets[_betId];
-
-        bet.model.play(_betId, _ERC721, _ERC721Id, _data);
-
-        if (_tip != 0) {
-            if (_toBalance[msg.sender][bet.token] < _tip)
-                _deposit(msg.sender, msg.sender, bet.token, _tip - _toBalance[msg.sender][bet.token]);
-            _toBalance[owner][bet.token] += _tip;
-            _toBalance[msg.sender][bet.token] -= _tip;
-        }
-
-        event PlayedERC721(_betId, _tip, _ERC721, _ERC721Id, _data);
+        emit Played(_betId, _tip, needAmount, _data);
     }
 
     function collect(
@@ -243,18 +215,4 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             model: _model
         });
     }
-/*
-    if (_toBalance[msg.sender][_token] < totalAmount)
-        _deposit(msg.sender, msg.sender, _token, totalAmount - _toBalance[msg.sender][_token]);
-
-    _toBalance[msg.sender][_token] -= totalAmount;
-
-
-    address _ERC721,
-    uint256 _ERC721Id,
-
-    if (_ERC721 != address(0)) {
-        //require(ERC721(_ERC721).transferFrom(, address(this), _ERC721Id));
-        toBetERC721[_betId] = BetERC721(_ERC721, _ERC721Id);
-    }*/
 }
