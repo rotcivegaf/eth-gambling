@@ -93,7 +93,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Transfer = await Helper.toEvents(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     player2,
                     ETH,
                     minAmount,
@@ -126,7 +126,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Transfer = await Helper.toEvents(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     player2,
                     ETH,
                     minAmount,
@@ -161,7 +161,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Transfer = await Helper.toEvents(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     player2,
                     token.address,
                     minAmount,
@@ -197,7 +197,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Transfer = await Helper.toEvents(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     player2,
                     token.address,
                     minAmount,
@@ -228,7 +228,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     address0x,
                     ETH,
                     minAmount,
@@ -248,7 +248,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     address0x,
                     token.address,
                     minAmount,
@@ -266,7 +266,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     player2,
                     ETH,
                     minAmount,
@@ -284,7 +284,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transfer(
+                balanceManager.transfer(
                     player2,
                     token.address,
                     minAmount,
@@ -317,7 +317,7 @@ contract('BalanceManager', function (accounts) {
             const prevAllowance = await balanceManager.allowance(player1, approved, ETH);
 
             const TransferFrom = await Helper.toEvents(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     ETH,
@@ -363,7 +363,7 @@ contract('BalanceManager', function (accounts) {
             const prevAllowance = await balanceManager.allowance(player1, approved, ETH);
 
             const TransferFrom = await Helper.toEvents(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     ETH,
@@ -411,7 +411,7 @@ contract('BalanceManager', function (accounts) {
             const prevAllowance = await balanceManager.allowance(player1, approved, token.address);
 
             const TransferFrom = await Helper.toEvents(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     token.address,
@@ -460,7 +460,7 @@ contract('BalanceManager', function (accounts) {
             const prevAllowance = await balanceManager.allowance(player1, approved, token.address);
 
             const TransferFrom = await Helper.toEvents(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     token.address,
@@ -502,7 +502,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     address0x,
                     ETH,
@@ -530,7 +530,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     address0x,
                     token.address,
@@ -557,7 +557,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     ETH,
@@ -585,7 +585,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     token.address,
@@ -611,7 +611,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     ETH,
@@ -637,7 +637,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.transferFrom(
+                balanceManager.transferFrom(
                     player1,
                     player2,
                     token.address,
@@ -655,7 +655,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Approval = await Helper.toEvents(
-                () => balanceManager.approve(
+                balanceManager.approve(
                     approved,
                     ETH,
                     minAmount,
@@ -683,7 +683,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Approval = await Helper.toEvents(
-                () => balanceManager.approve(
+                balanceManager.approve(
                     approved,
                     token.address,
                     minAmount,
@@ -714,7 +714,7 @@ contract('BalanceManager', function (accounts) {
         it('Deposit ETH', async () => {
             await saveETHPrevBalances();
             const Deposit = await Helper.toEvents(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     ETH,
                     minAmount,
@@ -740,7 +740,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Deposit = await Helper.toEvents(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     token.address,
                     minAmount,
@@ -767,7 +767,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Deposit = await Helper.toEvents(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     token.address,
                     minAmount,
@@ -792,7 +792,7 @@ contract('BalanceManager', function (accounts) {
             await token.approve(balanceManager.address, minAmount, { from: depositer });
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     token.address,
                     minAmount,
@@ -807,7 +807,7 @@ contract('BalanceManager', function (accounts) {
             await token.approve(balanceManager.address, minAmount, { from: depositer });
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     ETH,
                     minAmount,
@@ -822,7 +822,7 @@ contract('BalanceManager', function (accounts) {
             await token.approve(balanceManager.address, minAmount, { from: depositer });
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     address0x,
                     token.address,
                     minAmount,
@@ -832,7 +832,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     address0x,
                     ETH,
                     minAmount,
@@ -847,7 +847,7 @@ contract('BalanceManager', function (accounts) {
             const lowAmount = bn('100');
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     ETH,
                     higthAmount,
@@ -857,7 +857,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     ETH,
                     lowAmount,
@@ -871,7 +871,7 @@ contract('BalanceManager', function (accounts) {
             await token.setBalance(depositer, minAmount);
 
             await Helper.tryCatchRevert(
-                () => balanceManager.deposit(
+                balanceManager.deposit(
                     player1,
                     token.address,
                     minAmount,
@@ -886,7 +886,7 @@ contract('BalanceManager', function (accounts) {
         it('Deposit ETH from otherAccount', async () => {
             await saveETHPrevBalances();
             const Deposit = await Helper.toEvents(
-                () => balanceManager.depositFrom(
+                balanceManager.depositFrom(
                     otherAccount,
                     player1,
                     ETH,
@@ -913,7 +913,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Deposit = await Helper.toEvents(
-                () => balanceManager.depositFrom(
+                balanceManager.depositFrom(
                     otherAccount,
                     player1,
                     token.address,
@@ -948,7 +948,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     player2,
                     ETH,
                     minAmount,
@@ -980,7 +980,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     player2,
                     ETH,
                     minAmount,
@@ -1014,7 +1014,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     player2,
                     token.address,
                     minAmount,
@@ -1051,7 +1051,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     player2,
                     token.address,
                     minAmount,
@@ -1083,7 +1083,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     address0x,
                     ETH,
                     minAmount,
@@ -1103,7 +1103,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     address0x,
                     token.address,
                     minAmount,
@@ -1115,7 +1115,7 @@ contract('BalanceManager', function (accounts) {
 
         it('Try withdraw ETH without balance', async () => {
             await Helper.tryCatchRevert(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     player2,
                     ETH,
                     maxAmount,
@@ -1127,7 +1127,7 @@ contract('BalanceManager', function (accounts) {
 
         it('Try withdraw Token without balance', async () => {
             await Helper.tryCatchRevert(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     player2,
                     token.address,
                     maxAmount,
@@ -1149,7 +1149,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdraw(
+                balanceManager.withdraw(
                     Helper.returnFalseAddress,
                     token.address,
                     minAmount,
@@ -1175,7 +1175,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawFrom(
+                balanceManager.withdrawFrom(
                     player1,
                     player2,
                     ETH,
@@ -1212,7 +1212,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawFrom(
+                balanceManager.withdrawFrom(
                     player1,
                     player2,
                     token.address,
@@ -1245,7 +1245,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdrawFrom(
+                balanceManager.withdrawFrom(
                     player1,
                     player2,
                     ETH,
@@ -1268,7 +1268,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdrawFrom(
+                balanceManager.withdrawFrom(
                     player1,
                     player2,
                     token.address,
@@ -1293,7 +1293,7 @@ contract('BalanceManager', function (accounts) {
             const prevPlayer2Bal = await getETHBalance(player2);
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     player2,
                     ETH,
                     { from: player1 }
@@ -1327,7 +1327,7 @@ contract('BalanceManager', function (accounts) {
             await saveTokenPrevBalances();
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     player2,
                     token.address,
                     { from: player1 }
@@ -1358,7 +1358,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     address0x,
                     ETH,
                     { from: player1 }
@@ -1377,7 +1377,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     address0x,
                     token.address,
                     { from: player1 }
@@ -1397,7 +1397,7 @@ contract('BalanceManager', function (accounts) {
             await saveETHPrevBalances();
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     player2,
                     ETH,
                     { from: player1 }
@@ -1427,7 +1427,7 @@ contract('BalanceManager', function (accounts) {
             prevBalBMT = await token.balanceOf(balanceManager.address);
 
             const Withdraw = await Helper.toEvents(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     player2,
                     token.address,
                     { from: player1 }
@@ -1460,7 +1460,7 @@ contract('BalanceManager', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => balanceManager.withdrawAll(
+                balanceManager.withdrawAll(
                     Helper.returnFalseAddress,
                     token.address,
                     { from: player1 }
