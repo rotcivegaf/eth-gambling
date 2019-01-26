@@ -48,7 +48,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel model;
     }
 
-    mapping(bytes32 => Bet) public bets;
+    mapping(bytes32 => Bet) public toBet;
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
@@ -115,7 +115,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         uint256 _maxAmount,
         bytes32[] calldata _data
     ) external payable returns(bool) {
-        Bet storage bet = bets[_betId];
+        Bet storage bet = toBet[_betId];
 
         uint256 needAmount = bet.model.play(_betId, msg.sender, _data);
         uint256 total = needAmount;
@@ -144,7 +144,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         bytes32[] calldata _data
     ) external {
         require(_beneficiary != address(0), "_beneficiary should not be 0x0");
-        Bet storage bet = bets[_betId];
+        Bet storage bet = toBet[_betId];
 
         uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _data);
 
@@ -169,7 +169,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function cancel(bytes32 _betId, bytes32[] calldata _data) external {
-        Bet storage bet = bets[_betId];
+        Bet storage bet = toBet[_betId];
         require(bet.model != IModel(0), "The bet its not exist or was canceled");
 
         require(bet.model.cancel(_betId, msg.sender, _data), "The bet cant cancel");
@@ -189,16 +189,62 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel _model,
         bytes32[] memory _data
     ) internal {
-        require(bets[_betId].model == IModel(0), "The bet is already created");
+        require(toBet[_betId].model == IModel(0), "The bet is already created");
 
         require(_model.create(_betId, _data), "Model.create return false");
 
         _generate(uint256(_betId), msg.sender);
 
-        bets[_betId] = Bet({
+        toBet[_betId] = Bet({
             token: _token,
             balance: 0,
             model: _model
         });
+    }
+}
+
+
+contract PawnManager is ERC721Manager, GamblingManager {
+    struct Pawn {
+        bytes32 betId;
+        address pawner;
+        address pawnHouse;
+        address erc721;
+        uint256 erc721Id;
+    }
+
+    Pawn[] public pawns;
+
+    function createPawn(
+        bytes32 _betId,
+        address _pawnHouse,
+        address _erc721,
+        uint256 _erc721Id,
+        bytes32[] _dataPawn
+    ) external {
+
+    }
+
+    function playPawn(
+        bytes32 _betId,
+        address _pawnHouse,
+        address _erc721,
+        uint256 _erc721Id,
+        ??????? _signature,
+        bytes32[] _dataPawn
+    ) external {
+
+    }
+
+    function takePawn(uint256 pawnId) external {
+
+    }
+
+    function collectPawn(uint256 pawnId) external {
+
+    }
+
+    function cancelPawn(uint256 pawnId) external {
+
     }
 }
