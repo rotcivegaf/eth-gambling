@@ -18,7 +18,6 @@ contract IdHelper {
     function buildId2(
         address _creator,
         address _token,
-        uint256 _tip,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
@@ -29,7 +28,6 @@ contract IdHelper {
                 address(this),
                 _creator,
                 _token,
-                _tip,
                 _model,
                 _data,
                 _salt
@@ -56,7 +54,6 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
     function create(
         address _token,
-        uint256 _tip,
         IModel _model,
         bytes32[] calldata _data
     ) external payable returns (bytes32 betId) {
@@ -71,14 +68,13 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             )
         );
 
-        _create(betId, _token, _tip, _model, _data);
+        _create(betId, _token, _model, _data);
 
-        emit Created(msg.sender, betId, _tip, _data, nonce);
+        emit Created(msg.sender, betId, _token, _data, nonce);
     }
 
     function create2(
         address _token,
-        uint256 _tip,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
@@ -89,30 +85,28 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
                 address(this),
                 msg.sender,
                 _token,
-                _tip,
                 _model,
                 _data,
                 _salt
             )
         );
 
-        _create(betId, _token, _tip, _model, _data);
+        _create(betId, _token, _model, _data);
 
-        emit Created2(msg.sender, betId, _tip, _data, _salt);
+        emit Created2(msg.sender, betId, _token, _data, _salt);
     }
 
     function create3(
         address _token,
-        uint256 _tip,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
     ) external payable returns(bytes32 betId) {
         betId = keccak256(abi.encodePacked(uint8(3), address(this), msg.sender, _salt));
 
-        _create(betId, _token, _tip, _model, _data);
+        _create(betId, _token, _model, _data);
 
-        emit Created3(msg.sender, betId, _tip, _data, _salt);
+        emit Created3(msg.sender, betId, _token, _data, _salt);
     }
 
     function play(
@@ -192,20 +186,12 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     function _create(
         bytes32 _betId,
         address _token,
-        uint256 _tip,
         IModel _model,
         bytes32[] memory _data
     ) internal {
         require(bets[_betId].model == IModel(0), "The bet is already created");
 
         require(_model.create(_betId, _data), "Model.create return false");
-
-        // Send the tip to the owner
-        if (_tip != 0) {
-            require(_toBalance[msg.sender][_token] >= _tip, "Overflow for higth tip");
-            _toBalance[owner][_token] += _tip;
-            _toBalance[msg.sender][_token] -= _tip;
-        }
 
         _generate(uint256(_betId), msg.sender);
 
