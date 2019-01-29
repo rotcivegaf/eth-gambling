@@ -5,7 +5,7 @@ const TestERC721ReceiverLegacyRaw = artifacts.require('./utils/test/TestERC721Re
 const TestERC721ReceiverMultiple = artifacts.require('./utils/test/TestERC721ReceiverMultiple.sol');
 const TestURIProvider = artifacts.require('./utils/test/TestURIProvider.sol');
 
-const Helper = require('./Helper.js');
+const Helper = require('../Helper.js');
 const BN = web3.utils.BN;
 const expect = require('chai')
     .use(require('bn-chai')(BN))
