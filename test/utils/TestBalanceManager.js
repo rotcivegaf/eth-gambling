@@ -31,6 +31,9 @@ contract('BalanceManager', function (accounts) {
     let balanceManager;
     let erc20;
 
+    let totalSupplyETH; // previus total supply of ETH of BalanceManager
+    let totalSupplyERC20; // previus total supply of ERC20 of BalanceManager
+
     let prevBalBM; // previus balance of ETH of BalanceManager
 
     let prevBalBM20; // previus balance of ERC20 of BalanceManager
@@ -45,6 +48,8 @@ contract('BalanceManager', function (accounts) {
     let prevBalBMP220; // previus balance of ERC20 on BalanceManager of player2
 
     async function saveETHPrevBalances () {
+        totalSupplyETH = await balanceManager.totalSupply(ETH);
+
         prevBalBM = await getETHBalance(balanceManager.address);
 
         prevBalBMP1 = await balanceManager.balanceOf(player1, ETH);
@@ -52,6 +57,8 @@ contract('BalanceManager', function (accounts) {
     };
 
     async function saveErc20PrevBalances () {
+        totalSupplyERC20 = await balanceManager.totalSupply(erc20.address);
+
         prevBalBM20 = await erc20.balanceOf(balanceManager.address);
 
         prevBalP120 = await erc20.balanceOf(player1);
@@ -76,6 +83,7 @@ contract('BalanceManager', function (accounts) {
         });
 
         // Check ETH balance
+        expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.add(minAmount));
         expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.add(minAmount));
         expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.add(minAmount));
     });
@@ -108,6 +116,7 @@ contract('BalanceManager', function (accounts) {
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH);
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
             expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
@@ -141,6 +150,7 @@ contract('BalanceManager', function (accounts) {
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH);
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
             expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
@@ -176,6 +186,7 @@ contract('BalanceManager', function (accounts) {
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20);
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20);
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
@@ -212,6 +223,7 @@ contract('BalanceManager', function (accounts) {
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20);
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20);
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
@@ -336,6 +348,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH);
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
             expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
@@ -382,6 +395,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH);
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
             expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
@@ -430,6 +444,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.allowance(player1, approved, erc20.address)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20);
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20);
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
@@ -479,6 +494,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.allowance(player1, approved, erc20.address)).to.eq.BN(prevAllowance.sub(minAmount));
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20);
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20);
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
@@ -673,6 +689,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(minAmount);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH);
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1);
             expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2);
@@ -702,6 +719,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.allowance(player1, approved, erc20.address)).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20);
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20);
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
@@ -729,6 +747,7 @@ contract('BalanceManager', function (accounts) {
             expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.add(minAmount));
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.add(minAmount));
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.add(minAmount));
         });
@@ -755,6 +774,7 @@ contract('BalanceManager', function (accounts) {
             expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.add(minAmount));
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20.add(minAmount));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.add(minAmount));
@@ -782,6 +802,7 @@ contract('BalanceManager', function (accounts) {
             expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.add(minAmount));
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20.add(minAmount));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.add(minAmount));
@@ -902,6 +923,7 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Deposit._value, minAmount.toString());
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.add(minAmount));
             assert.equal(await getETHBalance(balanceManager.address), prevBalBM.add(minAmount).toString());
             assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.add(minAmount).toString());
         });
@@ -929,6 +951,7 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Deposit._value, minAmount.toString());
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.add(minAmount));
             assert.equal(await erc20.balanceOf(balanceManager.address), prevBalBM20.add(minAmount).toString());
             assert.equal(await erc20.balanceOf(player1), prevBalP120.toString());
             assert.equal(await balanceManager.balanceOf(player1, erc20.address), prevBalBMP120.add(minAmount).toString());
@@ -963,6 +986,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.sub(minAmount));
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.sub(minAmount));
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
             expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(minAmount));
@@ -995,6 +1019,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.sub(minAmount));
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.sub(minAmount));
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
             expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(minAmount));
@@ -1030,6 +1055,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.sub(minAmount));
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20.sub(minAmount));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220.add(minAmount));
@@ -1067,6 +1093,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.sub(minAmount));
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20.sub(minAmount));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220.add(minAmount));
@@ -1191,6 +1218,7 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._value, minAmount.toString());
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.sub(minAmount));
             assert.equal(await getETHBalance(balanceManager.address), prevBalBM.sub(minAmount).toString());
             assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
             assert.equal(await getETHBalance(player2), prevPlayer2Bal.add(minAmount).toString());
@@ -1229,6 +1257,7 @@ contract('BalanceManager', function (accounts) {
             assert.equal(Withdraw._value, minAmount.toString());
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.sub(minAmount));
             assert.equal(await erc20.balanceOf(balanceManager.address), prevBalBM20.sub(minAmount).toString());
             assert.equal(await erc20.balanceOf(player1), prevBalP120.toString());
             assert.equal(await erc20.balanceOf(player2), prevBalP220.add(minAmount).toString());
@@ -1308,6 +1337,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN(prevBalBMP1);
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH.sub(prevBalBMP1));
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.sub(prevBalBMP1));
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN('0');
             expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(prevBalBMP1));
@@ -1342,6 +1372,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN(prevBalBMP120);
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20.sub(prevBalBMP120));
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20.sub(prevBalBMP120));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220.add(prevBalBMP120));
@@ -1411,6 +1442,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN('0');
 
             // Check ETH balance
+            expect(await balanceManager.totalSupply(ETH)).to.eq.BN(totalSupplyETH);
             expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM);
             expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1);
             expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
@@ -1442,6 +1474,7 @@ contract('BalanceManager', function (accounts) {
             expect(Withdraw._value).to.eq.BN('0');
 
             // Check ERC20 balance
+            expect(await balanceManager.totalSupply(erc20.address)).to.eq.BN(totalSupplyERC20);
             expect(await erc20.balanceOf(balanceManager.address)).to.eq.BN(prevBalBM20);
             expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120);
             expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
