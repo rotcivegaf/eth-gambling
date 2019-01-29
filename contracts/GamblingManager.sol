@@ -6,6 +6,7 @@ import "./interfaces/IModel.sol";
 import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
 import "./utils/BalanceManager.sol";
+import "./utils/ERC721Manager.sol";
 
 
 contract IdHelper {
@@ -110,60 +111,53 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 
     function play(
+        address _player,
         bytes32 _betId,
-        uint256 _tip,
         uint256 _maxAmount,
         bytes32[] calldata _data
     ) external payable returns(bool) {
         Bet storage bet = toBet[_betId];
 
-        uint256 needAmount = bet.model.play(_betId, msg.sender, _data);
-        uint256 total = needAmount;
+        uint256 needAmount = bet.model.play(_betId, _player, _data);
+        require(needAmount <= _maxAmount , "The needAmount must be less or equal than _maxAmount");
 
-        if (_tip != 0) {
-            total = needAmount + _tip;
-            require(total >= _tip, "overflow");
-            _toBalance[owner][bet.token] += _tip;
+        if (msg.sender != _player) {
+            require(msg.value == 0, "The msg.value should be 0");
+            require(_toBalance[_player][bet.token] >= needAmount, "Insufficient founds to discount");
+            require(_allowance[_player][msg.sender][bet.token] >= needAmount, "Insufficient _allowance to play");
+            _allowance[_player][msg.sender][bet.token] -= needAmount;
+        } else {
+            if (_toBalance[_player][bet.token] < needAmount)
+                _deposit(_player, _player, bet.token, needAmount - _toBalance[_player][bet.token]);
         }
-        require(total <= _maxAmount , "The total must be less or equal than _maxAmount");
+        _toBalance[_player][bet.token] -= needAmount;
 
-        if (_toBalance[msg.sender][bet.token] < total)
-            _deposit(msg.sender, msg.sender, bet.token, total - _toBalance[msg.sender][bet.token]);
-
-        _toBalance[msg.sender][bet.token] -= total;
         // Add balance to Bet
         bet.balance += needAmount;
 
-        emit Played(_betId, _tip, needAmount, _data);
+        emit Played(msg.sender, _player, _betId, needAmount, _data);
     }
 
     function collect(
-        bytes32 _betId,
         address _beneficiary,
-        uint256 _tip,
+        bytes32 _betId,
         bytes32[] calldata _data
     ) external {
         require(_beneficiary != address(0), "_beneficiary should not be 0x0");
         Bet storage bet = toBet[_betId];
 
-        uint256 collectAmount = bet.model.collect(_betId, _beneficiary, _data);
+        uint256 amount = bet.model.collect(_betId, _beneficiary, _data);
 
-        require(collectAmount <= bet.balance, "Insufficient founds to discount from bet balance");
-        bet.balance -= collectAmount;
+        require(amount <= bet.balance, "Insufficient founds to discount from bet balance");
+        bet.balance -= amount;
 
-        if (_tip != 0){
-            require(collectAmount >= _tip, "The tip its to higth");
-            _toBalance[owner][bet.token] += _tip;
-            collectAmount -= _tip;
-        }
-        _toBalance[_beneficiary][bet.token] += collectAmount;
+        _toBalance[_beneficiary][bet.token] += amount;
 
         emit Collected(
             msg.sender,
-            _beneficiary,
             _betId,
-            _tip,
-            collectAmount,
+            _beneficiary,
+            amount,
             _data
         );
     }
@@ -203,7 +197,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     }
 }
 
-
+/*
 contract PawnManager is ERC721Manager, GamblingManager {
     struct Pawn {
         bytes32 betId;
@@ -248,3 +242,4 @@ contract PawnManager is ERC721Manager, GamblingManager {
 
     }
 }
+*/
