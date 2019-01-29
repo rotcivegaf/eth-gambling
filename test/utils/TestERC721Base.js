@@ -201,11 +201,7 @@ contract('ERC721 Base', function (accounts) {
             const prevBalOtherUser = await token.balanceOf(otherUser);
             const prevLengthOtherUser = (await token.assetsOf(otherUser)).length;
 
-            await token.approve(
-                approved,
-                assetId,
-                { from: user }
-            );
+            await token.approve(approved, assetId, { from: user });
 
             const events = await Helper.toEvents(
                 token.transferFrom(
@@ -241,11 +237,7 @@ contract('ERC721 Base', function (accounts) {
             const assetId = bn('9959');
             await token.generate(assetId, user);
 
-            await token.approve(
-                approved,
-                assetId,
-                { from: user }
-            );
+            await token.approve(approved, assetId, { from: user });
 
             const Transfer = await Helper.toEvents(
                 token.transferFrom(
@@ -315,6 +307,22 @@ contract('ERC721 Base', function (accounts) {
             );
         });
 
+        it('Try SafeTransferFrom an asset without be the owner', async function () {
+            const assetId = bn('111199872');
+            await token.generate(assetId, user);
+            await token.approve(approved, assetId, { from: user });
+
+            await Helper.tryCatchRevert(
+                () => token.safeTransferFrom(
+                    approved,
+                    otherUser,
+                    assetId,
+                    { from: approved }
+                ),
+                'Not current owner'
+            );
+        });
+
         it('SafeTransferFrom legacy to a contract, safeTransferFrom(address,address,uint256)', async function () {
             const assetId = bn('894988913213216516516516516514796');
             const receiverLegacy = await TestERC721ReceiverLegacy.new();
@@ -374,6 +382,35 @@ contract('ERC721 Base', function (accounts) {
             );
 
             assert.equal(await token.ownerOf(assetId), user);
+        });
+
+        it('Try tansfer an asset and contract reject the asset', async function () {
+            const assetId = bn('516519841321');
+            await token.generate(assetId, user);
+
+            const receiver = await TestERC721Receiver.new();
+
+            await Helper.tryCatchRevert(
+                () => token.methods['safeTransferFrom(address,address,uint256,bytes)'](
+                    user,
+                    receiver.address,
+                    assetId,
+                    '0x01', // REJECT
+                    { from: user }
+                ),
+                'Contract rejected the token'
+            );
+
+            await Helper.tryCatchRevert(
+                () => token.methods['safeTransferFrom(address,address,uint256,bytes)'](
+                    user,
+                    receiver.address,
+                    assetId,
+                    '0x02', // REVERT
+                    { from: user }
+                ),
+                'Contract rejected the token'
+            );
         });
 
         it('SafeTransferFrom to a contract, safeTransferFrom(address,address,uint256)', async function () {
