@@ -119,7 +119,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         Bet storage bet = toBet[_betId];
 
         uint256 needAmount = bet.model.play(_betId, _player, _data);
-        require(needAmount <= _maxAmount , "The needAmount must be less or equal than _maxAmount");
+        require(needAmount <= _maxAmount, "The needAmount must be less or equal than _maxAmount");
 
         if (msg.sender != _player) {
             require(msg.value == 0, "The msg.value should be 0");
