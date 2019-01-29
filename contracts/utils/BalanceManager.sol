@@ -32,7 +32,7 @@ contract BalanceManager is IBalanceManager {
         return _allowance[_owner][_spender][_token];
     }
 
-    function transfer (address _to, address _token, uint256 _value) external returns(bool) {
+    function transfer(address _to, address _token, uint256 _value) external returns(bool) {
         require(_to != address(0), "_to should not be 0x0");
 
         // Here check _toBalance underflow
