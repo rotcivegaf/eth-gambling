@@ -131,7 +131,7 @@ contract('ERC721 Base', function (accounts) {
                 user
             );
 
-            assert.isOk(await token.isAuthorized(user, assetId));
+            assert.isTrue(await token.isAuthorized(user, assetId));
         });
 
         it('Should be authorized by the owner', async function () {
@@ -142,7 +142,7 @@ contract('ERC721 Base', function (accounts) {
                 user
             );
 
-            assert.isOk(await token.isAuthorized(user, assetId));
+            assert.isTrue(await token.isAuthorized(user, assetId));
         });
 
         it('Should be authorized setApprovalForAll be the owner', async function () {
@@ -153,7 +153,7 @@ contract('ERC721 Base', function (accounts) {
                 user
             );
 
-            assert.isOk(await token.isAuthorized(user, assetId));
+            assert.isTrue(await token.isAuthorized(user, assetId));
         });
 
         it('Try get asset id by a higth index', async function () {
@@ -532,7 +532,7 @@ contract('ERC721 Base', function (accounts) {
             expect(await token.balanceOf(user)).to.eq.BN(inc(prevBalUser));
             expect(await token.indexOfAsset(assetId)).to.eq.BN(prevBalUser);
             expect(await token.totalSupply()).to.eq.BN(inc(totalNFT));
-            assert.isOk((await token.allErc721Ids()).some(x => x.toString() === assetId.toString()));
+            assert.isTrue((await token.allErc721Ids()).some(x => x.toString() === assetId.toString()));
         });
 
         it('Try generate two same NFT', async function () {
