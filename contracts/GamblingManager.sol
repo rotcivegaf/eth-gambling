@@ -56,7 +56,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         address _token,
         IModel _model,
         bytes32[] calldata _data
-    ) external payable returns (bytes32 betId) {
+    ) external returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
         betId = keccak256(
@@ -78,7 +78,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
-    ) external payable returns (bytes32 betId) {
+    ) external returns (bytes32 betId) {
         betId = keccak256(
             abi.encodePacked(
                 uint8(2),
@@ -101,7 +101,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
-    ) external payable returns(bytes32 betId) {
+    ) external returns(bytes32 betId) {
         betId = keccak256(abi.encodePacked(uint8(3), address(this), msg.sender, _salt));
 
         _create(betId, _token, _model, _data);
