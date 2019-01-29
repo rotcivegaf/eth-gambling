@@ -3,6 +3,6 @@ module.exports = {
     testCommand: 'node --max-old-space-size=4096 ../node_modules/.bin/truffle test --network coverage',
     compileCommand: 'node --max-old-space-size=4096 ../node_modules/.bin/truffle compile --network coverage',
     skipFiles: [ // TODO: Remove skip BytesUtils when solidity-coverage gets patched
-        'utils'
+        'utils/test'
     ]
 }
