@@ -1,10 +1,11 @@
 pragma solidity ^0.5.0;
 
+import "./../../interfaces/IERC20.sol";
+
 import "./../SafeMath.sol";
 
 
-/*  ERC 20 token */
-contract StandardToken {
+contract StandardERC20 is IERC20 {
     using SafeMath for uint256;
     address public constant RETURN_FALSE_ADDRESS = address(0x0000000000000000000000000000000066616c7365);
 
@@ -72,23 +73,23 @@ contract StandardToken {
 }
 
 
-contract TestToken is StandardToken {
+contract TestERC20 is StandardERC20 {
     event Mint(address indexed to, uint256 amount);
     event Destroy(address indexed from, uint256 amount);
 
     uint256 public constant PRICE = 4000;
 
     // metadata
-    string public constant name = "Infinite Test Token";
+    string public constant name = "Infinite Test ERC20";
     string public constant symbol = "TEST";
     uint8 public constant decimals = 18;
     string public version = "1.1";
 
-    event CreatedToken(address _address);
+    event CreatedERC20(address _address);
     event SetBalance(address _address, uint256 _balance);
 
     constructor () public {
-        emit CreatedToken(address(this));
+        emit CreatedERC20(address(this));
     }
 
     function () external payable {

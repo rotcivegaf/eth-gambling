@@ -5,7 +5,7 @@ import "./interfaces/IModel.sol";
 
 import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
-import "./utils/BalanceManager.sol";
+import "./utils/ERC20Manager.sol";
 import "./utils/ERC721Manager.sol";
 
 
@@ -18,7 +18,7 @@ contract IdHelper {
 
     function buildId2(
         address _creator,
-        address _token,
+        address _erc20,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
@@ -28,7 +28,7 @@ contract IdHelper {
                 uint8(2),
                 address(this),
                 _creator,
-                _token,
+                _erc20,
                 _model,
                 _data,
                 _salt
@@ -42,9 +42,9 @@ contract IdHelper {
 }
 
 
-contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable, ERC721Base {
+contract GamblingManager is ERC20Manager, IdHelper, IGamblingManager, Ownable, ERC721Base {
     struct Bet {
-        address token;
+        address erc20;
         uint256 balance;
         IModel model;
     }
@@ -54,7 +54,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
     function create(
-        address _token,
+        address _erc20,
         IModel _model,
         bytes32[] calldata _data
     ) external returns (bytes32 betId) {
@@ -69,13 +69,13 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
             )
         );
 
-        _create(betId, _token, _model, _data);
+        _create(betId, _erc20, _model, _data);
 
-        emit Created(msg.sender, betId, _token, _data, nonce);
+        emit Created(msg.sender, betId, _erc20, _data, nonce);
     }
 
     function create2(
-        address _token,
+        address _erc20,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
@@ -85,29 +85,29 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
                 uint8(2),
                 address(this),
                 msg.sender,
-                _token,
+                _erc20,
                 _model,
                 _data,
                 _salt
             )
         );
 
-        _create(betId, _token, _model, _data);
+        _create(betId, _erc20, _model, _data);
 
-        emit Created2(msg.sender, betId, _token, _data, _salt);
+        emit Created2(msg.sender, betId, _erc20, _data, _salt);
     }
 
     function create3(
-        address _token,
+        address _erc20,
         IModel _model,
         bytes32[] calldata _data,
         uint256 _salt
     ) external returns(bytes32 betId) {
         betId = keccak256(abi.encodePacked(uint8(3), address(this), msg.sender, _salt));
 
-        _create(betId, _token, _model, _data);
+        _create(betId, _erc20, _model, _data);
 
-        emit Created3(msg.sender, betId, _token, _data, _salt);
+        emit Created3(msg.sender, betId, _erc20, _data, _salt);
     }
 
     function play(
@@ -123,14 +123,14 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
         if (msg.sender != _player) {
             require(msg.value == 0, "The msg.value should be 0");
-            require(_toBalance[_player][bet.token] >= needAmount, "Insufficient founds to discount");
-            require(_allowance[_player][msg.sender][bet.token] >= needAmount, "Insufficient _allowance to play");
-            _allowance[_player][msg.sender][bet.token] -= needAmount;
+            require(_toBalance[_player][bet.erc20] >= needAmount, "Insufficient founds to discount");
+            require(_allowance[_player][msg.sender][bet.erc20] >= needAmount, "Insufficient _allowance to play");
+            _allowance[_player][msg.sender][bet.erc20] -= needAmount;
         } else {
-            if (_toBalance[_player][bet.token] < needAmount)
-                _deposit(_player, _player, bet.token, needAmount - _toBalance[_player][bet.token]);
+            if (_toBalance[_player][bet.erc20] < needAmount)
+                _deposit(_player, _player, bet.erc20, needAmount - _toBalance[_player][bet.erc20]);
         }
-        _toBalance[_player][bet.token] -= needAmount;
+        _toBalance[_player][bet.erc20] -= needAmount;
 
         // Add balance to Bet
         bet.balance += needAmount;
@@ -151,7 +151,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         require(amount <= bet.balance, "Insufficient founds to discount from bet balance");
         bet.balance -= amount;
 
-        _toBalance[_beneficiary][bet.token] += amount;
+        _toBalance[_beneficiary][bet.erc20] += amount;
 
         emit Collected(
             msg.sender,
@@ -172,14 +172,14 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
 
         uint256 balance = bet.balance;
         bet.balance = 0;
-        _toBalance[msg.sender][bet.token] += balance;
+        _toBalance[msg.sender][bet.erc20] += balance;
 
         emit Canceled(msg.sender, _betId, balance, _data);
     }
 
     function _create(
         bytes32 _betId,
-        address _token,
+        address _erc20,
         IModel _model,
         bytes32[] memory _data
     ) internal {
@@ -190,7 +190,7 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         _generate(uint256(_betId), msg.sender);
 
         toBet[_betId] = Bet({
-            token: _token,
+            erc20: _erc20,
             balance: 0,
             model: _model
         });
