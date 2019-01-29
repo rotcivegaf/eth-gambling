@@ -38,7 +38,7 @@ contract('ERC721 Base', function (accounts) {
         token = await TestERC721.new();
     });
 
-    describe('Function tokenByIndex', async function () {
+    describe('Function erc721ByIndex', async function () {
         it('Should get asset id by the index', async function () {
             const assetId = bn('51651851');
 
@@ -48,7 +48,7 @@ contract('ERC721 Base', function (accounts) {
             );
 
             const lastIndex = dec(await token.totalSupply());
-            expect(await token.tokenByIndex(lastIndex)).to.eq.BN(assetId);
+            expect(await token.erc721ByIndex(lastIndex)).to.eq.BN(assetId);
         });
 
         it('Try get asset id by a higth index', async function () {
@@ -60,7 +60,7 @@ contract('ERC721 Base', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => token.tokenByIndex(
+                () => token.erc721ByIndex(
                     maxUint('256')
                 ),
                 'Index out of bounds'
@@ -68,7 +68,7 @@ contract('ERC721 Base', function (accounts) {
         });
     });
 
-    describe('Function tokenOfOwnerByIndex', async function () {
+    describe('Function erc721OfOwnerByIndex', async function () {
         it('Should get asset id of the owner by index of the asset', async function () {
             const assetId = bn('959652');
 
@@ -77,7 +77,7 @@ contract('ERC721 Base', function (accounts) {
                 user
             );
 
-            const getAsset = await token.tokenOfOwnerByIndex(
+            const getAsset = await token.erc721OfOwnerByIndex(
                 user,
                 dec(await token.balanceOf(user))
             );
@@ -96,7 +96,7 @@ contract('ERC721 Base', function (accounts) {
             const lastUserToken = dec(await token.balanceOf(user));
 
             await Helper.tryCatchRevert(
-                () => token.tokenOfOwnerByIndex(
+                () => token.erc721OfOwnerByIndex(
                     address0x,
                     lastUserToken
                 ),
@@ -113,7 +113,7 @@ contract('ERC721 Base', function (accounts) {
             );
 
             await Helper.tryCatchRevert(
-                () => token.tokenOfOwnerByIndex(
+                () => token.erc721OfOwnerByIndex(
                     user,
                     maxUint('256')
                 ),
@@ -495,7 +495,7 @@ contract('ERC721 Base', function (accounts) {
             expect(await token.balanceOf(user)).to.eq.BN(inc(prevBalUser));
             expect(await token.indexOfAsset(assetId)).to.eq.BN(prevBalUser);
             expect(await token.totalSupply()).to.eq.BN(inc(totalNFT));
-            assert.isOk((await token.allTokens()).some(x => x.toString() === assetId.toString()));
+            assert.isOk((await token.allErc721Ids()).some(x => x.toString() === assetId.toString()));
         });
 
         it('Try generate two same NFT', async function () {
@@ -732,20 +732,20 @@ contract('ERC721 Base', function (accounts) {
         assert.equal(await token.name(), 'Test ERC721');
         assert.equal(await token.symbol(), 'TST');
         const prevTotalSupply = await token.totalSupply();
-        const prevAllTokens = (await token.allTokens()).length;
+        const prevAllTokens = (await token.allErc721Ids()).length;
 
         const assetId = bn('2335');
 
         await token.generate(assetId, user);
 
         const totalSupply = await token.totalSupply();
-        const tokenAtIndex = await token.tokenByIndex(dec(totalSupply));
+        const tokenAtIndex = await token.erc721ByIndex(dec(totalSupply));
         const assetsOfOWner = await token.assetsOf(user);
         const auxOwnerIndex = assetsOfOWner.length - 1;
-        const tokenOfOwnerByIndex = await token.tokenOfOwnerByIndex(user, auxOwnerIndex);
+        const erc721OfOwnerByIndex = await token.erc721OfOwnerByIndex(user, auxOwnerIndex);
 
         expect(totalSupply).to.eq.BN(inc(prevTotalSupply));
-        expect(tokenAtIndex).to.eq.BN(tokenOfOwnerByIndex, 'Tokens Id of owner and allTokens at indexes should be equal');
-        assert.equal((await token.allTokens()).length, prevAllTokens + 1);
+        expect(tokenAtIndex).to.eq.BN(erc721OfOwnerByIndex, 'Tokens Id of owner and allErc721Ids at indexes should be equal');
+        assert.equal((await token.allErc721Ids()).length, prevAllTokens + 1);
     });
 });

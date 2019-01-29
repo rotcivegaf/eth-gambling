@@ -7,7 +7,7 @@ import "./IsContract.sol";
 
 
 interface URIProvider {
-    function tokenURI(uint256 _tokenId) external view returns (string memory);
+    function tokenURI(uint256 _erc721Id) external view returns (string memory);
 }
 
 
@@ -29,7 +29,7 @@ contract ERC721Base is IERC721, ERC165 {
     mapping(uint256 => address) private _approval;
     mapping(uint256 => uint256) public indexOfAsset;
 
-    uint256[] public tokens;
+    uint256[] public erc721Ids;
 
     constructor(string memory name, string memory symbol) public {
         _name = name;
@@ -67,14 +67,14 @@ contract ERC721Base is IERC721, ERC165 {
 
     /**
     * @notice A distinct Uniform Resource Identifier (URI) for a given asset.
-    * @dev Throws if `_tokenId` is not a valid NFT. URIs are defined in RFC
+    * @dev Throws if `_erc721Id` is not a valid NFT. URIs are defined in RFC
     *  3986. The URI may point to a JSON file that conforms to the "ERC721
     *  Metadata JSON Schema".
     */
-    function tokenURI(uint256 _tokenId) external view returns (string memory) {
-        require(_ownerOf[_tokenId] != address(0), "Asset does not exist");
+    function tokenURI(uint256 _erc721Id) external view returns (string memory) {
+        require(_ownerOf[_erc721Id] != address(0), "Asset does not exist");
         URIProvider provider = _uriProvider;
-        return provider == URIProvider(0) ? "" : provider.tokenURI(_tokenId);
+        return provider == URIProvider(0) ? "" : provider.tokenURI(_erc721Id);
     }
 
     function _setURIProvider(URIProvider _provider) internal {
@@ -87,11 +87,11 @@ contract ERC721Base is IERC721, ERC165 {
      * @return uint256 representing the total amount of assets
      */
     function totalSupply() external view returns (uint256) {
-        return tokens.length;
+        return erc721Ids.length;
     }
 
-    function allTokens() external view returns (uint256[] memory) {
-        return tokens;
+    function allErc721Ids() external view returns (uint256[] memory) {
+        return erc721Ids;
     }
 
     function assetsOf(address _owner) external view returns (uint256[] memory) {
@@ -102,12 +102,12 @@ contract ERC721Base is IERC721, ERC165 {
     * @notice Enumerate valid NFTs
     * @dev Throws if `_index` >= `totalSupply()`.
     * @param _index A counter less than `totalSupply()`
-    * @return The token identifier for the `_index` of the NFT,
+    * @return The ERC721 identifier for the `_index` of the NFT,
     *  (sort order not specified)
     */
-    function tokenByIndex(uint256 _index) external view returns (uint256) {
-        require(_index < tokens.length, "Index out of bounds");
-        return tokens[_index];
+    function erc721ByIndex(uint256 _index) external view returns (uint256) {
+        require(_index < erc721Ids.length, "Index out of bounds");
+        return erc721Ids[_index];
     }
 
     /**
@@ -116,10 +116,10 @@ contract ERC721Base is IERC721, ERC165 {
     *  `_owner` is the zero address, representing invalid NFTs.
     * @param _owner An address where we are interested in NFTs owned by them
     * @param _index A counter less than `balanceOf(_owner)`
-    * @return The token identifier for the `_index` of the NFT assigned to `_owner`,
+    * @return The ERC721 identifier for the `_index` of the NFT assigned to `_owner`,
     *   (sort order not specified)
     */
-    function tokenOfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256) {
+    function erc721OfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256) {
         require(_owner != address(0), "0x0 Is not a valid owner");
         require(_index < allAssetsOf[_owner].length, "Index out of bounds");
         return allAssetsOf[_owner][_index];
@@ -129,12 +129,12 @@ contract ERC721Base is IERC721, ERC165 {
     // Owner-centric getter functions
     //
 
-    function ownerOf(uint256 _tokenId) external view returns (address){
-        return _ownerOf[_tokenId];
+    function ownerOf(uint256 _erc721Id) external view returns (address){
+        return _ownerOf[_erc721Id];
     }
 
-    function getApproved(uint256 _tokenId) external view returns (address){
-        return _approval[_tokenId];
+    function getApproved(uint256 _erc721Id) external view returns (address){
+        return _approval[_erc721Id];
     }
 
     /**
@@ -215,7 +215,7 @@ contract ERC721Base is IERC721, ERC165 {
 
         _ownerOf[_assetId] = _beneficiary;
         indexOfAsset[_assetId] = allAssetsOf[_beneficiary].push(_assetId) - 1;
-        tokens.push(_assetId);
+        erc721Ids.push(_assetId);
 
         emit Transfer(address(0), _beneficiary, _assetId);
     }
@@ -257,7 +257,7 @@ contract ERC721Base is IERC721, ERC165 {
     /**
      * @dev Transfers the ownership of a given asset from one address to another address
      * Warning! This function does not attempt to verify that the target address can send
-     * tokens.
+     * erc721Ids.
      *
      * @param _from address sending the asset
      * @param _to address to receive the ownership of the asset

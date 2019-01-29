@@ -104,7 +104,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
-            assert.equal(Transfer._erc20, ETH);
+            assert.equal(Transfer._token, ETH);
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ETH balance
@@ -137,7 +137,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
-            assert.equal(Transfer._erc20, ETH);
+            assert.equal(Transfer._token, ETH);
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ETH balance
@@ -172,7 +172,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
-            assert.equal(Transfer._erc20, erc20.address);
+            assert.equal(Transfer._token, erc20.address);
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
@@ -208,7 +208,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Transfer._from, player1);
             assert.equal(Transfer._to, player2);
-            assert.equal(Transfer._erc20, erc20.address);
+            assert.equal(Transfer._token, erc20.address);
             expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
@@ -329,7 +329,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._erc20, ETH);
+            assert.equal(TransferFrom._token, ETH);
             expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
@@ -375,7 +375,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._erc20, ETH);
+            assert.equal(TransferFrom._token, ETH);
             expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
@@ -423,7 +423,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._erc20, erc20.address);
+            assert.equal(TransferFrom._token, erc20.address);
             expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
@@ -472,7 +472,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(TransferFrom._from, player1);
             assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._erc20, erc20.address);
+            assert.equal(TransferFrom._token, erc20.address);
             expect(TransferFrom._value).to.eq.BN(minAmount);
 
             // Check _allowance
@@ -666,7 +666,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Approval._owner, player1);
             assert.equal(Approval._spender, approved);
-            assert.equal(Approval._erc20, ETH);
+            assert.equal(Approval._token, ETH);
             expect(Approval._value).to.eq.BN(minAmount);
 
             // Check _allowance
@@ -695,7 +695,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Approval._owner, player1);
             assert.equal(Approval._spender, approved);
-            assert.equal(Approval._erc20, erc20.address);
+            assert.equal(Approval._token, erc20.address);
             expect(Approval._value).to.eq.BN(minAmount);
 
             // Check _allowance
@@ -725,7 +725,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Deposit._from, depositer);
             assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._erc20, ETH);
+            assert.equal(Deposit._token, ETH);
             expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ETH balance
@@ -751,7 +751,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Deposit._from, depositer);
             assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._erc20, erc20.address);
+            assert.equal(Deposit._token, erc20.address);
             expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
@@ -778,7 +778,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Deposit._from, depositer);
             assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._erc20, erc20.address);
+            assert.equal(Deposit._token, erc20.address);
             expect(Deposit._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
@@ -787,7 +787,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.add(minAmount));
         });
 
-        it('Try deposit ETH with erc20 as erc20', async () => {
+        it('Try deposit ETH with erc20 as Token', async () => {
             await erc20.setBalance(depositer, minAmount);
             await erc20.approve(balanceManager.address, minAmount, { from: depositer });
 
@@ -798,7 +798,7 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: depositer, value: minAmount }
                 ),
-                'Error pulling erc20s or send ETH, in deposit'
+                'Error pulling tokens or send ETH, in deposit'
             );
         });
 
@@ -877,7 +877,7 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: depositer, value: minAmount }
                 ),
-                'Error pulling erc20s or send ETH, in deposit'
+                'Error pulling tokens or send ETH, in deposit'
             );
         });
     });
@@ -898,7 +898,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Deposit._from, otherAccount);
             assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._erc20, ETH);
+            assert.equal(Deposit._token, ETH);
             assert.equal(Deposit._value, minAmount.toString());
 
             // Check ETH balance
@@ -925,7 +925,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Deposit._from, otherAccount);
             assert.equal(Deposit._to, player1);
-            assert.equal(Deposit._erc20, erc20.address);
+            assert.equal(Deposit._token, erc20.address);
             assert.equal(Deposit._value, minAmount.toString());
 
             // Check ERC20 balance
@@ -959,7 +959,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, ETH);
+            assert.equal(Withdraw._token, ETH);
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ETH balance
@@ -991,7 +991,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, ETH);
+            assert.equal(Withdraw._token, ETH);
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ETH balance
@@ -1026,7 +1026,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, erc20.address);
+            assert.equal(Withdraw._token, erc20.address);
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
@@ -1063,7 +1063,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, erc20.address);
+            assert.equal(Withdraw._token, erc20.address);
             expect(Withdraw._value).to.eq.BN(minAmount);
 
             // Check ERC20 balance
@@ -1155,7 +1155,7 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: player1 }
                 ),
-                'Error transfer erc20s, in withdraw'
+                'Error transfer tokens, in withdraw'
             );
         });
     });
@@ -1187,7 +1187,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, ETH);
+            assert.equal(Withdraw._token, ETH);
             assert.equal(Withdraw._value, minAmount.toString());
 
             // Check ETH balance
@@ -1225,7 +1225,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, erc20.address);
+            assert.equal(Withdraw._token, erc20.address);
             assert.equal(Withdraw._value, minAmount.toString());
 
             // Check ERC20 balance
@@ -1304,7 +1304,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, ETH);
+            assert.equal(Withdraw._token, ETH);
             expect(Withdraw._value).to.eq.BN(prevBalBMP1);
 
             // Check ETH balance
@@ -1338,7 +1338,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, erc20.address);
+            assert.equal(Withdraw._token, erc20.address);
             expect(Withdraw._value).to.eq.BN(prevBalBMP120);
 
             // Check ERC20 balance
@@ -1407,7 +1407,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, ETH);
+            assert.equal(Withdraw._token, ETH);
             expect(Withdraw._value).to.eq.BN('0');
 
             // Check ETH balance
@@ -1438,7 +1438,7 @@ contract('BalanceManager', function (accounts) {
             // For event
             assert.equal(Withdraw._from, player1);
             assert.equal(Withdraw._to, player2);
-            assert.equal(Withdraw._erc20, erc20.address);
+            assert.equal(Withdraw._token, erc20.address);
             expect(Withdraw._value).to.eq.BN('0');
 
             // Check ERC20 balance

@@ -5,7 +5,7 @@ import "./interfaces/IModel.sol";
 
 import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
-import "./utils/ERC20Manager.sol";
+import "./utils/BalanceManager.sol";
 import "./utils/ERC721Manager.sol";
 
 
@@ -42,7 +42,7 @@ contract IdHelper {
 }
 
 
-contract GamblingManager is ERC20Manager, IdHelper, IGamblingManager, Ownable, ERC721Base {
+contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable, ERC721Base {
     struct Bet {
         address erc20;
         uint256 balance;

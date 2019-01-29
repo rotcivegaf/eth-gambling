@@ -5,7 +5,7 @@ interface IGamblingManager {
     event Created(
         address indexed _creator,
         bytes32 indexed _id,
-        address _erc20,
+        address _token,
         bytes32[] _data,
         uint256 _nonce
     );
@@ -13,7 +13,7 @@ interface IGamblingManager {
     event Created2(
         address indexed _creator,
         bytes32 indexed _id,
-        address _erc20,
+        address _token,
         bytes32[] _data,
         uint256 _salt
     );
@@ -21,7 +21,7 @@ interface IGamblingManager {
     event Created3(
         address indexed _creator,
         bytes32 indexed _id,
-        address _erc20,
+        address _token,
         bytes32[] _data,
         uint256 _salt
     );
