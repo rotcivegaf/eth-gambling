@@ -21,5 +21,7 @@ contract IERC721Manager {
 
     function deposit(address _to, address _erc721, uint256 _erc721Id) external;
     function depositFrom(address _from, address _to, address _erc721, uint256 _erc721Id) external;
-    function withdraw(address _from, address _to, address _erc721, uint256 _erc721Id) external;
+
+    function withdraw(address _to, address _erc721, uint256 _erc721Id) external;
+    function withdrawFrom(address _from, address _to, address _erc721, uint256 _erc721Id) external;
 }
