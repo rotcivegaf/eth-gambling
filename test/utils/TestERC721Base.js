@@ -186,7 +186,7 @@ contract('ERC721 Base', function (accounts) {
         });
     });
 
-    describe('Function _doTransferFrom, safeTransfer, safeTransferFrom and safeTransferFrom with _userData', async function () {
+    describe('Function _doTransferFrom, transferFrom, safeTransferFrom and safeTransferFrom with _userData', async function () {
         it('Perform a transferFrom with approval', async function () {
             const assetId = bn('561651561');
             const auxAssetId = bn('9999956262');
