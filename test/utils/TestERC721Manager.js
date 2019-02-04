@@ -19,9 +19,9 @@ function dec (number) {
     return number.sub(bn('1'));
 }
 
-function maxUint (base) {
-    return dec(bn('2').pow(bn(base)));
-}
+// function maxUint (base) {
+//     return dec(bn('2').pow(bn(base)));
+// }
 
 contract('ERC721 Manager', function (accounts) {
     const user = accounts[1];
