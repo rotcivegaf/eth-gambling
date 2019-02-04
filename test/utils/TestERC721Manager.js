@@ -159,6 +159,7 @@ contract('ERC721 Manager', function (accounts) {
 
         it('Should withdraw an asset with approval', async function () {
             const assetId = await generateERC721(user);
+            await generateERC721(user);
             await manager.deposit(user, user, erc721.address, assetId, { from: user });
             await manager.approve(user3, erc721.address, assetId, { from: user });
 
