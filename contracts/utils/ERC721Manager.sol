@@ -14,7 +14,7 @@ contract ERC721Manager is IERC721Manager {
     bytes4 private constant ERC721_RECEIVED_LEGACY = 0xf0b9e5ba;
 
     // owner to ERC721 address array of ERC721Ids
-    mapping(address => mapping( address => uint256[])) public allAssetsOf;
+    mapping(address => mapping( address => uint256[])) public toAssetsOf;
     // ERC721 to ERC721Id to owner
     mapping(address => mapping( uint256 => address)) private _ownerOf;
     // ERC721 to ERC721Id to approval
@@ -24,60 +24,47 @@ contract ERC721Manager is IERC721Manager {
     // ERC721 to ERC721Id to index
     mapping(address => mapping( uint256 => uint256)) public indexOfAsset;
 
-    function deposit(address _to, address _erc721, uint256 _erc721Id) external {
-        _deposit(msg.sender, _to, _erc721, _erc721Id);
-    }
-
-    function depositFrom(address _from, address _to, address _erc721, uint256 _erc721Id) external {
-        _deposit(_from, _to, _erc721, _erc721Id);
-    }
-
-    function _deposit(address _from, address _to, address _erc721, uint256 _erc721Id) internal {
+    function deposit(address _from, address _to, address _erc721, uint256 _erc721Id) external {
         require(_to != address(0), "0x0 Is not a valid owner");
 
         IERC721(_erc721).transferFrom(_from, address(this), _erc721Id);
 
         _ownerOf[_erc721][_erc721Id] = _to;
-        indexOfAsset[_erc721][_erc721Id] = allAssetsOf[_to][_erc721].push(_erc721Id) - 1;
+        indexOfAsset[_erc721][_erc721Id] = toAssetsOf[_to][_erc721].push(_erc721Id) - 1;
 
         emit Deposit(_from, _to, _erc721, _erc721Id);
     }
 
-    function withdraw(address _to, address _erc721, uint256 _erc721Id) external {
-        _withdraw(msg.sender, _to, _erc721, _erc721Id);
-    }
-
-    function withdrawFrom(address _from, address _to, address _erc721, uint256 _erc721Id) external {
-        _withdraw(_from, _to, _erc721, _erc721Id);
-    }
-
-    function _withdraw(address _from, address _to, address _erc721, uint256 _erc721Id) internal {
+    function withdraw(address _from, address _to, address _erc721, uint256 _erc721Id) external {
         require(_to != address(0), "_to should not be 0x0");
 
         address owner = _ownerOf[_erc721][_erc721Id];
 
         require(
-            _from == owner || _approval[_erc721][_erc721Id] == msg.sender || operators[owner][msg.sender],
+            msg.sender == owner || _approval[_erc721][_erc721Id] == msg.sender || operators[owner][msg.sender],
             "msg.sender Not authorized"
         );
 
         require(_from == owner, "Not current owner");
 
         if (_approval[_erc721][_erc721Id] != address(0)) {
-            _approval[_erc721][_erc721Id] = address(0);
+            delete _approval[_erc721][_erc721Id];
             emit Approval(_from, address(0), _erc721, _erc721Id);
         }
 
         uint256 assetIndex = indexOfAsset[_erc721][_erc721Id];
-        uint256 lastAssetIndex = allAssetsOf[_from][_erc721].length - 1;
+        uint256 lastAssetIndex = toAssetsOf[_from][_erc721].length - 1;
 
         if (assetIndex != lastAssetIndex){
-            uint256 lastERC721Id = allAssetsOf[_from][_erc721][lastAssetIndex];
-            allAssetsOf[_from][_erc721][assetIndex] = lastERC721Id;
+            uint256 lastERC721Id = toAssetsOf[_from][_erc721][lastAssetIndex];
+            toAssetsOf[_from][_erc721][assetIndex] = lastERC721Id;
             indexOfAsset[_erc721][lastERC721Id] = assetIndex;
         }
 
-        allAssetsOf[_from][_erc721].length--;
+        toAssetsOf[_from][_erc721].length--;
+
+        delete _ownerOf[_erc721][_erc721Id];
+        delete indexOfAsset[_erc721][_erc721Id];
 
         IERC721(_erc721).safeTransferFrom(address(this), _to, _erc721Id);
 
@@ -99,24 +86,24 @@ contract ERC721Manager is IERC721Manager {
     */
     function tokenOfOwnerOfERC721ByIndex(address _owner, address _erc721, uint256 _index) external view returns (uint256) {
         require(_owner != address(0), "0x0 Is not a valid owner");
-        require(_index < allAssetsOf[_owner][_erc721].length, "Index out of bounds");
-        return allAssetsOf[_owner][_erc721][_index];
+        require(_index < toAssetsOf[_owner][_erc721].length, "Index out of bounds");
+        return toAssetsOf[_owner][_erc721][_index];
     }
 
     //
     // Owner-centric getter functions
     //
 
-    function ownerOf(address _erc721, uint256 _erc721Id) external view returns (address){
+    function ownerOf(address _erc721, uint256 _erc721Id) external view returns (address) {
         return _ownerOf[_erc721][_erc721Id];
     }
 
-    function getApproved(address _erc721, uint256 _erc721Id) external view returns (address){
+    function getApproved(address _erc721, uint256 _erc721Id) external view returns (address) {
         return _approval[_erc721][_erc721Id];
     }
 
     function assetsOf(address _owner, address _erc721) external view returns (uint256[] memory) {
-        return allAssetsOf[_owner][_erc721];
+        return toAssetsOf[_owner][_erc721];
     }
 
     /**
@@ -128,7 +115,7 @@ contract ERC721Manager is IERC721Manager {
      * @return uint256 representing the amount owned by the passed address
      */
     function balanceOf(address _owner, address _erc721) external view returns (uint256) {
-        return allAssetsOf[_owner][_erc721].length;
+        return toAssetsOf[_owner][_erc721].length;
     }
 
     //
@@ -264,27 +251,27 @@ contract ERC721Manager is IERC721Manager {
         require(_from == owner, "Not current owner");
 
         if (_approval[_erc721][_erc721Id] != address(0)) {
-            _approval[_erc721][_erc721Id] = address(0);
+            delete _approval[_erc721][_erc721Id];
             emit Approval(_from, address(0), _erc721, _erc721Id);
         }
 
         uint256 assetIndex = indexOfAsset[_erc721][_erc721Id];
-        uint256 lastAssetIndex = allAssetsOf[_from][_erc721].length - 1;
+        uint256 lastAssetIndex = toAssetsOf[_from][_erc721].length - 1;
 
         if (assetIndex != lastAssetIndex){
-            uint256 lastERC721Id = allAssetsOf[_from][_erc721][lastAssetIndex];
-            allAssetsOf[_from][_erc721][assetIndex] = lastERC721Id;
+            uint256 lastERC721Id = toAssetsOf[_from][_erc721][lastAssetIndex];
+            toAssetsOf[_from][_erc721][assetIndex] = lastERC721Id;
             indexOfAsset[_erc721][lastERC721Id] = assetIndex;
         }
 
-        allAssetsOf[_from][_erc721].length--;
+        toAssetsOf[_from][_erc721].length--;
 
         _ownerOf[_erc721][_erc721Id] = _to;
 
-        indexOfAsset[_erc721][_erc721Id] = allAssetsOf[_to][_erc721].push(_erc721Id) - 1;
+        indexOfAsset[_erc721][_erc721Id] = toAssetsOf[_to][_erc721].push(_erc721Id) - 1;
 
-        if (_doCheck && _to.isContract()) {
-            // Perform check with the new safe call
+        if (_doCheck && _to.isContract()) { // todo fix??? i need use address _erc721???
+            // Perform check with the safe call
             // onERC721Received(address,address,uint256,bytes)
             (uint256 success, bytes32 result) = _noThrowCall(
                 _to,
@@ -296,25 +283,6 @@ contract ERC721Manager is IERC721Manager {
                     _userData
                 )
             );
-
-            if (success != 1 || result != ERC721_RECEIVED) {
-                // Try legacy safe call
-                // onERC721Received(address,uint256,bytes)
-                (success, result) = _noThrowCall(
-                    _to,
-                    abi.encodeWithSelector(
-                        ERC721_RECEIVED_LEGACY,
-                        _from,
-                        _erc721Id,
-                        _userData
-                    )
-                );
-
-                require(
-                    success == 1 && result == ERC721_RECEIVED_LEGACY,
-                    "Contract rejected the token"
-                );
-            }
         }
 
         emit Transfer(_from, _to, _erc721, _erc721Id);

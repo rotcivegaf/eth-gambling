@@ -19,9 +19,7 @@ contract IERC721Manager {
     function approve(address _approved, address _erc721, uint256 _erc721Id) external;
     function setApprovalForAll(address _operator, bool _approved) external;
 
-    function deposit(address _to, address _erc721, uint256 _erc721Id) external;
-    function depositFrom(address _from, address _to, address _erc721, uint256 _erc721Id) external;
+    function deposit(address _from, address _to, address _erc721, uint256 _erc721Id) external;
 
-    function withdraw(address _to, address _erc721, uint256 _erc721Id) external;
-    function withdrawFrom(address _from, address _to, address _erc721, uint256 _erc721Id) external;
+    function withdraw(address _from, address _to, address _erc721, uint256 _erc721Id) external;
 }
