@@ -19,9 +19,9 @@ function dec (number) {
     return number.sub(bn('1'));
 }
 
-// function maxUint (base) {
-//     return dec(bn('2').pow(bn(base)));
-// }
+function maxUint (base) {
+ return dec(bn('2').pow(bn(base)));
+}
 
 contract('ERC721 Manager', function (accounts) {
     const user = accounts[1];
@@ -250,6 +250,43 @@ contract('ERC721 Manager', function (accounts) {
                     { from: user }
                 ),
                 'Not current owner'
+            );
+        });
+    });
+
+    describe('Function tokenOfOwnerOfERC721ByIndex', async function () {
+        it('Try withdraw an asset with from != to the owner', async function () {
+            await Helper.tryCatchRevert(
+                () => manager.tokenOfOwnerOfERC721ByIndex(
+                    address0x,
+                    erc721.address,
+                    '0',
+                    { from: user }
+                ),
+                '0x0 Is not a valid owner'
+            );
+        });
+
+        it('Try withdraw an asset with from != to the owner', async function () {
+            await Helper.tryCatchRevert(
+                () => manager.tokenOfOwnerOfERC721ByIndex(
+                    user,
+                    erc721.address,
+                    maxUint('256'),
+                    { from: user }
+                ),
+                'Index out of bounds'
+            );
+
+            const lastUserToken = await manager.balanceOf(user, erc721.address);
+            await Helper.tryCatchRevert(
+                () => manager.tokenOfOwnerOfERC721ByIndex(
+                    user,
+                    erc721.address,
+                    lastUserToken,
+                    { from: user }
+                ),
+                'Index out of bounds'
             );
         });
     });
