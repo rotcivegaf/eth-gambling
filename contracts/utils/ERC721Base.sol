@@ -286,7 +286,7 @@ contract ERC721Base is IERC721, ERC165 {
         require(_from == owner, "Not current owner");
 
         if (_approval[_assetId] != address(0)) {
-            _approval[_assetId] = address(0);
+            delete _approval[_assetId];
             emit Approval(_from, address(0), _assetId);
         }
 
