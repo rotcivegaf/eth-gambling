@@ -52,13 +52,6 @@ contract('ERC721 Base', function (accounts) {
         });
 
         it('Try get asset id by a higth index', async function () {
-            const assetId = bn('7777');
-
-            await token.generate(
-                assetId,
-                user
-            );
-
             await Helper.tryCatchRevert(
                 () => token.erc721ByIndex(
                     maxUint('256')
@@ -85,33 +78,7 @@ contract('ERC721 Base', function (accounts) {
             expect(getAsset).to.eq.BN(assetId);
         });
 
-        it('Try get asset id of the address 0xx', async function () {
-            const assetId = bn('613213');
-
-            await token.generate(
-                assetId,
-                user
-            );
-
-            const lastUserToken = dec(await token.balanceOf(user));
-
-            await Helper.tryCatchRevert(
-                () => token.erc721OfOwnerByIndex(
-                    address0x,
-                    lastUserToken
-                ),
-                '0x0 Is not a valid owner'
-            );
-        });
-
         it('Try get asset id by a higth index', async function () {
-            const assetId = bn('65432156');
-
-            await token.generate(
-                assetId,
-                user
-            );
-
             await Helper.tryCatchRevert(
                 () => token.erc721OfOwnerByIndex(
                     user,
@@ -154,23 +121,6 @@ contract('ERC721 Base', function (accounts) {
             );
 
             assert.isTrue(await token.isAuthorized(user, assetId));
-        });
-
-        it('Try get asset id by a higth index', async function () {
-            const assetId = bn('23423432');
-
-            await token.generate(
-                assetId,
-                user
-            );
-
-            await Helper.tryCatchRevert(
-                () => token.isAuthorized(
-                    address0x,
-                    assetId
-                ),
-                '0x0 is an invalid operator'
-            );
         });
 
         it('Test safeTransferFrom modifiers onlyAuthorized, isCurrentOwner,AddressDefined, isAuthorized ', async function () {

@@ -120,7 +120,6 @@ contract ERC721Base is IERC721, ERC165 {
     *   (sort order not specified)
     */
     function erc721OfOwnerByIndex(address _owner, uint256 _index) external view returns (uint256) {
-        require(_owner != address(0), "0x0 Is not a valid owner");
         require(_index < allAssetsOf[_owner].length, "Index out of bounds");
         return allAssetsOf[_owner][_index];
     }
@@ -167,7 +166,6 @@ contract ERC721Base is IERC721, ERC165 {
      * @return bool true if the asset has been approved by the owner
      */
     function isAuthorized(address _operator, uint256 _assetId) external view returns (bool) {
-        require(_operator != address(0), "0x0 is an invalid operator");
         address owner = _ownerOf[_assetId];
         return _operator == owner || _approval[_assetId] == _operator || operators[owner][_operator];
     }
