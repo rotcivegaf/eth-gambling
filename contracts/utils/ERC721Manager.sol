@@ -175,10 +175,7 @@ contract ERC721Manager is IERC721Manager {
     */
     function approve(address _operator, address _erc721, uint256 _erc721Id) external {
         address owner = _ownerOf[_erc721][_erc721Id];
-        require(
-            msg.sender == owner || _approval[_erc721][_erc721Id] == msg.sender || operators[owner][msg.sender],
-            "msg.sender can't approve"
-        );
+        require(msg.sender == owner || operators[owner][msg.sender], "msg.sender can't approve");
 
         if (_approval[_erc721][_erc721Id] != _operator) {
             _approval[_erc721][_erc721Id] = _operator;
