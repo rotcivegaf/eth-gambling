@@ -27,6 +27,7 @@ contract('ERC721 Manager', function (accounts) {
     const user = accounts[1];
     const user2 = accounts[2];
     const user3 = accounts[3];
+    const operator = accounts[4];
     const address0x = web3.utils.padLeft('0x0', 40);
     let manager;
     let erc721;
@@ -258,18 +259,6 @@ contract('ERC721 Manager', function (accounts) {
         it('Try withdraw an asset with from != to the owner', async function () {
             await Helper.tryCatchRevert(
                 () => manager.tokenOfOwnerOfERC721ByIndex(
-                    address0x,
-                    erc721.address,
-                    '0',
-                    { from: user }
-                ),
-                '0x0 Is not a valid owner'
-            );
-        });
-
-        it('Try withdraw an asset with from != to the owner', async function () {
-            await Helper.tryCatchRevert(
-                () => manager.tokenOfOwnerOfERC721ByIndex(
                     user,
                     erc721.address,
                     maxUint('256'),
@@ -289,5 +278,26 @@ contract('ERC721 Manager', function (accounts) {
                 'Index out of bounds'
             );
         });
+    });
+
+    it('Function isAuthorized', async function () {
+        const assetId = await generateERC721(user);
+        await manager.deposit(user, user, erc721.address, assetId, { from: user });
+        // owner
+        assert.isTrue(await manager.isAuthorized(user, erc721.address, assetId));
+
+        const assetId2 = await generateERC721(user);
+        await manager.deposit(user, user, erc721.address, assetId2, { from: user });
+        await manager.approve(operator, erc721.address, assetId2, { from: user });
+        // approved
+        assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId2, { from: user }));
+        await manager.approve(operator, erc721.address, assetId2, { from: user });
+        await manager.approve(address0x, erc721.address, assetId2, { from: user });
+
+        const assetId3 = await generateERC721(user);
+        await manager.deposit(user, user, erc721.address, assetId3, { from: user });
+        await manager.setApprovalForAll(operator, true, { from: user });
+        // approbed for all
+        assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId2, { from: user }));
     });
 });
