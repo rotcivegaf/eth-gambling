@@ -195,10 +195,7 @@ contract ERC721Base is IERC721, ERC165 {
      */
     function approve(address _operator, uint256 _assetId) external {
         address owner = _ownerOf[_assetId];
-        require(
-            msg.sender == owner || operators[owner][msg.sender],
-            "msg.sender can't approve"
-        );
+        require(msg.sender == owner || operators[owner][msg.sender], "msg.sender can't approve");
 
         if (_approval[_assetId] != _operator) {
             _approval[_assetId] = _operator;
