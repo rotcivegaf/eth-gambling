@@ -85,7 +85,6 @@ contract ERC721Manager is IERC721Manager {
     *   (sort order not specified)
     */
     function tokenOfOwnerOfERC721ByIndex(address _owner, address _erc721, uint256 _index) external view returns (uint256) {
-        require(_owner != address(0), "0x0 Is not a valid owner");
         require(_index < toAssetsOf[_owner][_erc721].length, "Index out of bounds");
         return toAssetsOf[_owner][_erc721][_index];
     }
@@ -144,7 +143,6 @@ contract ERC721Manager is IERC721Manager {
      * @return bool true if the asset has been approved by the owner
      */
     function isAuthorized(address _operator, address _erc721, uint256 _erc721Id) external view returns (bool) {
-        require(_operator != address(0), "0x0 is an invalid operator");
         address owner = _ownerOf[_erc721][_erc721Id];
         return _operator == owner || _approval[_erc721][_erc721Id] == _operator || operators[owner][_operator];
     }
