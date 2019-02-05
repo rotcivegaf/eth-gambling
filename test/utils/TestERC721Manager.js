@@ -300,4 +300,51 @@ contract('ERC721 Manager', function (accounts) {
         // approbed for all
         assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId2, { from: user }));
     });
+
+    describe('Function setApprovalForAll', async function () {
+        it('Test approve a third party operator to manage all asset', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            const ApprovalForAll = await Helper.toEvents(
+                manager.setApprovalForAll(
+                    user2,
+                    true,
+                    { from: user }
+                ),
+                'ApprovalForAll'
+            );
+
+            assert.equal(ApprovalForAll._owner, user);
+            assert.equal(ApprovalForAll._operator, user2);
+            assert.isTrue(ApprovalForAll._approved);
+
+            assert.isTrue(await manager.isApprovedForAll(user2, user));
+
+            const assetsOfUser = await manager.assetsOf(user, erc721.address);
+            for (let i = 0; i < assetsOfUser.length; i++) {
+                assert.isTrue(await manager.isAuthorized(user2, erc721.address, assetsOfUser[i]));
+            }
+
+            await manager.methods['safeTransferFrom(address,address,address,uint256)'](
+                user, user3, erc721.address, assetId, { from: user2 }
+            );
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user3);
+
+            await manager.setApprovalForAll(user2, false, { from: user });
+        });
+
+        it('test that an operator has been previously set approval to manage all tokens', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await manager.setApprovalForAll(user2, true);
+
+            const receipt = await manager.setApprovalForAll(user2, true);
+            await Helper.eventNotEmitted(receipt, 'ApprovalForAll');
+
+            await manager.setApprovalForAll(user2, false, { from: user });
+        });
+    });
 });
