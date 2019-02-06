@@ -283,22 +283,8 @@ contract('ERC721 Manager', function (accounts) {
     it('Function isAuthorized', async function () {
         const assetId = await generateERC721(user);
         await manager.deposit(user, user, erc721.address, assetId, { from: user });
-        // owner
+
         assert.isTrue(await manager.isAuthorized(user, erc721.address, assetId));
-
-        const assetId2 = await generateERC721(user);
-        await manager.deposit(user, user, erc721.address, assetId2, { from: user });
-        await manager.approve(operator, erc721.address, assetId2, { from: user });
-        // approved
-        assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId2, { from: user }));
-        await manager.approve(operator, erc721.address, assetId2, { from: user });
-        await manager.approve(address0x, erc721.address, assetId2, { from: user });
-
-        const assetId3 = await generateERC721(user);
-        await manager.deposit(user, user, erc721.address, assetId3, { from: user });
-        await manager.setApprovalForAll(operator, true, { from: user });
-        // approbed for all
-        assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId2, { from: user }));
     });
 
     describe('Function setApprovalForAll', async function () {
@@ -346,5 +332,199 @@ contract('ERC721 Manager', function (accounts) {
 
             await manager.setApprovalForAll(user2, false, { from: user });
         });
+
+        it('withdraw with operator permission', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await manager.setApprovalForAll(user2, true, { from: user });
+
+            const prevBalUser = await manager.balanceOf(user, erc721.address);
+            const prevBalUser2 = await manager.balanceOf(user2, erc721.address);
+
+            await manager.withdraw(user, user2, erc721.address, assetId, { from: user2 });
+
+            assert.equal(await manager.getApproved(erc721.address, assetId), address0x);
+            assert.equal(await manager.ownerOf(erc721.address, assetId), address0x);
+            assert.equal(await erc721.ownerOf(assetId), user2);
+            expect(await manager.balanceOf(user, erc721.address)).to.eq.BN(dec(prevBalUser));
+            expect(await manager.balanceOf(user2, erc721.address)).to.eq.BN(prevBalUser2);
+            const indexOfAsset = await manager.indexOfAsset(erc721.address, assetId);
+            expect(indexOfAsset).to.eq.BN('0');
+            const userAssets = await manager.assetsOf(user, erc721.address);
+            assert.isFalse(userAssets.some(x => x.toString() === assetId.toString()));
+            const user2Assets = await manager.assetsOf(user2, erc721.address);
+            assert.isFalse(user2Assets.some(x => x.toString() === assetId.toString()));
+
+            await manager.setApprovalForAll(user2, false, { from: user });
+        });
+
+        it('approve with operator permission', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await manager.setApprovalForAll(user2, true, { from: user });
+
+            const Approval = await Helper.toEvents(
+                manager.approve(
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: user2 }
+                ),
+                'Approval'
+            );
+
+            assert.equal(Approval._owner, user);
+            assert.equal(Approval._approved, user2);
+            assert.equal(Approval._erc721, erc721.address);
+            expect(Approval._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.getApproved(erc721.address, assetId), user2);
+
+            await manager.setApprovalForAll(user2, false, { from: user });
+        });
+
+        it('isAuthorized with operator permission', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            await manager.setApprovalForAll(operator, true, { from: user });
+
+            assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId, { from: user }));
+
+            await manager.setApprovalForAll(operator, false, { from: user });
+        });
+    });
+
+    describe('Function approve', async function () {
+        it('Should approve a third party operator to manage one particular asset', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            const Approval = await Helper.toEvents(
+                manager.approve(
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: user }
+                ),
+                'Approval'
+            );
+
+            assert.equal(Approval._owner, user);
+            assert.equal(Approval._approved, user2);
+            assert.equal(Approval._erc721, erc721.address);
+            expect(Approval._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.getApproved(erc721.address, assetId), user2);
+            assert.isFalse(await manager.isApprovedForAll(user2, user));
+        });
+
+        it('Approve an operator that has been previously approved', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            await manager.approve(user2, erc721.address, assetId, { from: user });
+
+            assert.isEmpty((await manager.approve(user2, erc721.address, assetId, { from: user })).logs);
+        });
+
+        it('Should approve a third party operator to manage one particular asset', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            const Approval = await Helper.toEvents(
+                manager.approve(
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: user }
+                ),
+                'Approval'
+            );
+
+            assert.equal(Approval._owner, user);
+            assert.equal(Approval._approved, user2);
+            assert.equal(Approval._erc721, erc721.address);
+            expect(Approval._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.getApproved(erc721.address, assetId), user2);
+            assert.isFalse(await manager.isApprovedForAll(user2, user));
+        });
+
+        it('Try approve an asset without authorization', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            await manager.approve(user2, erc721.address, assetId, { from: user });
+
+            await Helper.tryCatchRevert(
+                () => manager.approve(
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: user2 }
+                ),
+                'msg.sender can\'t approve'
+            );
+        });
+
+        it('withdraw with approval permission', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await manager.approve(user2, erc721.address, assetId, { from: user });
+
+            const prevBalUser = await manager.balanceOf(user, erc721.address);
+            const prevBalUser2 = await manager.balanceOf(user2, erc721.address);
+
+            await manager.withdraw(user, user2, erc721.address, assetId, { from: user2 });
+
+            assert.equal(await manager.getApproved(erc721.address, assetId), address0x);
+            assert.equal(await manager.ownerOf(erc721.address, assetId), address0x);
+            assert.equal(await erc721.ownerOf(assetId), user2);
+            expect(await manager.balanceOf(user, erc721.address)).to.eq.BN(dec(prevBalUser));
+            expect(await manager.balanceOf(user2, erc721.address)).to.eq.BN(prevBalUser2);
+            const indexOfAsset = await manager.indexOfAsset(erc721.address, assetId);
+            expect(indexOfAsset).to.eq.BN('0');
+            const userAssets = await manager.assetsOf(user, erc721.address);
+            assert.isFalse(userAssets.some(x => x.toString() === assetId.toString()));
+            const user2Assets = await manager.assetsOf(user2, erc721.address);
+            assert.isFalse(user2Assets.some(x => x.toString() === assetId.toString()));
+
+            await manager.setApprovalForAll(user2, false, { from: user });
+        });
+
+        it('isAuthorized with approval permission', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await manager.approve(operator, erc721.address, assetId, { from: user });
+
+            assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId, { from: user }));
+
+            await manager.approve(address0x, erc721.address, assetId, { from: user });
+        });
+    });
+
+    // functional test(approve + safeTransferFrom)
+    it('Approve a third party and transfer asset from the third party to another new owner', async function () {
+        const assetId = await generateERC721(user);
+        await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+        await manager.approve(user2, erc721.address, assetId, { from: user });
+
+        const assetsOfAddr1before = await manager.assetsOf(user, erc721.address);
+        const assetsOfAddr2before = await manager.assetsOf(user3, erc721.address);
+
+        await manager.methods['safeTransferFrom(address,address,address,uint256)'](
+            user, user3, erc721.address, assetId, { from: user2 }
+        );
+
+        const assetsOfAddr1after = await manager.assetsOf(user, erc721.address);
+        const assetsOfAddr2after = await manager.assetsOf(user3, erc721.address);
+
+        assert.equal(await manager.getApproved(erc721.address, assetId), address0x);
+        assert.equal(await manager.ownerOf(erc721.address, assetId), user3);
+        assert.equal(assetsOfAddr1after.length, assetsOfAddr1before.length - 1);
+        assert.equal(assetsOfAddr2after.length, assetsOfAddr2before.length + 1);
     });
 });
