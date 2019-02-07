@@ -1,6 +1,6 @@
 const ERC721Manager = artifacts.require('./utils/ERC721Manager.sol');
 const TestERC721 = artifacts.require('./utils/test/TestERC721.sol');
-const TestERC721Receiver = artifacts.require('./utils/test/TestERC721Receiver.sol');
+// const TestERC721Receiver = artifacts.require('./utils/test/TestERC721Receiver.sol');
 
 const Helper = require('../Helper.js');
 const BN = web3.utils.BN;
@@ -519,6 +519,7 @@ contract('ERC721 Manager', function (accounts) {
 
             await manager.approve(address0x, erc721.address, assetId, { from: user });
         });
+    });
 
     it('Function isAuthorized', async function () {
         const assetId = await generateERC721(user);
