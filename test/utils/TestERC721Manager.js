@@ -280,13 +280,6 @@ contract('ERC721 Manager', function (accounts) {
         });
     });
 
-    it('Function isAuthorized', async function () {
-        const assetId = await generateERC721(user);
-        await manager.deposit(user, user, erc721.address, assetId, { from: user });
-
-        assert.isTrue(await manager.isAuthorized(user, erc721.address, assetId));
-    });
-
     describe('Function setApprovalForAll', async function () {
         it('Test approve a third party operator to manage all asset', async function () {
             const assetId = await generateERC721(user);
@@ -503,6 +496,12 @@ contract('ERC721 Manager', function (accounts) {
 
             await manager.approve(address0x, erc721.address, assetId, { from: user });
         });
+
+    it('Function isAuthorized', async function () {
+        const assetId = await generateERC721(user);
+        await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+        assert.isTrue(await manager.isAuthorized(user, erc721.address, assetId));
     });
 
     // functional test(approve + safeTransferFrom)
