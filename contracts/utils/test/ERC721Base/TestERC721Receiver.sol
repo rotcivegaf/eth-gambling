@@ -1,6 +1,6 @@
 pragma solidity ^0.5.0;
 
-import "./IERC721Receiver.sol";
+import "./../../../interfaces/IERC721Receiver.sol";
 
 
 contract TestERC721Receiver is IERC721Receiver {
