@@ -1,5 +1,6 @@
 const ERC721Manager = artifacts.require('./utils/ERC721Manager.sol');
 const TestERC721 = artifacts.require('./utils/test/TestERC721.sol');
+const TestERC721Receiver = artifacts.require('./utils/test/TestERC721Receiver.sol');
 
 const Helper = require('../Helper.js');
 const BN = web3.utils.BN;
@@ -43,6 +44,28 @@ contract('ERC721 Manager', function (accounts) {
         await erc721.approve(manager.address, assetId, { from: to });
         return assetId;
     };
+
+    describe('Function onERC721Received(legacy)', async function () {
+        it('Should receive an asset', async function () {
+            const assetId = await generateERC721(user);
+
+            const prevBalUser = await manager.balanceOf(user2, erc721.address);
+
+            // const tx = await erc721.methods['safeTransferFrom(address,address,uint256)'](user, manager.address, assetId, { from: user });
+
+            // TODO check events
+            // event Received(address _operator, bytes _userData);
+            // event Deposit(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user2);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+            expect(await manager.balanceOf(user2, erc721.address)).to.eq.BN(inc(prevBalUser));
+            const indexOfAsset = await manager.indexOfAsset(erc721.address, assetId);
+            expect(indexOfAsset).to.eq.BN(prevBalUser);
+            const auxAssetId = await manager.tokenOfOwnerOfERC721ByIndex(user2, erc721.address, indexOfAsset);
+            expect(auxAssetId).to.eq.BN(assetId);
+        });
+    });
 
     describe('Function deposit', async function () {
         it('Should deposit an asset', async function () {
