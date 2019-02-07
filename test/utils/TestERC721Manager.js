@@ -45,24 +45,104 @@ contract('ERC721 Manager', function (accounts) {
         return assetId;
     };
 
-    describe('Function onERC721Received(legacy)', async function () {
-        it('Should receive an asset', async function () {
+    describe('Function _onERC721Received', async function () {
+        it('Should receive an asset, onERC721Received(legacy)', async function () {
             const assetId = await generateERC721(user);
 
-            const prevBalUser = await manager.balanceOf(user2, erc721.address);
+            const prevBalUser = await manager.balanceOf(user, erc721.address);
 
-            // const tx = await erc721.methods['safeTransferFrom(address,address,uint256)'](user, manager.address, assetId, { from: user });
+            const tx = await erc721.methods['safeTransferFrom(address,address,uint256)'](user, manager.address, assetId, { from: user });
 
-            // TODO check events
-            // event Received(address _operator, bytes _userData);
-            // event Deposit(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
+            // For event Received(address _operator, bytes _userData);
+            const data = tx.receipt.rawLogs[1].data.slice(2);
+            const topics = tx.receipt.rawLogs[1].topics;
 
-            assert.equal(await manager.ownerOf(erc721.address, assetId), user2);
+            const dataOffset = web3.utils.hexToNumber('0x' + data.slice(0, 64)) * 2;
+            const dataLength = web3.utils.hexToNumber('0x' + data.slice(64, 64 + 64)) * 2;
+            const userData = data.slice(64 + dataOffset, 64 + dataOffset + dataLength);
+
+            const Received = {
+                _operator: web3.utils.toChecksumAddress('0x' + topics[1].slice(26, 66)),
+                _userData: '0x' + userData,
+            };
+
+            assert.equal(topics[0], web3.utils.sha3('Received(address,bytes)'));
+            assert.equal(Received._operator, user);
+            assert.equal(Received._userData, '0x');
+
+            // For event Deposit(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
+            const data2 = tx.receipt.rawLogs[2].data.slice(2);
+            const topics2 = tx.receipt.rawLogs[2].topics;
+
+            const Deposit = {
+                _from: web3.utils.toChecksumAddress('0x' + topics2[1].slice(26, 66)),
+                _to: web3.utils.toChecksumAddress('0x' + topics2[2].slice(26, 66)),
+                _erc721: web3.utils.toChecksumAddress('0x' + data2.slice(24, 64)),
+                _erc721Id: web3.utils.toBN('0x' + data2.slice(64, 64 + 64)),
+            };
+
+            assert.equal(topics2[0], web3.utils.sha3('Deposit(address,address,address,uint256)'));
+            assert.equal(Deposit._from, user);
+            assert.equal(Deposit._to, user);
+            assert.equal(Deposit._erc721, erc721.address);
+            expect(Deposit._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user);
             assert.equal(await erc721.ownerOf(assetId), manager.address);
-            expect(await manager.balanceOf(user2, erc721.address)).to.eq.BN(inc(prevBalUser));
+            expect(await manager.balanceOf(user, erc721.address)).to.eq.BN(inc(prevBalUser));
             const indexOfAsset = await manager.indexOfAsset(erc721.address, assetId);
             expect(indexOfAsset).to.eq.BN(prevBalUser);
-            const auxAssetId = await manager.tokenOfOwnerOfERC721ByIndex(user2, erc721.address, indexOfAsset);
+            const auxAssetId = await manager.tokenOfOwnerOfERC721ByIndex(user, erc721.address, indexOfAsset);
+            expect(auxAssetId).to.eq.BN(assetId);
+        });
+
+        it('Should receive an asset, onERC721Received', async function () {
+            const assetId = await generateERC721(user);
+
+            const prevBalUser = await manager.balanceOf(user, erc721.address);
+
+            const tx = await erc721.methods['safeTransferFrom(address,address,uint256,bytes)'](user, manager.address, assetId, '0x123456789abcde', { from: user });
+
+            // For event Received(address _operator, bytes _userData);
+            const data = tx.receipt.rawLogs[1].data.slice(2);
+            const topics = tx.receipt.rawLogs[1].topics;
+
+            const dataOffset = web3.utils.hexToNumber('0x' + data.slice(0, 64)) * 2;
+            const dataLength = web3.utils.hexToNumber('0x' + data.slice(64, 64 + 64)) * 2;
+            const userData = data.slice(64 + dataOffset, 64 + dataOffset + dataLength);
+
+            const Received = {
+                _operator: web3.utils.toChecksumAddress('0x' + topics[1].slice(26, 66)),
+                _userData: '0x' + userData,
+            };
+
+            assert.equal(topics[0], web3.utils.sha3('Received(address,bytes)'));
+            assert.equal(Received._operator, user);
+            assert.equal(Received._userData, '0x123456789abcde');
+
+            // For event Deposit(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
+            const data2 = tx.receipt.rawLogs[2].data.slice(2);
+            const topics2 = tx.receipt.rawLogs[2].topics;
+
+            const Deposit = {
+                _from: web3.utils.toChecksumAddress('0x' + topics2[1].slice(26, 66)),
+                _to: web3.utils.toChecksumAddress('0x' + topics2[2].slice(26, 66)),
+                _erc721: web3.utils.toChecksumAddress('0x' + data2.slice(24, 64)),
+                _erc721Id: web3.utils.toBN('0x' + data2.slice(64, 64 + 64)),
+            };
+
+            assert.equal(topics2[0], web3.utils.sha3('Deposit(address,address,address,uint256)'));
+            assert.equal(Deposit._from, user);
+            assert.equal(Deposit._to, user);
+            assert.equal(Deposit._erc721, erc721.address);
+            expect(Deposit._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+            expect(await manager.balanceOf(user, erc721.address)).to.eq.BN(inc(prevBalUser));
+            const indexOfAsset = await manager.indexOfAsset(erc721.address, assetId);
+            expect(indexOfAsset).to.eq.BN(prevBalUser);
+            const auxAssetId = await manager.tokenOfOwnerOfERC721ByIndex(user, erc721.address, indexOfAsset);
             expect(auxAssetId).to.eq.BN(assetId);
         });
     });
