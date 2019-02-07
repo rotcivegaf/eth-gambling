@@ -1,5 +1,7 @@
 pragma solidity ^0.5.0;
 
+import "../interfaces/IERC721Receiver.sol";
+import "../interfaces/IERC721ReceiverLegacy.sol";
 import "../interfaces/IERC721Manager.sol";
 import "../interfaces/IERC721.sol";
 
@@ -7,7 +9,7 @@ import "./ERC165.sol";
 import "./IsContract.sol";
 
 
-contract ERC721Manager is IERC721Manager {
+contract ERC721Manager is IERC721Manager, IERC721ReceiverLegacy, IERC721Receiver {
     using IsContract for address;
 
     bytes4 private constant ERC721_RECEIVED = 0x401405e2;
@@ -22,6 +24,23 @@ contract ERC721Manager is IERC721Manager {
     mapping(address => mapping(address => bool)) private operators;
     // ERC721 to ERC721Id to index
     mapping(address => mapping( uint256 => uint256)) public indexOfAsset;
+
+    function onERC721Received(address _from, uint256 _erc721Id, bytes calldata _userData) external returns (bytes4) {
+        _onERC721Received(address(0), _from, _erc721Id, _userData);
+        return bytes4(0xf0b9e5ba);
+    }
+    function onERC721Received(address _operator, address _from, uint256 _erc721Id, bytes calldata _userData) external returns (bytes4) {
+        _onERC721Received(_operator, _from, _erc721Id, _userData);
+        return bytes4(0x150b7a02);
+    }
+
+    function _onERC721Received(address _operator, address _from, uint256 _erc721Id, bytes memory _userData) internal returns (bytes4) {
+        _ownerOf[msg.sender][_erc721Id] = _from;
+        indexOfAsset[msg.sender][_erc721Id] = toAssetsOf[_from][msg.sender].push(_erc721Id) - 1;
+
+        emit Received(_operator, _userData);
+        emit Deposit(_from, _from, msg.sender, _erc721Id);
+    }
 
     function deposit(address _from, address _to, address _erc721, uint256 _erc721Id) external {
         require(_to != address(0), "0x0 Is not a valid owner");

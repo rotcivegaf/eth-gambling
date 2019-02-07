@@ -5,6 +5,7 @@ contract IERC721Manager {
     event Transfer(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
     event Approval(address indexed _owner, address indexed _approved, address _erc721, uint256 _erc721Id);
     event ApprovalForAll(address indexed _owner, address indexed _operator, bool _approved);
+    event Received(address _operator, bytes _userData);
     event Deposit(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
     event Withdraw(address indexed _from, address indexed _to, address _erc721, uint256 _erc721Id);
 
