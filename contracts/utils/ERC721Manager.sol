@@ -10,8 +10,7 @@ import "./IsContract.sol";
 contract ERC721Manager is IERC721Manager {
     using IsContract for address;
 
-    bytes4 private constant ERC721_RECEIVED = 0x150b7a02;
-    bytes4 private constant ERC721_RECEIVED_LEGACY = 0xf0b9e5ba;
+    bytes4 private constant ERC721_RECEIVED = 0x401405e2;
 
     // owner to ERC721 address array of ERC721Ids
     mapping(address => mapping( address => uint256[])) public toAssetsOf;
@@ -265,18 +264,24 @@ contract ERC721Manager is IERC721Manager {
 
         indexOfAsset[_erc721][_erc721Id] = toAssetsOf[_to][_erc721].push(_erc721Id) - 1;
 
-        if (_doCheck && _to.isContract()) { // todo fix??? i need use address _erc721???
+        if (_doCheck && _to.isContract()) {
             // Perform check with the safe call
-            // onERC721Received(address,address,uint256,bytes)
+            // onERC721Received(address,address,address,uint256,bytes)
             (uint256 success, bytes32 result) = _noThrowCall(
                 _to,
                 abi.encodeWithSelector(
                     ERC721_RECEIVED,
                     msg.sender,
                     _from,
+                    _erc721,
                     _erc721Id,
                     _userData
                 )
+            );
+
+            require(
+                success == 1 && result == ERC721_RECEIVED,
+                "Contract rejected the token"
             );
         }
 
