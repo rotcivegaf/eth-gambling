@@ -526,4 +526,64 @@ contract('ERC721 Manager', function (accounts) {
         assert.equal(assetsOfAddr1after.length, assetsOfAddr1before.length - 1);
         assert.equal(assetsOfAddr2after.length, assetsOfAddr2before.length + 1);
     });
+
+    describe('Functional tests', async function () {
+        it('Should generate a new NFTs and transfer randomly', async function () {
+            const assets = [];
+            const totalAssets = 20;
+
+            for (let i = 0; i < totalAssets; i++) {
+                const assetId = await generateERC721(user);
+                await manager.deposit(user, accounts[i % 10], erc721.address, assetId, { from: user });
+                assets.push({ owner: accounts[i % 10], id: assetId });
+            }
+
+            for (let i = totalAssets - 1; i >= 0; i--) {
+                const owner = await manager.ownerOf(erc721.address, assets[i].id);
+                const randomOwner = Math.floor(Math.random() * 10);
+
+                await manager.transferFrom(
+                    owner,
+                    accounts[randomOwner],
+                    erc721.address,
+                    assets[i].id,
+                    { from: owner }
+                );
+                assets[i].owner = accounts[randomOwner];
+            }
+
+            for (let i = 0; i < totalAssets; i++) {
+                const owner = await manager.ownerOf(erc721.address, assets[i].id);
+                const randomOwner = Math.floor(Math.random() * 10);
+
+                await manager.transferFrom(
+                    owner,
+                    accounts[randomOwner],
+                    erc721.address,
+                    assets[i].id,
+                    { from: owner }
+                );
+                assets[i].owner = accounts[randomOwner];
+            }
+
+            for (let i = totalAssets - 1; i >= 0; i--) {
+                const owner = await manager.ownerOf(erc721.address, assets[i].id);
+                const randomOwner = Math.floor(Math.random() * 10);
+
+                await manager.transferFrom(
+                    owner,
+                    accounts[randomOwner],
+                    erc721.address,
+                    assets[i].id,
+                    { from: owner }
+                );
+                assets[i].owner = accounts[randomOwner];
+            }
+
+            for (let i = 0; i < totalAssets; i++) {
+                const owner = await manager.ownerOf(erc721.address, assets[i].id);
+                assert.equal(owner, assets[i].owner);
+            }
+        });
+    });
 });
