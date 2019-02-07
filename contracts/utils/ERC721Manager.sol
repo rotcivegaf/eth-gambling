@@ -60,6 +60,7 @@ contract ERC721Manager is IERC721Manager {
             indexOfAsset[_erc721][lastERC721Id] = assetIndex;
         }
 
+        delete toAssetsOf[_from][_erc721][lastAssetIndex];
         toAssetsOf[_from][_erc721].length--;
 
         delete _ownerOf[_erc721][_erc721Id];
