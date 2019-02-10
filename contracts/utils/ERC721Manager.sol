@@ -278,6 +278,8 @@ contract ERC721Manager is IERC721Manager, IERC721ReceiverLegacy, IERC721Receiver
             indexOfAsset[_erc721][lastERC721Id] = assetIndex;
         }
 
+        delete toAssetsOf[_from][_erc721][lastAssetIndex];
+
         toAssetsOf[_from][_erc721].length--;
 
         _ownerOf[_erc721][_erc721Id] = _to;

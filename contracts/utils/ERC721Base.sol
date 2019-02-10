@@ -294,6 +294,8 @@ contract ERC721Base is IERC721, ERC165 {
             indexOfAsset[lastAssetId] = assetIndex;
         }
 
+        delete allAssetsOf[_from][lastAssetIndex];
+
         allAssetsOf[_from].length--;
 
         _ownerOf[_assetId] = _to;
