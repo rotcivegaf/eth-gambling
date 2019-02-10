@@ -1,6 +1,6 @@
 const ERC721Manager = artifacts.require('./utils/ERC721Manager.sol');
 const TestERC721 = artifacts.require('./utils/test/TestERC721.sol');
-// const TestERC721Receiver = artifacts.require('./utils/test/TestERC721Receiver.sol');
+const TestERC721ManagerReceiver = artifacts.require('./utils/test/ERC721Manager/TestERC721ManagerReceiver.sol');
 
 const Helper = require('../Helper.js');
 const BN = web3.utils.BN;
@@ -29,6 +29,7 @@ contract('ERC721 Manager', function (accounts) {
     const user2 = accounts[2];
     const user3 = accounts[3];
     const operator = accounts[4];
+    const approved = accounts[5];
     const address0x = web3.utils.padLeft('0x0', 40);
     let manager;
     let erc721;
@@ -548,6 +549,276 @@ contract('ERC721 Manager', function (accounts) {
             assert.isTrue(await manager.isAuthorized(operator, erc721.address, assetId, { from: user }));
 
             await manager.approve(address0x, erc721.address, assetId, { from: user });
+        });
+    });
+
+    describe('Function _doTransferFrom, transferFrom, safeTransferFrom and safeTransferFrom with _userData', async function () {
+        it('Should transfer with approval', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            const auxAssetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, auxAssetId, { from: user });
+
+            const prevIndexOfAsset = await manager.indexOfAsset(erc721.address, assetId);
+
+            const prevBalUser = await manager.balanceOf(user, erc721.address);
+            const prevLengthUser = (await manager.assetsOf(user, erc721.address)).length;
+
+            const prevBalOtherUser = await manager.balanceOf(user2, erc721.address);
+            const prevLengthOtherUser = (await manager.assetsOf(user2, erc721.address)).length;
+
+            await manager.approve(approved, erc721.address, assetId, { from: user });
+
+            const events = await Helper.toEvents(
+                manager.methods['transferFrom(address,address,address,uint256)'](
+                    user,
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: approved }
+                ),
+                'Approval',
+                'Transfer'
+            );
+            const Approval = events[0];
+            assert.equal(Approval._owner, user);
+            assert.equal(Approval._approved, address0x);
+            assert.equal(Approval._erc721, erc721.address);
+            expect(Approval._erc721Id).to.eq.BN(assetId);
+            const Transfer = events[1];
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, user2);
+            assert.equal(Transfer._erc721, erc721.address);
+            expect(Transfer._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.getApproved(erc721.address, assetId), address0x);
+
+            expect(await manager.indexOfAsset(erc721.address, auxAssetId)).to.eq.BN(prevIndexOfAsset);
+            assert.equal((await manager.assetsOf(user, erc721.address)).length, prevLengthUser - 1);
+            expect(await manager.balanceOf(user, erc721.address)).to.eq.BN(dec(prevBalUser));
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user2);
+            expect(await manager.indexOfAsset(erc721.address, assetId)).to.eq.BN(prevBalOtherUser);
+            assert.equal((await manager.assetsOf(user2, erc721.address)).length, prevLengthOtherUser + 1);
+            expect(await manager.balanceOf(user2, erc721.address)).to.eq.BN(inc(prevBalOtherUser));
+
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+        });
+
+        it('Should transfer with ownership', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            const Transfer = await Helper.toEvents(
+                manager.methods['transferFrom(address,address,address,uint256)'](
+                    user,
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: user }
+                ),
+                'Transfer'
+            );
+
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, user2);
+            assert.equal(Transfer._erc721, erc721.address);
+            expect(Transfer._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user2);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+        });
+
+        it('Should transfer with operator privileges', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await manager.setApprovalForAll(approved, true, { from: user });
+
+            const Transfer = await Helper.toEvents(
+                manager.methods['transferFrom(address,address,address,uint256)'](
+                    user,
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: approved }
+                ),
+                'Transfer'
+            );
+
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, user2);
+            assert.equal(Transfer._erc721, erc721.address);
+            expect(Transfer._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user2);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+
+            await manager.setApprovalForAll(approved, false, { from: user });
+        });
+
+        it('Try tansfer an asset to address 0x0', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['transferFrom(address,address,address,uint256)'](
+                    user,
+                    address0x,
+                    erc721.address,
+                    assetId,
+                    { from: approved }
+                ),
+                'Target can\'t be 0x0'
+            );
+        });
+
+        it('Try tansfer an asset without authorize', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['transferFrom(address,address,address,uint256)'](
+                    user,
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: approved }
+                ),
+                'msg.sender Not authorized'
+            );
+        });
+
+        it('Try SafeTransferFrom an asset without be the owner', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            await manager.approve(approved, erc721.address, assetId, { from: user });
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['transferFrom(address,address,address,uint256)'](
+                    approved,
+                    user2,
+                    erc721.address,
+                    assetId,
+                    { from: approved }
+                ),
+                'Not current owner'
+            );
+        });
+
+        it('Test can\'t receive safeTransferFrom', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            const receiver = await TestERC721.new();
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['safeTransferFrom(address,address,address,uint256)'](
+                    user,
+                    receiver.address,
+                    erc721.address,
+                    assetId,
+                    { from: user }
+                ),
+                ''
+            );
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), user);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+        });
+
+        it('Try tansfer an asset and contract reject the asset', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            const receiver = await TestERC721ManagerReceiver.new();
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['safeTransferFrom(address,address,address,uint256,bytes)'](
+                    user,
+                    receiver.address,
+                    erc721.address,
+                    assetId,
+                    '0x01', // REJECT
+                    { from: user }
+                ),
+                'Contract rejected the token'
+            );
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['safeTransferFrom(address,address,address,uint256,bytes)'](
+                    user,
+                    receiver.address,
+                    erc721.address,
+                    assetId,
+                    '0x02', // REVERT
+                    { from: user }
+                ),
+                'Contract rejected the token'
+            );
+        });
+
+        it('SafeTransferFrom to a contract, safeTransferFrom(address,address,uint256)', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            const receiver = await TestERC721ManagerReceiver.new();
+
+            const Transfer = await Helper.toEvents(
+                manager.methods['safeTransferFrom(address,address,address,uint256)'](
+                    user,
+                    receiver.address,
+                    erc721.address,
+                    assetId,
+                    { from: user }
+                ),
+                'Transfer'
+            );
+
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, receiver.address);
+            assert.equal(Transfer._erc721, erc721.address);
+            expect(Transfer._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), receiver.address);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+
+            assert.equal(await receiver.lastOperator(), user);
+            assert.equal(await receiver.lastFrom(), user);
+            assert.equal(await receiver.lastErc721(), erc721.address);
+            expect(await receiver.lastErc721Id()).to.eq.BN(assetId);
+            assert.equal(await receiver.lastData(), null);
+        });
+
+        it('SafeTransferFrom with _userData, safeTransferFrom(address,address,uint256,bytes)', async function () {
+            const assetId = await generateERC721(user);
+            await manager.deposit(user, user, erc721.address, assetId, { from: user });
+            const receiver = await TestERC721ManagerReceiver.new();
+
+            const _userData = web3.utils.asciiToHex('test safeTransferFrom with _userData');
+
+            const Transfer = await Helper.toEvents(
+                manager.methods['safeTransferFrom(address,address,address,uint256,bytes)'](
+                    user,
+                    receiver.address,
+                    erc721.address,
+                    assetId,
+                    _userData,
+                    { from: user }
+                ),
+                'Transfer'
+            );
+
+            assert.equal(Transfer._from, user);
+            assert.equal(Transfer._to, receiver.address);
+            assert.equal(Transfer._erc721, erc721.address);
+            expect(Transfer._erc721Id).to.eq.BN(assetId);
+
+            assert.equal(await manager.ownerOf(erc721.address, assetId), receiver.address);
+            assert.equal(await erc721.ownerOf(assetId), manager.address);
+
+            assert.equal(await receiver.lastOperator(), user);
+            assert.equal(await receiver.lastFrom(), user);
+            assert.equal(await receiver.lastErc721(), erc721.address);
+            expect(await receiver.lastErc721Id()).to.eq.BN(assetId);
+            assert.equal(await receiver.lastData(), _userData);
         });
     });
 
