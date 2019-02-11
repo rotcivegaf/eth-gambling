@@ -1,12 +1,12 @@
 pragma solidity ^0.5.0;
 
+import "./interfaces/ITipERC20.sol";
 import "./interfaces/IGamblingManager.sol";
 import "./interfaces/IModel.sol";
 
 import "./utils/ERC721Base.sol";
 import "./utils/Ownable.sol";
 import "./utils/BalanceManager.sol";
-import "./utils/ERC721Manager.sol";
 
 
 contract IdHelper {
@@ -41,8 +41,33 @@ contract IdHelper {
     }
 }
 
+contract TipERC20 is BalanceManager, ITipERC20, Ownable {
+    function tip(address _from, address _token, uint256 _amount) external payable {
+        require(_amount != 0, "The amount should not be 0");
+        uint256 tansferAmount = _amount;
 
-contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable, ERC721Base {
+        if (_token == ETH) {
+            if (msg.value > 0) {
+                require(_amount >= msg.value, "The msg.value should be more or equal than the _amount");
+                tansferAmount = _amount - msg.value;
+                _deposit(_from, owner, _token, msg.value);
+            }
+            if (tansferAmount != 0)
+                _transfer(_from, owner, _token, tansferAmount);
+        } else {
+            if (_amount > _toBalance[_from][_token]) {
+                tansferAmount = _amount - _toBalance[_from][_token];
+                _deposit(_from, owner, _token, tansferAmount);
+            }
+            _transfer(_from, owner, _token, tansferAmount);
+        }
+
+        emit Tip(_amount);
+    }
+}
+
+
+contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     struct Bet {
         address erc20;
         uint256 balance;
@@ -196,50 +221,3 @@ contract GamblingManager is BalanceManager, IdHelper, IGamblingManager, Ownable,
         });
     }
 }
-
-/*
-contract PawnManager is ERC721Manager, GamblingManager {
-    struct Pawn {
-        bytes32 betId;
-        address pawner;
-        address pawnHouse;
-        address erc721;
-        uint256 erc721Id;
-    }
-
-    Pawn[] public pawns;
-
-    function createPawn(
-        bytes32 _betId,
-        address _pawnHouse,
-        address _erc721,
-        uint256 _erc721Id,
-        bytes32[] _dataPawn
-    ) external {
-
-    }
-
-    function playPawn(
-        bytes32 _betId,
-        address _pawnHouse,
-        address _erc721,
-        uint256 _erc721Id,
-        ??????? _signature,
-        bytes32[] _dataPawn
-    ) external {
-
-    }
-
-    function takePawn(uint256 pawnId) external {
-
-    }
-
-    function collectPawn(uint256 pawnId) external {
-
-    }
-
-    function cancelPawn(uint256 pawnId) external {
-
-    }
-}
-*/

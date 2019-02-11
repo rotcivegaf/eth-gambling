@@ -17,11 +17,11 @@ contract ERC721Manager is IERC721Manager, IERC721ReceiverLegacy, IERC721Receiver
     // owner to ERC721 address array of ERC721Ids
     mapping(address => mapping( address => uint256[])) public toAssetsOf;
     // ERC721 to ERC721Id to owner
-    mapping(address => mapping( uint256 => address)) private _ownerOf;
+    mapping(address => mapping( uint256 => address)) internal _ownerOf;
     // ERC721 to ERC721Id to approval
-    mapping(address => mapping( uint256 => address)) private _approval;
+    mapping(address => mapping( uint256 => address)) internal _approval;
     // owner to operator to canOperate?
-    mapping(address => mapping(address => bool)) private operators;
+    mapping(address => mapping(address => bool)) internal operators;
     // ERC721 to ERC721Id to index
     mapping(address => mapping( uint256 => uint256)) public indexOfAsset;
 
