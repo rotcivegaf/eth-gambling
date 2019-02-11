@@ -41,7 +41,7 @@ contract PawnManager is TipERC721 {
         address _pawnHouse,
         address _erc721,
         uint256 _erc721Id,
-        bytes32[] _dataPawn
+        bytes32[] calldata _dataPawn
     ) external {
 
     }
@@ -51,8 +51,8 @@ contract PawnManager is TipERC721 {
         address _pawnHouse,
         address _erc721,
         uint256 _erc721Id,
-        bytes _signature,
-        bytes32[] _dataPawn
+        bytes calldata _signature,
+        bytes32[] calldata _dataPawn
     ) external {
 
     }
