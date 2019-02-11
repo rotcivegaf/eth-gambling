@@ -33,34 +33,28 @@ contract BalanceManager is IBalanceManager {
     }
 
     function transfer(address _to, address _token, uint256 _value) external returns(bool) {
-        require(_to != address(0), "_to should not be 0x0");
-
-        // Here check _toBalance underflow
-        require(_toBalance[msg.sender][_token] >= _value, "Insufficient founds to transfer");
-
-        _toBalance[msg.sender][_token] -= _value;
-        // Yes, this can overflow but who wants a ERC20 what has an astronomical number of token?
-        _toBalance[_to][_token] += _value;
-
-        emit Transfer(msg.sender, _to, _token, _value);
-
-        return true;
+      return _transfer(msg.sender, _to, _token, _value);
     }
 
     function transferFrom(address _from, address _to, address _token, uint256 _value) external returns (bool success) {
-        require(_to != address(0), "_to should not be 0x0");
-
         // Here check _allowance underflow
         require(_allowance[_from][msg.sender][_token] >= _value, "Insufficient _allowance to transferFrom");
         _allowance[_from][msg.sender][_token] -= _value;
 
+        return _transfer(_from, _to, _token, _value);
+    }
+
+    function _transfer(address _from, address _to, address _token, uint256 _value) internal returns(bool) {
+        require(_to != address(0), "_to should not be 0x0");
+
         // Here check _toBalance underflow
-        require(_toBalance[_from][_token] >= _value, "Insufficient founds to transferFrom");
+        require(_toBalance[_from][_token] >= _value, "Insufficient founds to transfer");
+
         _toBalance[_from][_token] -= _value;
         // Yes, this can overflow but who wants a ERC20 what has an astronomical number of token?
         _toBalance[_to][_token] += _value;
 
-        emit TransferFrom(_from, _to, _token, _value);
+        emit Transfer(_from, _to, _token, _value);
 
         return true;
     }

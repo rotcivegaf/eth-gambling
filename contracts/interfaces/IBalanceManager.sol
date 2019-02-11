@@ -3,7 +3,6 @@ pragma solidity ^0.5.0;
 
 contract IBalanceManager {
     event Transfer(address indexed _from, address indexed _to, address _token, uint256 _value);
-    event TransferFrom(address indexed _from, address indexed _to, address _token, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, address _token, uint256 _value);
     event Deposit(address indexed _from, address indexed _to, address _token, uint256 _value);
     event Withdraw(address indexed _from, address indexed _to, address _token, uint256 _value);

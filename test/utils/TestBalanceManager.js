@@ -328,7 +328,7 @@ contract('BalanceManager', function (accounts) {
 
             const prevAllowance = await balanceManager.allowance(player1, approved, ETH);
 
-            const TransferFrom = await Helper.toEvents(
+            const Transfer = await Helper.toEvents(
                 balanceManager.transferFrom(
                     player1,
                     player2,
@@ -336,13 +336,13 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: approved }
                 ),
-                'TransferFrom'
+                'Transfer'
             );
             // For event
-            assert.equal(TransferFrom._from, player1);
-            assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._token, ETH);
-            expect(TransferFrom._value).to.eq.BN(minAmount);
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, player2);
+            assert.equal(Transfer._token, ETH);
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check _allowance
             expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(prevAllowance.sub(minAmount));
@@ -375,7 +375,7 @@ contract('BalanceManager', function (accounts) {
 
             const prevAllowance = await balanceManager.allowance(player1, approved, ETH);
 
-            const TransferFrom = await Helper.toEvents(
+            const Transfer = await Helper.toEvents(
                 balanceManager.transferFrom(
                     player1,
                     player2,
@@ -383,13 +383,13 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: approved }
                 ),
-                'TransferFrom'
+                'Transfer'
             );
             // For event
-            assert.equal(TransferFrom._from, player1);
-            assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._token, ETH);
-            expect(TransferFrom._value).to.eq.BN(minAmount);
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, player2);
+            assert.equal(Transfer._token, ETH);
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check _allowance
             expect(await balanceManager.allowance(player1, approved, ETH)).to.eq.BN(prevAllowance.sub(minAmount));
@@ -424,7 +424,7 @@ contract('BalanceManager', function (accounts) {
 
             const prevAllowance = await balanceManager.allowance(player1, approved, erc20.address);
 
-            const TransferFrom = await Helper.toEvents(
+            const Transfer = await Helper.toEvents(
                 balanceManager.transferFrom(
                     player1,
                     player2,
@@ -432,13 +432,13 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: approved }
                 ),
-                'TransferFrom'
+                'Transfer'
             );
             // For event
-            assert.equal(TransferFrom._from, player1);
-            assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._token, erc20.address);
-            expect(TransferFrom._value).to.eq.BN(minAmount);
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, player2);
+            assert.equal(Transfer._token, erc20.address);
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check _allowance
             expect(await balanceManager.allowance(player1, approved, erc20.address)).to.eq.BN(prevAllowance.sub(minAmount));
@@ -474,7 +474,7 @@ contract('BalanceManager', function (accounts) {
 
             const prevAllowance = await balanceManager.allowance(player1, approved, erc20.address);
 
-            const TransferFrom = await Helper.toEvents(
+            const Transfer = await Helper.toEvents(
                 balanceManager.transferFrom(
                     player1,
                     player2,
@@ -482,13 +482,13 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: approved }
                 ),
-                'TransferFrom'
+                'Transfer'
             );
             // For event
-            assert.equal(TransferFrom._from, player1);
-            assert.equal(TransferFrom._to, player2);
-            assert.equal(TransferFrom._token, erc20.address);
-            expect(TransferFrom._value).to.eq.BN(minAmount);
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, player2);
+            assert.equal(Transfer._token, erc20.address);
+            expect(Transfer._value).to.eq.BN(minAmount);
 
             // Check _allowance
             expect(await balanceManager.allowance(player1, approved, erc20.address)).to.eq.BN(prevAllowance.sub(minAmount));
@@ -502,7 +502,7 @@ contract('BalanceManager', function (accounts) {
             expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(minAmount));
         });
 
-        it('Try TransferFrom to address 0x0', async () => {
+        it('Try transferFrom to address 0x0', async () => {
             await balanceManager.deposit(
                 player1,
                 ETH,
@@ -557,7 +557,7 @@ contract('BalanceManager', function (accounts) {
             );
         });
 
-        it('Try TransferFrom without having the approval of the amount', async () => {
+        it('Try transferFrom without having the approval of the amount', async () => {
             await balanceManager.deposit(
                 player1,
                 ETH,
@@ -634,7 +634,7 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: approved }
                 ),
-                'Insufficient founds to transferFrom'
+                'Insufficient founds to transfer'
             );
         });
 
@@ -660,7 +660,7 @@ contract('BalanceManager', function (accounts) {
                     minAmount,
                     { from: approved }
                 ),
-                'Insufficient founds to transferFrom'
+                'Insufficient founds to transfer'
             );
         });
     });
