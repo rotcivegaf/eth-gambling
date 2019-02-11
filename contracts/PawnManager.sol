@@ -26,7 +26,6 @@ contract TipERC721 is ERC721Manager, ITipERC721, Ownable {
 
 
 contract PawnManager is TipERC721 {
-/*
     struct Pawn {
         bytes32 betId;
         address pawner;
@@ -52,7 +51,7 @@ contract PawnManager is TipERC721 {
         address _pawnHouse,
         address _erc721,
         uint256 _erc721Id,
-        ??????? _signature,
+        bytes _signature,
         bytes32[] _dataPawn
     ) external {
 
@@ -68,5 +67,5 @@ contract PawnManager is TipERC721 {
 
     function cancelPawn(uint256 pawnId) external {
 
-    }*/
+    }
 }
