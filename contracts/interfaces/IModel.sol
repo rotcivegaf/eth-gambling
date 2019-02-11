@@ -9,4 +9,13 @@ interface IModel {
     function play(bytes32 _id, address _player, bytes32[] calldata _data) external returns(uint256 needAmount);
     function collect(bytes32 _id, address _player, bytes32[] calldata _data) external returns(uint256 amount);
     function cancel(bytes32 _id, address _player, bytes32[] calldata _data) external returns(bool success);
+
+    function validateCreate(bytes32 _id, bytes32[] calldata _data) external view returns(bool);
+    function validatePlay(bytes32 _id, bytes32[] calldata _data) external view returns(bool);
+
+    function getEnd(bytes32 _betId) external view returns (uint256 endTime);
+    function getNoMoreBets(bytes32 _betId) external view returns (uint256 noMoreBets);
+
+    function simNeedAmount(bytes32 _betId, bytes32[] calldata _data) external view returns (uint256 needAmount, bool canChange);
+    function simActualReturn(bytes32 _betId) external view returns (uint256 returnAmount, bool canChange);
 }

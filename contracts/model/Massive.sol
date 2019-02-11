@@ -43,4 +43,28 @@ contract Massive is IModel {
 
     function cancel(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(bool) {
     }
+
+    function validateCreate(bytes32 _id, bytes32[] calldata) external view returns(bool) {
+        revert("TODO");
+    }
+
+    function validatePlay(bytes32 _id, bytes32[] calldata) external view returns(bool) {
+        revert("TODO");
+    }
+
+    function getEnd(bytes32 _betId) external view returns (uint256 endTime) {
+        revert("TODO");
+    }
+
+    function getNoMoreBets(bytes32 _betId) external view returns (uint256 noMoreBets) {
+        revert("TODO");
+    }
+
+    function simNeedAmount(bytes32 _betId, bytes32[] calldata _data) external view returns (uint256 needAmount, bool canChange) {
+        revert("TODO");
+    }
+
+    function simActualReturn(bytes32 _betId) external view returns (uint256 returnAmount, bool canChange) {
+        revert("TODO");
+    }
 }
