@@ -35,6 +35,7 @@ contract ERC721Manager is IERC721Manager, IERC721ReceiverLegacy, IERC721Receiver
     }
 
     function _onERC721Received(address _operator, address _from, uint256 _erc721Id, bytes memory _userData) internal returns (bytes4) {
+        require(IERC721(msg.sender).ownerOf(_erc721Id) == address(this), "The ERC721 was not received");
         _ownerOf[msg.sender][_erc721Id] = _from;
         indexOfAsset[msg.sender][_erc721Id] = toAssetsOf[_from][msg.sender].push(_erc721Id) - 1;
 

@@ -96,6 +96,29 @@ contract('ERC721 Manager', function (accounts) {
             const auxAssetId = await manager.tokenOfOwnerOfERC721ByIndex(user, erc721.address, indexOfAsset);
             expect(auxAssetId).to.eq.BN(assetId);
         });
+
+        it('Try use onERC721Received without transferring an ERC721', async function () {
+            await Helper.tryCatchRevert(
+                () => manager.methods['onERC721Received(address,uint256,bytes)'](
+                    user,
+                    address0x,
+                    [],
+                    { from: user }
+                ),
+                'The ERC721 was not received'
+            );
+
+            await Helper.tryCatchRevert(
+                () => manager.methods['onERC721Received(address,address,uint256,bytes)'](
+                    operator,
+                    user,
+                    address0x,
+                    [],
+                    { from: user }
+                ),
+                'The ERC721 was not received'
+            );
+        });
     });
 
     describe('Function deposit', async function () {
