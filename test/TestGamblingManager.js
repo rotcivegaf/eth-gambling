@@ -924,7 +924,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     toHexBytes32(-1),
-                    [maxUint('256')],
+                    [toHexBytes32(maxUint('256'))],
                     { from: player1 }
                 ),
                 'Error pulling tokens or send ETH, in deposit'
