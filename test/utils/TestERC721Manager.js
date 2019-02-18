@@ -101,7 +101,7 @@ contract('ERC721 Manager', function (accounts) {
             await Helper.tryCatchRevert(
                 () => manager.methods['onERC721Received(address,uint256,bytes)'](
                     user,
-                    address0x,
+                    '0',
                     [],
                     { from: user }
                 ),
@@ -112,7 +112,7 @@ contract('ERC721 Manager', function (accounts) {
                 () => manager.methods['onERC721Received(address,address,uint256,bytes)'](
                     operator,
                     user,
-                    address0x,
+                    '0',
                     [],
                     { from: user }
                 ),
