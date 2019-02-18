@@ -105,7 +105,7 @@ contract('ERC721 Manager', function (accounts) {
                     [],
                     { from: user }
                 ),
-                'The ERC721 was not received'
+                ''
             );
 
             await Helper.tryCatchRevert(
@@ -116,7 +116,7 @@ contract('ERC721 Manager', function (accounts) {
                     [],
                     { from: user }
                 ),
-                'The ERC721 was not received'
+                ''
             );
         });
     });
