@@ -44,23 +44,29 @@ contract IdHelper {
 contract TipERC20 is BalanceManager, ITipERC20, Ownable {
     function tip(address _from, address _token, uint256 _amount) external payable {
         require(_amount != 0, "The amount should not be 0");
-        uint256 tansferAmount = _amount;
+        uint256 tansferAmount;
 
         if (_token == ETH) {
             if (msg.value > 0) {
                 require(_amount >= msg.value, "The msg.value should be more or equal than the _amount");
                 tansferAmount = _amount - msg.value;
                 _deposit(_from, owner, _token, msg.value);
+            } else {
+                tansferAmount = _amount;
             }
-            if (tansferAmount != 0)
-                _transfer(_from, owner, _token, tansferAmount);
         } else {
+            require(msg.value == 0, "The msg.value should be 0");
             if (_amount > _toBalance[_from][_token]) {
                 tansferAmount = _amount - _toBalance[_from][_token];
                 _deposit(_from, owner, _token, tansferAmount);
+                tansferAmount = _amount - tansferAmount;
+            } else {
+                tansferAmount = _amount;
             }
-            _transfer(_from, owner, _token, tansferAmount);
         }
+
+        if (tansferAmount != 0)
+            _transferFrom(_from, owner, _token, tansferAmount);
 
         emit Tip(_amount);
     }

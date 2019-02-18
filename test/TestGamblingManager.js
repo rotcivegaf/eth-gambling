@@ -12,6 +12,14 @@ function bn (number) {
     return new web3.utils.BN(number);
 }
 
+function inc (number) {
+    return number.add(bn('1'));
+}
+
+function dec (number) {
+    return number.sub(bn('1'));
+}
+
 function maxUint (base) {
     return bn('2').pow(bn(base)).sub(bn('1'));
 }
@@ -28,8 +36,7 @@ const ETH = web3.utils.padLeft('0x0', 40);
 const address0x = web3.utils.padLeft('0x0', 40);
 const bytes320x = toHexBytes32('0x0');
 
-const minAmount = bn('1');
-const minAmountBytes32 = toHexBytes32(minAmount);
+const oneBytes32 = toHexBytes32('1');
 const one = '0x01';
 const two = '0x02';
 const three = '0x03';
@@ -63,13 +70,17 @@ contract('GamblingManager', function (accounts) {
     let prevBalGO20; // previus balance of ERC20 on gamblingManager of owner
     let prevBalGCT; // previus balance of ERC20 on gamblingManager of creator
     let prevBalGP120; // previus balance of ERC20 on gamblingManager of player1
+    let prevBalGD20; // previus balance of ERC20 on gamblingManager of depositer
 
     let prevBalBet; // previus balance of Bet on gamblingManager
 
     async function saveETHPrevBalances (id) {
         prevBalG = await getETHBalance(gamblingManager.address);
+        expect(await gamblingManager.methods['totalSupply(address)'](ETH)).to.eq.BN(prevBalG);
 
-        prevBalBet = (await gamblingManager.toBet(id)).balance;
+        if (id !== undefined) {
+            prevBalBet = (await gamblingManager.toBet(id)).balance;
+        }
 
         prevBalGO = await gamblingManager.methods['balanceOf(address,address)'](owner, ETH);
         prevBalGC = await gamblingManager.methods['balanceOf(address,address)'](creator, ETH);
@@ -79,7 +90,9 @@ contract('GamblingManager', function (accounts) {
     async function saveERC20PrevBalances (id) {
         prevBalG20 = await erc20.balanceOf(gamblingManager.address);
 
-        prevBalBet = (await gamblingManager.toBet(id)).balance;
+        if (id !== undefined) {
+            prevBalBet = (await gamblingManager.toBet(id)).balance;
+        }
 
         prevBalC20 = await erc20.balanceOf(creator);
         prevBalP120 = await erc20.balanceOf(player1);
@@ -89,6 +102,7 @@ contract('GamblingManager', function (accounts) {
         prevBalGO20 = await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address);
         prevBalGCT = await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address);
         prevBalGP120 = await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address);
+        prevBalGD20 = await gamblingManager.methods['balanceOf(address,address)'](depositer, erc20.address);
     };
 
     before('Deploy GamblingManager', async function () {
@@ -447,7 +461,7 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await gamblingManager.deposit(player1, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
 
             await saveETHPrevBalances(id);
 
@@ -456,7 +470,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player1 }
                 ),
                 'Played'
@@ -465,18 +479,18 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Played._sender, player1);
             assert.equal(Played._player, player1);
             assert.equal(Played._id, id);
-            expect(Played._amount).to.eq.BN(minAmount);
-            assert.equal(Played._data, minAmountBytes32);
+            expect(Played._amount).to.eq.BN('1');
+            assert.equal(Played._data, oneBytes32);
             assert.equal(Played._oracleData, null);
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, ETH);
-            expect(bet.balance).to.eq.BN(minAmount);
+            expect(bet.balance).to.eq.BN('1');
             assert.equal(bet.model, model.address);
 
             // Check ETH balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(prevBalGOE);
-            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(prevBalGP1.sub(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(dec(prevBalGP1));
             expect(await getETHBalance(gamblingManager.address)).to.eq.BN(prevBalG);
         });
 
@@ -490,9 +504,9 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await erc20.setBalance(depositer, minAmount);
-            await erc20.approve(gamblingManager.address, minAmount, { from: depositer });
-            await gamblingManager.deposit(player1, erc20.address, minAmount, { from: depositer });
+            await erc20.setBalance(depositer, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: depositer });
+            await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
 
             await saveERC20PrevBalances(id);
 
@@ -501,7 +515,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player1 }
                 ),
                 'Played'
@@ -511,18 +525,18 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Played._sender, player1);
             assert.equal(Played._player, player1);
             assert.equal(Played._id, id);
-            expect(Played._amount).to.eq.BN(minAmount);
-            assert.equal(Played._data, minAmountBytes32);
+            expect(Played._amount).to.eq.BN('1');
+            assert.equal(Played._data, oneBytes32);
             assert.equal(Played._oracleData, null);
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, erc20.address);
-            expect(bet.balance).to.eq.BN(minAmount);
+            expect(bet.balance).to.eq.BN('1');
             assert.equal(bet.model, model.address);
 
             // Check ERC20 balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(prevBalGO20);
-            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(prevBalGP120.sub(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(dec(prevBalGP120));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalG20);
         });
@@ -539,8 +553,8 @@ contract('GamblingManager', function (accounts) {
 
             await gamblingManager.withdrawAll(accounts[8], ETH, { from: player1 });
 
-            await gamblingManager.deposit(player1, ETH, minAmount, { from: depositer, value: minAmount });
-            await gamblingManager.methods['approve(address,address,uint256)'](player2, ETH, minAmount, { from: player1 });
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
+            await gamblingManager.methods['approve(address,address,uint256)'](player2, ETH, '1', { from: player1 });
 
             await saveETHPrevBalances(id);
 
@@ -549,7 +563,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player2 }
                 ),
                 'Played'
@@ -558,18 +572,18 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Played._sender, player2);
             assert.equal(Played._player, player1);
             assert.equal(Played._id, id);
-            expect(Played._amount).to.eq.BN(minAmount);
-            assert.equal(Played._data, minAmountBytes32);
+            expect(Played._amount).to.eq.BN('1');
+            assert.equal(Played._data, oneBytes32);
             assert.equal(Played._oracleData, null);
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, ETH);
-            expect(bet.balance).to.eq.BN(minAmount);
+            expect(bet.balance).to.eq.BN('1');
             assert.equal(bet.model, model.address);
 
             // Check ETH balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(prevBalGOE);
-            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(prevBalGP1.sub(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(dec(prevBalGP1));
             expect(await getETHBalance(gamblingManager.address)).to.eq.BN(prevBalG);
 
             expect(await gamblingManager.allowance(player1, player2, ETH)).to.eq.BN('0');
@@ -587,10 +601,10 @@ contract('GamblingManager', function (accounts) {
 
             await gamblingManager.withdrawAll(accounts[8], erc20.address, { from: player1 });
 
-            await erc20.setBalance(depositer, minAmount);
-            await erc20.approve(gamblingManager.address, minAmount, { from: depositer });
-            await gamblingManager.deposit(player1, erc20.address, minAmount, { from: depositer });
-            await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, minAmount, { from: player1 });
+            await erc20.setBalance(depositer, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: depositer });
+            await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
+            await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, '1', { from: player1 });
 
             await saveERC20PrevBalances(id);
 
@@ -599,7 +613,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player2 }
                 ),
                 'Played'
@@ -609,18 +623,18 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Played._sender, player2);
             assert.equal(Played._player, player1);
             assert.equal(Played._id, id);
-            expect(Played._amount).to.eq.BN(minAmount);
-            assert.equal(Played._data, minAmountBytes32);
+            expect(Played._amount).to.eq.BN('1');
+            assert.equal(Played._data, oneBytes32);
             assert.equal(Played._oracleData, null);
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, erc20.address);
-            expect(bet.balance).to.eq.BN(minAmount);
+            expect(bet.balance).to.eq.BN('1');
             assert.equal(bet.model, model.address);
 
             // Check ERC20 balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(prevBalGO20);
-            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(prevBalGP120.sub(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(dec(prevBalGP120));
             expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
             expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalG20);
 
@@ -642,8 +656,8 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
-                    { from: player1, value: minAmount }
+                    [oneBytes32],
+                    { from: player1, value: '1' }
                 ),
                 'Played',
                 'Deposit'
@@ -653,24 +667,24 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Played._sender, player1);
             assert.equal(Played._player, player1);
             assert.equal(Played._id, id);
-            expect(Played._amount).to.eq.BN(minAmount);
-            assert.equal(Played._data, minAmountBytes32);
+            expect(Played._amount).to.eq.BN('1');
+            assert.equal(Played._data, oneBytes32);
             assert.equal(Played._oracleData, null);
             const Deposit = events[1];
             assert.equal(Deposit._from, player1);
             assert.equal(Deposit._to, player1);
             assert.equal(Deposit._token, ETH);
-            expect(Deposit._value).to.eq.BN(minAmount);
+            expect(Deposit._value).to.eq.BN('1');
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, ETH);
-            expect(bet.balance).to.eq.BN(minAmount);
+            expect(bet.balance).to.eq.BN('1');
             assert.equal(bet.model, model.address);
 
             // Check ETH balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(prevBalGOE);
-            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(prevBalGP1.sub(minAmount));
-            expect(await getETHBalance(gamblingManager.address)).to.eq.BN(prevBalG.add(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(dec(prevBalGP1));
+            expect(await getETHBalance(gamblingManager.address)).to.eq.BN(inc(prevBalG));
         });
 
         it('Try play a bet with ETH and send more valur than remaining amount', async () => {
@@ -688,8 +702,8 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
-                    { from: player1, value: minAmount.add(bn('1')) }
+                    [oneBytes32],
+                    { from: player1, value: '2' }
                 ),
                 'The amount should be equal to msg.value'
             );
@@ -705,8 +719,8 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await erc20.setBalance(player1, minAmount);
-            await erc20.approve(gamblingManager.address, minAmount, { from: player1 });
+            await erc20.setBalance(player1, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: player1 });
 
             await saveERC20PrevBalances(id);
 
@@ -715,7 +729,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player1 }
                 ),
                 'Played',
@@ -725,25 +739,25 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Played._sender, player1);
             assert.equal(Played._player, player1);
             assert.equal(Played._id, id);
-            expect(Played._amount).to.eq.BN(minAmount);
-            assert.equal(Played._data, minAmountBytes32);
+            expect(Played._amount).to.eq.BN('1');
+            assert.equal(Played._data, oneBytes32);
             assert.equal(Played._oracleData, null);
             const Deposit = events[1];
             assert.equal(Deposit._from, player1);
             assert.equal(Deposit._to, player1);
             assert.equal(Deposit._token, erc20.address);
-            expect(Deposit._value).to.eq.BN(minAmount);
+            expect(Deposit._value).to.eq.BN('1');
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, erc20.address);
-            expect(bet.balance).to.eq.BN(minAmount);
+            expect(bet.balance).to.eq.BN('1');
             assert.equal(bet.model, model.address);
 
             // Check ERC20 balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(prevBalGO20);
             expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(prevBalGP120);
-            expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120.sub(minAmount));
-            expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalG20.add(minAmount));
+            expect(await erc20.balanceOf(player1)).to.eq.BN(dec(prevBalP120));
+            expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(inc(prevBalG20));
         });
 
         it('Try play a bet with low maxAmount', async () => {
@@ -756,14 +770,14 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await gamblingManager.deposit(player1, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
 
             await Helper.tryCatchRevert(
                 gamblingManager.play(
                     player1,
                     id,
                     '0',
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player1 }
                 ),
                 'The needAmount must be less or equal than _maxAmount'
@@ -780,15 +794,15 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await gamblingManager.deposit(player1, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
 
             await Helper.tryCatchRevert(
                 gamblingManager.play(
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
-                    { from: player2, value: minAmount }
+                    [oneBytes32],
+                    { from: player2, value: '1' }
                 ),
                 'The msg.value should be 0'
             );
@@ -811,7 +825,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player2 }
                 ),
                 'Insufficient founds to discount'
@@ -828,14 +842,14 @@ contract('GamblingManager', function (accounts) {
                 { from: creator }
             );
 
-            await gamblingManager.deposit(player1, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
 
             await Helper.tryCatchRevert(
                 gamblingManager.play(
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player2 }
                 ),
                 'Insufficient _allowance to play'
@@ -898,7 +912,7 @@ contract('GamblingManager', function (accounts) {
                     player1,
                     id,
                     maxUint('256'),
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: player1 }
                 ),
                 'Error pulling tokens or send ETH, in deposit'
@@ -973,8 +987,8 @@ contract('GamblingManager', function (accounts) {
                 player1,
                 id,
                 maxUint('256'),
-                [minAmountBytes32],
-                { from: player1, value: minAmount }
+                [oneBytes32],
+                { from: player1, value: '1' }
             );
 
             await saveETHPrevBalances(id);
@@ -983,7 +997,7 @@ contract('GamblingManager', function (accounts) {
                 gamblingManager.collect(
                     player1,
                     id,
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: creator }
                 ),
                 'Collected'
@@ -993,24 +1007,24 @@ contract('GamblingManager', function (accounts) {
             assert.equal(Collected._collecter, creator);
             assert.equal(Collected._id, id);
             assert.equal(Collected._beneficiary, player1);
-            expect(Collected._amount).to.eq.BN(minAmount);
-            assert.equal(Collected._data, minAmountBytes32);
+            expect(Collected._amount).to.eq.BN('1');
+            assert.equal(Collected._data, oneBytes32);
 
             const bet = await gamblingManager.toBet(id);
             assert.equal(bet.erc20, ETH);
-            expect(bet.balance).to.eq.BN(prevBalBet.sub(minAmount));
+            expect(bet.balance).to.eq.BN(dec(prevBalBet));
             assert.equal(bet.model, model.address);
 
             // Check ETH balance
             expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(prevBalGO);
-            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(prevBalGP1.add(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(inc(prevBalGP1));
             expect(await getETHBalance(gamblingManager.address)).to.eq.BN(prevBalG);
         });
 
         it('Try collect a bet with 0x0 addres as beneficiary', async () => {
             const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
-            await gamblingManager.deposit(creator, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(creator, ETH, '1', { from: depositer, value: '1' });
 
             await gamblingManager.create(
                 ETH,
@@ -1023,7 +1037,7 @@ contract('GamblingManager', function (accounts) {
                 gamblingManager.collect(
                     address0x,
                     id,
-                    [minAmountBytes32],
+                    [oneBytes32],
                     { from: creator }
                 ),
                 '_beneficiary should not be 0x0'
@@ -1033,7 +1047,7 @@ contract('GamblingManager', function (accounts) {
         it('Try collect a bet and the balance of bet its insufficient (try overflow)', async () => {
             const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
-            await gamblingManager.deposit(creator, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(creator, ETH, '1', { from: depositer, value: '1' });
 
             await gamblingManager.create(
                 ETH,
@@ -1058,7 +1072,7 @@ contract('GamblingManager', function (accounts) {
         it('Should cancel a bet in ETH', async () => {
             const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
-            await gamblingManager.deposit(creator, ETH, minAmount, { from: depositer, value: minAmount });
+            await gamblingManager.deposit(creator, ETH, '1', { from: depositer, value: '1' });
 
             await gamblingManager.create(
                 ETH,
@@ -1071,8 +1085,8 @@ contract('GamblingManager', function (accounts) {
                 player1,
                 id,
                 maxUint('256'),
-                [minAmountBytes32],
-                { from: player1, value: minAmount }
+                [oneBytes32],
+                { from: player1, value: '1' }
             );
 
             await saveETHPrevBalances(id);
@@ -1089,7 +1103,7 @@ contract('GamblingManager', function (accounts) {
             // For event
             assert.equal(Canceled._creator, creator);
             assert.equal(Canceled._id, id);
-            expect(Canceled._amount).to.eq.BN(minAmount);
+            expect(Canceled._amount).to.eq.BN('1');
             assert.equal(Canceled._data, RETURN_TRUE);
 
             const bet = await gamblingManager.toBet(id);
@@ -1098,7 +1112,7 @@ contract('GamblingManager', function (accounts) {
             assert.equal(bet.model, address0x);
 
             // Check ETH balance
-            expect(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH)).to.eq.BN(prevBalGC.add(minAmount));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](creator, ETH)).to.eq.BN(inc(prevBalGC));
             expect(await getETHBalance(gamblingManager.address)).to.eq.BN(prevBalG);
         });
 
@@ -1200,5 +1214,251 @@ contract('GamblingManager', function (accounts) {
     it('Name and symbol functions', async () => {
         assert.equal(await gamblingManager.name(), 'Ethereum Gambling Bets');
         assert.equal(await gamblingManager.symbol(), 'EGB');
+    });
+
+    describe('Tip contract', function () {
+        it('Should deposit a ERC20 tip in ETH without previus balance', async () => {
+            await saveETHPrevBalances();
+
+            const events = await Helper.toEvents(
+                gamblingManager.tip(
+                    player1,
+                    ETH,
+                    '1',
+                    { from: depositer, value: '1' }
+                ),
+                'Deposit',
+                'Tip'
+            );
+            const Deposit = events[0];
+            assert.equal(Deposit._from, player1);
+            assert.equal(Deposit._to, owner);
+            assert.equal(Deposit._token, ETH);
+            expect(Deposit._value).to.eq.BN('1');
+            const Tip = events[1];
+            expect(Tip._amount).to.eq.BN('1');
+
+            // Check ETH balance
+            expect(await gamblingManager.methods['totalSupply(address)'](ETH)).to.eq.BN(inc(prevBalG));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(prevBalGP1);
+            expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(inc(prevBalGO));
+        });
+
+        it('Should deposit a ERC20 tip in ETH with previus balance', async () => {
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
+            await gamblingManager.methods['approve(address,address,uint256)'](depositer, ETH, '1', { from: player1 });
+
+            await saveETHPrevBalances(undefined);
+
+            const events = await Helper.toEvents(
+                gamblingManager.tip(
+                    player1,
+                    ETH,
+                    '1',
+                    { from: depositer }
+                ),
+                'Transfer',
+                'Tip'
+            );
+            const Transfer = events[0];
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, owner);
+            assert.equal(Transfer._token, ETH);
+            expect(Transfer._value).to.eq.BN('1');
+            const Tip = events[1];
+            expect(Tip._amount).to.eq.BN('1');
+
+            // Check ETH balance
+            expect(await gamblingManager.methods['totalSupply(address)'](ETH)).to.eq.BN(prevBalG);
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(dec(prevBalGP1));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(inc(prevBalGO));
+        });
+
+        it('Should deposit and transfer a ERC20 tip in ETH', async () => {
+            await gamblingManager.deposit(player1, ETH, '1', { from: depositer, value: '1' });
+            await gamblingManager.methods['approve(address,address,uint256)'](depositer, ETH, '1', { from: player1 });
+
+            await saveETHPrevBalances();
+
+            const events = await Helper.toEvents(
+                gamblingManager.tip(
+                    player1,
+                    ETH,
+                    '2',
+                    { from: depositer, value: '1' }
+                ),
+                'Deposit',
+                'Transfer',
+                'Tip'
+            );
+            const Deposit = events[0];
+            assert.equal(Deposit._from, player1);
+            assert.equal(Deposit._to, owner);
+            assert.equal(Deposit._token, ETH);
+            expect(Deposit._value).to.eq.BN('1');
+            const Transfer = events[1];
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, owner);
+            assert.equal(Transfer._token, ETH);
+            expect(Transfer._value).to.eq.BN('1');
+            const Tip = events[2];
+            expect(Tip._amount).to.eq.BN('2');
+
+            // Check ETH balance
+            expect(await gamblingManager.methods['totalSupply(address)'](ETH)).to.eq.BN(inc(prevBalG));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, ETH)).to.eq.BN(dec(prevBalGP1));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](owner, ETH)).to.eq.BN(prevBalGO.add(bn('2')));
+        });
+
+        it('Try deposit and transfer a ERC20 tip in ETH', async () => {
+            await Helper.tryCatchRevert(
+                gamblingManager.tip(
+                    player1,
+                    ETH,
+                    '1',
+                    { from: creator, value: '2' }
+                ),
+                'The msg.value should be more or equal than the _amount'
+            );
+        });
+
+        it('Should deposit a ERC20 tip in Token without previus balance', async () => {
+            await erc20.setBalance(player1, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: player1 });
+
+            await saveERC20PrevBalances(undefined);
+
+            const events = await Helper.toEvents(
+                gamblingManager.tip(
+                    player1,
+                    erc20.address,
+                    '1',
+                    { from: player1 }
+                ),
+                'Deposit',
+                'Tip'
+            );
+            const Deposit = events[0];
+            assert.equal(Deposit._from, player1);
+            assert.equal(Deposit._to, owner);
+            assert.equal(Deposit._token, erc20.address);
+            expect(Deposit._value).to.eq.BN('1');
+            const Tip = events[1];
+            expect(Tip._amount).to.eq.BN('1');
+
+            // Check ERC20 balance
+            expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(inc(prevBalGO20));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(prevBalGP120);
+            expect(await gamblingManager.methods['balanceOf(address,address)'](depositer, erc20.address)).to.eq.BN(prevBalGD20);
+            expect(await erc20.balanceOf(player1)).to.eq.BN(dec(prevBalP120));
+            expect(await erc20.balanceOf(depositer)).to.eq.BN(prevBalGD20);
+            expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(inc(prevBalG20));
+        });
+
+        it('Should deposit a ERC20 tip in Token with previus balance', async () => {
+            await erc20.setBalance(depositer, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: depositer });
+            await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
+            await gamblingManager.methods['approve(address,address,uint256)'](depositer, erc20.address, '1', { from: player1 });
+
+            await saveERC20PrevBalances(undefined);
+
+            const events = await Helper.toEvents(
+                gamblingManager.tip(
+                    player1,
+                    erc20.address,
+                    '1',
+                    { from: depositer }
+                ),
+                'Transfer',
+                'Tip'
+            );
+            const Transfer = events[0];
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, owner);
+            assert.equal(Transfer._token, erc20.address);
+            expect(Transfer._value).to.eq.BN('1');
+            const Tip = events[1];
+            expect(Tip._amount).to.eq.BN('1');
+
+            // Check ERC20 balance
+            expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(inc(prevBalGO20));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(dec(prevBalGP120));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](depositer, erc20.address)).to.eq.BN(prevBalGD20);
+            expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
+            expect(await erc20.balanceOf(depositer)).to.eq.BN(prevBalGD20);
+            expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalG20);
+        });
+
+        it('Should deposit and transfer a ERC20 tip in Token', async () => {
+            await erc20.setBalance(depositer, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: depositer });
+            await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
+            await gamblingManager.methods['approve(address,address,uint256)'](depositer, erc20.address, '1', { from: player1 });
+            await erc20.setBalance(player1, '1');
+            await erc20.approve(gamblingManager.address, '1', { from: player1 });
+
+            await saveERC20PrevBalances(undefined);
+
+            const events = await Helper.toEvents(
+                gamblingManager.tip(
+                    player1,
+                    erc20.address,
+                    '2',
+                    { from: depositer }
+                ),
+                'Deposit',
+                'Transfer',
+                'Tip'
+            );
+            const Deposit = events[0];
+            assert.equal(Deposit._from, player1);
+            assert.equal(Deposit._to, owner);
+            assert.equal(Deposit._token, erc20.address);
+            expect(Deposit._value).to.eq.BN('1');
+            const TransferERC20 = events[1];
+            assert.equal(TransferERC20._from, player1);
+            assert.equal(TransferERC20._to, gamblingManager.address);
+            expect(TransferERC20._tokenId).to.eq.BN('1');
+            const Transfer = events[2];
+            assert.equal(Transfer._from, player1);
+            assert.equal(Transfer._to, owner);
+            assert.equal(Transfer._token, erc20.address);
+            expect(Transfer._value).to.eq.BN('1');
+            const Tip = events[3];
+            expect(Tip._amount).to.eq.BN('2');
+
+            // Check ERC20 balance
+            expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(prevBalGO20.add(bn('2')));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(dec(prevBalGP120));
+            expect(await gamblingManager.methods['balanceOf(address,address)'](depositer, erc20.address)).to.eq.BN(prevBalGD20);
+            expect(await erc20.balanceOf(player1)).to.eq.BN(dec(prevBalP120));
+            expect(await erc20.balanceOf(depositer)).to.eq.BN(prevBalGD20);
+            expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(inc(prevBalG20));
+        });
+
+        it('Try tip without amount', async () => {
+            await Helper.tryCatchRevert(
+                gamblingManager.tip(
+                    player1,
+                    ETH,
+                    '0',
+                    { from: creator }
+                ),
+                'The amount should not be 0'
+            );
+        });
+
+        it('Try tip in ERC20 and send ETH', async () => {
+            await Helper.tryCatchRevert(
+                gamblingManager.tip(
+                    player1,
+                    erc20.address,
+                    '1',
+                    { from: creator, value: '1' }
+                ),
+                'The msg.value should be 0'
+            );
+        });
     });
 });
