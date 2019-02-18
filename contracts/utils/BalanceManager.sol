@@ -33,10 +33,14 @@ contract BalanceManager is IBalanceManager {
     }
 
     function transfer(address _to, address _token, uint256 _value) external returns(bool) {
-      return _transfer(msg.sender, _to, _token, _value);
+        return _transfer(msg.sender, _to, _token, _value);
     }
 
     function transferFrom(address _from, address _to, address _token, uint256 _value) external returns (bool success) {
+        return _transferFrom(_from, _to, _token, _value);
+    }
+
+    function _transferFrom(address _from, address _to, address _token, uint256 _value) internal returns (bool success) {
         // Here check _allowance underflow
         require(_allowance[_from][msg.sender][_token] >= _value, "Insufficient _allowance to transferFrom");
         _allowance[_from][msg.sender][_token] -= _value;
