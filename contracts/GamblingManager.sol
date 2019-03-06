@@ -41,6 +41,7 @@ contract IdHelper {
     }
 }
 
+
 contract TipERC20 is BalanceManager, ITipERC20, Ownable {
     function tip(address _from, address _token, uint256 _amount) external payable {
         require(_amount != 0, "The amount should not be 0");

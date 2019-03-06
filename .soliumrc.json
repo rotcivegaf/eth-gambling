@@ -7,13 +7,15 @@
     "lbrace": "off",
     "linebreak-style": ["error", "unix"],
     "no-constant": ["error"],
-    "no-empty-blocks": "error",
+    "no-empty-blocks": "off",
     "quotes": ["error", "double"],
     "uppercase": "off",
     "imports-on-top": "error",
     "visibility-first": "error",
     "security/enforce-explicit-visibility": ["error"],
     "security/no-block-members": ["off"],
-    "security/no-inline-assembly": ["off"]
+    "security/no-inline-assembly": ["off"],
+    "function-order": ["off"],
+    "arg-overflow": ["off"]
   }
 }

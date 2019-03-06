@@ -29,6 +29,7 @@ contract ERC721Manager is IERC721Manager, IERC721ReceiverLegacy, IERC721Receiver
         _onERC721Received(address(0), _from, _erc721Id, _userData);
         return bytes4(0xf0b9e5ba);
     }
+
     function onERC721Received(address _operator, address _from, uint256 _erc721Id, bytes calldata _userData) external returns (bytes4) {
         _onERC721Received(_operator, _from, _erc721Id, _userData);
         return bytes4(0x150b7a02);
