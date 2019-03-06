@@ -178,15 +178,21 @@ workflows:
             - build:
                 requires:
                     - install
-            - test:
-                requires:
-                    - install
-            - coverage:
-                requires:
-                    - install
             - lint-javascript:
                 requires:
                     - install
             - lint-solidity:
                 requires:
                     - install
+            - test:
+                requires:
+                    - install
+                    - build
+                    - lint-javascript
+                    - lint-solidity
+            - coverage:
+                requires:
+                    - install
+                    - build
+                    - lint-javascript
+                    - lint-solidity
