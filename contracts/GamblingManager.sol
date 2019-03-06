@@ -20,7 +20,7 @@ contract IdHelper {
         address _creator,
         address _erc20,
         IModel _model,
-        bytes32[] calldata _data,
+        bytes calldata _data,
         uint256 _salt
     ) external view returns (bytes32) {
         return keccak256(
@@ -87,7 +87,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     function create(
         address _erc20,
         IModel _model,
-        bytes32[] calldata _data
+        bytes calldata _data
     ) external returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
 
@@ -108,7 +108,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     function create2(
         address _erc20,
         IModel _model,
-        bytes32[] calldata _data,
+        bytes calldata _data,
         uint256 _salt
     ) external returns (bytes32 betId) {
         betId = keccak256(
@@ -131,7 +131,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     function create3(
         address _erc20,
         IModel _model,
-        bytes32[] calldata _data,
+        bytes calldata _data,
         uint256 _salt
     ) external returns(bytes32 betId) {
         betId = keccak256(abi.encodePacked(uint8(3), address(this), msg.sender, _salt));
@@ -145,7 +145,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         address _player,
         bytes32 _betId,
         uint256 _maxAmount,
-        bytes32[] calldata _data
+        bytes calldata _data
     ) external payable returns(bool) {
         Bet storage bet = toBet[_betId];
 
@@ -172,7 +172,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     function collect(
         address _beneficiary,
         bytes32 _betId,
-        bytes32[] calldata _data
+        bytes calldata _data
     ) external {
         require(_beneficiary != address(0), "_beneficiary should not be 0x0");
         Bet storage bet = toBet[_betId];
@@ -193,7 +193,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         );
     }
 
-    function cancel(bytes32 _betId, bytes32[] calldata _data) external {
+    function cancel(bytes32 _betId, bytes calldata _data) external {
         Bet storage bet = toBet[_betId];
         require(bet.model != IModel(0), "The bet its not exist or was canceled");
 
@@ -212,7 +212,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         bytes32 _betId,
         address _erc20,
         IModel _model,
-        bytes32[] memory _data
+        bytes memory _data
     ) internal {
         require(toBet[_betId].model == IModel(0), "The bet is already created");
 

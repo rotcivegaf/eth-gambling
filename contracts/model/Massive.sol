@@ -25,7 +25,7 @@ contract Massive is IModel {
         gamblingManager = _gamblingManager;
     }
 
-    function create(bytes32 _id, bytes32[] calldata) external onlyGamblingManager returns(bool) {
+    function create(bytes32 _id, bytes calldata) external onlyGamblingManager returns(bool) {
         // (address game, bytes32 eventId) = _decodeCreateData(_data);
 
         bets[_id] = Bet({
@@ -33,22 +33,22 @@ contract Massive is IModel {
         });
     }
 
-    function play(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(uint256 needAmount) {
+    function play(bytes32, address, bytes calldata) external onlyGamblingManager returns(uint256 needAmount) {
         return 0;
     }
 
-    function collect(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(uint256 amount) {
+    function collect(bytes32, address, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
         return 0;
     }
 
-    function cancel(bytes32, address, bytes32[] calldata) external onlyGamblingManager returns(bool) {
+    function cancel(bytes32, address, bytes calldata) external onlyGamblingManager returns(bool) {
     }
 
-    function validateCreate(bytes32 _id, bytes32[] calldata) external view returns(bool) {
+    function validateCreate(bytes32 _id, bytes calldata) external view returns(bool) {
         revert("TODO");
     }
 
-    function validatePlay(bytes32 _id, bytes32[] calldata) external view returns(bool) {
+    function validatePlay(bytes32 _id, bytes calldata) external view returns(bool) {
         revert("TODO");
     }
 
@@ -60,7 +60,7 @@ contract Massive is IModel {
         revert("TODO");
     }
 
-    function simNeedAmount(bytes32 _betId, bytes32[] calldata _data) external view returns (uint256 needAmount, bool canChange) {
+    function simNeedAmount(bytes32 _betId, bytes calldata _data) external view returns (uint256 needAmount, bool canChange) {
         revert("TODO");
     }
 
