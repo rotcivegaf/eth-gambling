@@ -48,7 +48,7 @@
     "ganache-cli": "^6.1.8",
     "ganache-cli-coverage": "agusx1211/ganache-cli#coverage",
     "solidity-coverage": "rotcivegaf/solidity-coverage",
-    "solium": "^1.2.0",
+    "solium": "^1.2.3",
     "truffle": "^5.0.0"
   }
 }
