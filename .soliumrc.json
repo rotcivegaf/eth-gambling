@@ -13,6 +13,7 @@
     "imports-on-top": "error",
     "visibility-first": "error",
     "security/enforce-explicit-visibility": ["error"],
+    "security/no-block-members": ["on"],
     "security/no-inline-assembly": ["off"]
   }
 }
