@@ -45,8 +45,17 @@ contract PawnManager is TipERC721 {
         address _erc721,
         uint256 _erc721Id,
         bytes calldata _dataPawn
-    ) external {
+    ) external returns(uint256 pawnId) {
+        if(_pawnHouse != IPawnHouse(0))
+            require(_pawnHouse.validate(_dataPawn), "");
 
+        pawnId = pawns.push(Pawn({
+            betId: _betId,
+            pawner: _pawnHouse,
+            pawnHouse: _pawnHouse,
+            erc721: _erc721,
+            erc721Id: _erc721Id
+        })) - 1;
     }
 
     function playPawn(
