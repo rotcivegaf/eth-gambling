@@ -1,6 +1,7 @@
 pragma solidity ^0.5.0;
 
 import "./interfaces/ITipERC721.sol";
+import "./interfaces/IGamblingManager.sol";
 
 import "./utils/ERC721Manager.sol";
 import "./utils/Ownable.sol";
@@ -26,6 +27,8 @@ contract TipERC721 is ERC721Manager, ITipERC721, Ownable {
 
 
 contract PawnManager is TipERC721 {
+    IGamblingManager gamblingManager;
+
     struct Pawn {
         bytes32 betId;
         address pawner;
