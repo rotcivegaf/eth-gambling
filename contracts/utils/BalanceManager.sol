@@ -3,8 +3,12 @@ pragma solidity ^0.5.0;
 import "./../interfaces/IBalanceManager.sol";
 import "./../interfaces/IERC20.sol";
 
+import "./SafeERC20.sol";
+
 
 contract BalanceManager is IBalanceManager {
+    using SafeERC20 for IERC20;
+
     // [wallet/contract, Token] to balance
     mapping (address => mapping (address => uint256)) internal _toBalance;
 
