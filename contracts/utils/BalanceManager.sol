@@ -128,7 +128,7 @@ contract BalanceManager is IBalanceManager {
         require(_to != address(0), "_to should not be 0x0");
 
         uint256 addrBal = _toBalance[msg.sender][_token];
-        _toBalance[msg.sender][_token] = 0;
+        delete (_toBalance[msg.sender][_token]);
 
         if (_token == ETH)
             _to.transfer(addrBal);

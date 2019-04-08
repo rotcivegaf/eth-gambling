@@ -201,7 +201,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         delete (bet.model);
 
         uint256 balance = bet.balance;
-        bet.balance = 0;
+        delete (bet.balance);
         _transfer(address(this), msg.sender, bet.erc20, balance);
 
         emit Canceled(msg.sender, _betId, balance, _data);
