@@ -155,14 +155,12 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
         if (msg.sender != _player) {
             require(msg.value == 0, "The msg.value should be 0");
-            require(_toBalance[_player][bet.erc20] >= needAmount, "Insufficient founds to discount");
-            require(_allowance[_player][msg.sender][bet.erc20] >= needAmount, "Insufficient _allowance to play");
-            _allowance[_player][msg.sender][bet.erc20] -= needAmount;
+            _transferFrom(_player, address(this), bet.erc20, needAmount);
         } else {
             if (_toBalance[_player][bet.erc20] < needAmount)
                 _deposit(_player, _player, bet.erc20, needAmount - _toBalance[_player][bet.erc20]);
+            _transfer(_player, address(this), bet.erc20, needAmount);
         }
-        _toBalance[_player][bet.erc20] -= needAmount;
 
         // Add balance to Bet
         bet.balance += needAmount;
@@ -183,7 +181,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         require(amount <= bet.balance, "Insufficient founds to discount from bet balance");
         bet.balance -= amount;
 
-        _toBalance[_beneficiary][bet.erc20] += amount;
+        _transfer(address(this), _beneficiary, bet.erc20, amount);
 
         emit Collected(
             msg.sender,
@@ -204,7 +202,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
         uint256 balance = bet.balance;
         bet.balance = 0;
-        _toBalance[msg.sender][bet.erc20] += balance;
+        _transfer(address(this), msg.sender, bet.erc20, balance);
 
         emit Canceled(msg.sender, _betId, balance, _data);
     }

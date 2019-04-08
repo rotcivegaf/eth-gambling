@@ -820,11 +820,11 @@ contract('GamblingManager', function (accounts) {
                     oneBytes32,
                     { from: player2 }
                 ),
-                'Insufficient founds to discount'
+                'Insufficient _allowance to transferFrom'
             );
         });
 
-        it('Try play a bet without player balance and the sender is different than player', async () => {
+        it('Try play a bet without player allowance and the sender is different than player', async () => {
             const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
             await gamblingManager.create(
@@ -844,7 +844,7 @@ contract('GamblingManager', function (accounts) {
                     oneBytes32,
                     { from: player2 }
                 ),
-                'Insufficient _allowance to play'
+                'Insufficient _allowance to transferFrom'
             );
         });
 
