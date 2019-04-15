@@ -85,6 +85,11 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
+    function getBet(bytes32 _betId) external view returns(address, uint256, address) {
+        Bet storage bet = toBet[_betId];
+        return (bet.erc20, bet.balance, address(bet.model));
+    }
+
     function create(
         address _erc20,
         IModel _model,
@@ -150,7 +155,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     ) external payable returns(bool) {
         Bet storage bet = toBet[_betId];
 
-        uint256 needAmount = bet.model.play(_betId, _player, _data);
+        uint256 needAmount = bet.model.play(msg.sender, _betId, _player, _data);
         require(needAmount <= _maxAmount, "The needAmount must be less or equal than _maxAmount");
 
         if (msg.sender != _player) {
@@ -176,7 +181,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         require(_beneficiary != address(0), "_beneficiary should not be 0x0");
         Bet storage bet = toBet[_betId];
 
-        uint256 amount = bet.model.collect(_betId, _beneficiary, _data);
+        uint256 amount = bet.model.collect(msg.sender, _betId, _beneficiary, _data);
 
         require(amount <= bet.balance, "Insufficient founds to discount from bet balance");
         bet.balance -= amount;
@@ -196,7 +201,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         Bet storage bet = toBet[_betId];
         require(bet.model != IModel(0), "The bet its not exist or was canceled");
 
-        require(bet.model.cancel(_betId, msg.sender, _data), "The bet cant cancel");
+        require(bet.model.cancel(msg.sender, _betId, _data), "The bet cant cancel");
 
         delete (bet.model);
 
@@ -215,7 +220,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     ) internal {
         require(toBet[_betId].model == IModel(0), "The bet is already created");
 
-        require(_model.create(_betId, _data), "Model.create return false");
+        require(_model.create(msg.sender, _betId, _data), "Model.create return false");
 
         _generate(uint256(_betId), msg.sender);
 

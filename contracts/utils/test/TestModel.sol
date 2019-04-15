@@ -10,27 +10,27 @@ contract TestModel is IModel {
 
     bytes32 public constant TRUE = 0x0000000000000000000000000000000000000000000000000000000054525545;
 
-    function create(bytes32, bytes calldata _data ) external returns(bool) {
+    function create(address, bytes32, bytes calldata _data) external returns(bool) {
         return _data.toBytes32(0) == TRUE;
     }
 
-    function play(bytes32, address, bytes calldata _data) external returns(uint256) {
+    function play(address, bytes32, address, bytes calldata _data) external returns(uint256) {
         return _data.toUint256(0);
     }
 
-    function collect(bytes32, address, bytes calldata _data) external returns(uint256) {
+    function collect(address, bytes32, address, bytes calldata _data) external returns(uint256) {
         return _data.toUint256(0);
     }
 
-    function cancel(bytes32, address, bytes calldata _data) external returns(bool) {
+    function cancel(address, bytes32, bytes calldata _data) external returns(bool) {
         return _data.toBytes32(0) == TRUE;
     }
 
-    function validateCreate(bytes32, bytes calldata) external view returns(bool) {
+    function validateCreate(address, bytes32, bytes calldata) external view returns(bool) {
         revert("Not implement");
     }
 
-    function validatePlay(bytes32, bytes calldata) external view returns(bool) {
+    function validatePlay(address, bytes32, address, bytes calldata) external view returns(bool) {
         revert("Not implement");
     }
 

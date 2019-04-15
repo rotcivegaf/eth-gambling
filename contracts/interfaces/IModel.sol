@@ -5,13 +5,13 @@ import "./IOracle.sol";
 
 interface IModel {
     // This methods should be sender by the GamblingManager
-    function create(bytes32 _id, bytes calldata _data) external returns(bool success);
-    function play(bytes32 _id, address _player, bytes calldata _data) external returns(uint256 needAmount);
-    function collect(bytes32 _id, address _player, bytes calldata _data) external returns(uint256 amount);
-    function cancel(bytes32 _id, address _player, bytes calldata _data) external returns(bool success);
+    function create(address _sender, bytes32 _id, bytes calldata _data) external returns(bool success);
+    function play(address _sender, bytes32 _id, address _player, bytes calldata _data) external returns(uint256 needAmount);
+    function collect(address _sender, bytes32 _id, address _player, bytes calldata _data) external returns(uint256 amount);
+    function cancel(address _sender, bytes32 _id, bytes calldata _data) external returns(bool success);
 
-    function validateCreate(bytes32 _id, bytes calldata _data) external view returns(bool);
-    function validatePlay(bytes32 _id, bytes calldata _data) external view returns(bool);
+    function validateCreate(address _sender, bytes32 _id, bytes calldata _data) external view returns(bool);
+    function validatePlay(address _sender, bytes32 _id, address _player, bytes calldata _data) external view returns(bool);
 
     function getEnd(bytes32 _betId) external view returns (uint256 endTime);
     function getNoMoreBets(bytes32 _betId) external view returns (uint256 noMoreBets);

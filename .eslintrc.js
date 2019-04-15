@@ -27,7 +27,7 @@ module.exports = {
       "eol-last": ["error", "always"],
       "eqeqeq": ["error", "smart"],
       "generator-star-spacing": ["error", "before"],
-      "indent": ["error", 4],
+      "indent": ["error", 2],
       "linebreak-style": ["error", "unix"],
       "no-debugger": "off",
       "no-dupe-args": "error",
@@ -45,6 +45,7 @@ module.exports = {
       "semi": ["error", "always"],
       "space-before-function-paren": ["error", "always"],
       "promise/always-return": "off",
-      "promise/avoid-new": "off"
+      "promise/avoid-new": "off",
+      "curly": ["error", "multi" ]
     }
 };

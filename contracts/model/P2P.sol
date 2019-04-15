@@ -27,11 +27,11 @@ contract P2P is IModel {
         gamblingManager = _gamblingManager;
     }
 
-    function create(bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
+    function create(address _sender, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
         revert("Not implements");
     }
 
-    function play(bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns (uint256 needAmount) {
+    function play(address _sender, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns (uint256 needAmount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB == address(0), "The bet its taken");
 
@@ -81,7 +81,7 @@ contract P2P is IModel {
 
         @return The amount that will be transferred to the _player
     */
-    function collect(bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
+    function collect(address _sender, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB != address(0), "The bet its not taken");
 
@@ -110,7 +110,7 @@ contract P2P is IModel {
         bet.playerBPay = 0;
     }
 
-    function cancel(bytes32 _betId, address, bytes calldata) external onlyGamblingManager returns(bool) {
+    function cancel(address _sender, bytes32 _betId, address, bytes calldata) external onlyGamblingManager returns(bool) {
         require(bets[_betId].playerB == address(0), "The bet its taken");
     }
 
