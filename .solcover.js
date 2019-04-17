@@ -4,7 +4,7 @@ module.exports = {
   compileCommand: 'node --max-old-space-size=4096 ../node_modules/.bin/truffle compile --network coverage',
   skipFiles: [
     'utils/test',
-    'utils/BytesUtils.sol',
+    'utils/BytesLib.sol',
     'interfaces'
   ]
 }
