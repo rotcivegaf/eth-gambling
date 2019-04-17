@@ -16,6 +16,7 @@
     "security/no-block-members": ["off"],
     "security/no-inline-assembly": ["off"],
     "function-order": ["off"],
-    "arg-overflow": ["off"]
+    "arg-overflow": ["off"],
+    "operator-whitespace": "warning"
   }
 }

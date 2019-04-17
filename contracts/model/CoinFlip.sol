@@ -50,7 +50,7 @@ contract CoinFlip is IModel, Ownable {
     function play(address _sender, bytes32 _id, address _player, bytes calldata _data) external onlyGamblingManager returns(uint256 needAmount) {
         needAmount = _data.toUint256(0);
 
-        if(needAmount == 0) { // Deposit to bet
+        if (needAmount == 0) { // Deposit to bet
             needAmount = _data.toUint256(32);
             emit Deposit(needAmount);
         } else { // Play Bet
@@ -91,7 +91,7 @@ contract CoinFlip is IModel, Ownable {
         uint256 needAmount = _data.toUint256(0);
         (,,address erc20) = gamblingManager.getBet(_id);
 
-        if(needAmount == 0) { // Deposit to bet
+        if (needAmount == 0) { // Deposit to bet
             return _data.toUint256(32) >= gamblingManager.balanceOf(_player, erc20);
         } else { // Play Bet
             uint256 possibility = _data.toUint256(32);
@@ -119,7 +119,7 @@ contract CoinFlip is IModel, Ownable {
     function simNeedAmount(bytes32, bytes calldata _data) external view returns (uint256 needAmount, bool) {
         needAmount = _data.toUint256(0);
 
-        if(needAmount == 0) { // Deposit to bet
+        if (needAmount == 0) { // Deposit to bet
             needAmount = _data.toUint256(32);
         } else { // Play Bet
             needAmount = (needAmount * possibilitiesToMultiplier[_data.toUint256(32)]) / MULTIPLIER_BASE;

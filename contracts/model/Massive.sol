@@ -81,7 +81,7 @@ contract Massive is IModel, Ownable {
         Bet storage bet = bets[_id];
         require(bet.noMoreBets < now, "The bet its close");
         bet.playerToBalance[_player] += amount;
-        if(bet.playerToOption[_player] == 0)
+        if (bet.playerToOption[_player] == 0)
             bet.playerToOption[_player] = playerOption;
         bet.optionToBalance[bet.playerToOption[_player]] += amount;
         bet.balance += amount;
