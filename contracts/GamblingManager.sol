@@ -85,11 +85,6 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
-    function getBet(bytes32 _betId) external view returns(address, uint256, address) {
-        Bet storage bet = toBet[_betId];
-        return (bet.erc20, bet.balance, address(bet.model));
-    }
-
     function create(
         address _erc20,
         IModel _model,

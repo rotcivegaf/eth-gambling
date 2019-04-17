@@ -64,7 +64,7 @@ contract CoinFlip is IModel, Ownable {
 
             if (winNumber == option) {
                 uint256 winAmount = (needAmount * possibilitiesToMultiplier[possibility]) / MULTIPLIER_BASE;
-                (,,address erc20) = gamblingManager.getBet(_id);
+                (address erc20,,) = gamblingManager.toBet(_id);
                 gamblingManager.transfer(_player, erc20, winAmount);
                 emit Win(possibility, winNumber, winAmount);
                 return 0;
@@ -89,7 +89,7 @@ contract CoinFlip is IModel, Ownable {
 
     function validatePlay(address _sender, bytes32 _id, address _player, bytes calldata _data) external view returns(bool) {
         uint256 needAmount = _data.toUint256(0);
-        (,,address erc20) = gamblingManager.getBet(_id);
+        (address erc20,,) = gamblingManager.toBet(_id);
 
         if (needAmount == 0) { // Deposit to bet
             return _data.toUint256(32) >= gamblingManager.balanceOf(_player, erc20);
