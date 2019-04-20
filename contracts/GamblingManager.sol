@@ -207,6 +207,23 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         emit Canceled(msg.sender, _betId, balance, _data);
     }
 
+    function modelTransfer (
+        address _beneficiary,
+        bytes32 _betId,
+        uint256 _amount
+    ) external {
+        require(_beneficiary != address(0), "_beneficiary should not be 0x0");
+        Bet storage bet = toBet[_betId];
+
+        require(msg.sender == address(bet.model), "The sender should be the model");
+        require(_amount <= bet.balance, "Insufficient founds to discount from bet balance");
+
+        bet.balance -= _amount;
+        _transfer(address(this), _beneficiary, bet.erc20, _amount);
+
+        emit ModelTransfer(_betId, _beneficiary, _amount);
+    }
+
     function _create(
         bytes32 _betId,
         address _erc20,

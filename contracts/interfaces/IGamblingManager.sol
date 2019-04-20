@@ -48,4 +48,10 @@ interface IGamblingManager {
         uint256 _amount,
         bytes _data
     );
+
+    event ModelTransfer(
+        bytes32 indexed _id,
+        address indexed _beneficiary,
+        uint256 _amount
+    );
 }
