@@ -82,7 +82,6 @@ async function hackWin (possibility) {
 
 const ETH = web3.utils.padLeft('0x0', 40);
 const address0x = web3.utils.padLeft('0x0', 40);
-const bytes320x = toHexBytes32('0x0');
 
 const DEPOSIT = bn('0');
 const MULTIPLIER_BASE = bn('1000000');
@@ -232,10 +231,6 @@ contract('CoinFlip', function (accounts) {
         'The option should be inside of the possibility'
       );
     });
-    /*      require(!_sender.isContract(), "The sender should not be a contract");
-            require(balance >= winAmount, "Insufficient bet founds");
-            require(option < possibility, "The option should be inside of the possibility");
-*/
   });
 
   describe('Function setMultiplier', function () {
