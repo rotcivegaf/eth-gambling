@@ -59,7 +59,7 @@ contract Massive is IModel, Ownable {
         emit SetWiner(_id, _winner);
     }
 
-    function create(address _sender, bytes32 _id, bytes calldata _data) external onlyGamblingManager returns(bool) {
+    function create(address, bytes32 _id, bytes calldata _data) external onlyGamblingManager returns(bool) {
         require(!pause, "The model its pause");
         uint256 noMoreBets = _data.toUint256(0);
         require(oracle != address(0), "The oracle should not be 0");
@@ -72,7 +72,7 @@ contract Massive is IModel, Ownable {
         });
     }
 
-    function play(address _sender, bytes32 _id, address _player, bytes calldata _data) external onlyGamblingManager returns(uint256 needAmount) {
+    function play(address, bytes32 _id, address _player, bytes calldata _data) external onlyGamblingManager returns(uint256 needAmount) {
         require(!pause, "The model its pause");
         bytes32 playerOption = _data.toBytes32(0);
         uint256 amount = _data.toUint256(32);
@@ -89,34 +89,34 @@ contract Massive is IModel, Ownable {
         return amount;
     }
 
-    function collect(address _sender, bytes32 _id, address _to, bytes calldata _data) external onlyGamblingManager returns(uint256 amount) {
+    function collect(address, bytes32, address, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
         return 0;
     }
 
-    function cancel(address _sender, bytes32 _id, address _to, bytes calldata _data) external onlyGamblingManager returns(bool) {
+    function cancel(address, bytes32, address, bytes calldata) external onlyGamblingManager returns(bool) {
     }
 
-    function validateCreate(bytes32 _id, bytes calldata _data) external view returns(bool) {
+    function validateCreate(bytes32, bytes calldata) external view returns(bool) {
         revert("TODO");
     }
 
-    function validatePlay(bytes32 _id, bytes calldata _data) external view returns(bool) {
+    function validatePlay(bytes32, bytes calldata) external view returns(bool) {
         revert("TODO");
     }
 
-    function getEnd(bytes32 _id) external view returns (uint256 endTime) {
+    function getEnd(bytes32) external view returns (uint256) {
         revert("TODO");
     }
 
-    function getNoMoreBets(bytes32 _id) external view returns (uint256 noMoreBets) {
+    function getNoMoreBets(bytes32) external view returns (uint256) {
         revert("TODO");
     }
 
-    function simNeedAmount(bytes32 _id, bytes calldata _data) external view returns (uint256 needAmount, bool canChange) {
+    function simNeedAmount(bytes32, bytes calldata) external view returns (uint256, bool) {
         revert("TODO");
     }
 
-    function simActualReturn(bytes32 _id, bytes calldata _data) external view returns (uint256 returnAmount, bool canChange) {
+    function simActualReturn(bytes32, bytes calldata) external view returns (uint256, bool) {
         revert("TODO");
     }
 }

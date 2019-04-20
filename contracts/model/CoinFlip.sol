@@ -63,7 +63,7 @@ contract CoinFlip is IModel, Ownable {
             uint256 winAmount = (needAmount * multiplier) / MULTIPLIER_BASE;
 
             require(winAmount <= toMaxBetAmount[_id], "The amount of bet is to high");
-            (address erc20, uint256 balance,) = gamblingManager.toBet(_id);
+            (, uint256 balance,) = gamblingManager.toBet(_id);
             require(balance >= winAmount, "Insufficient bet founds");
 
             uint256 option = _data.toUint256(64);
@@ -80,7 +80,7 @@ contract CoinFlip is IModel, Ownable {
         }
     }
 
-    function collect(address _sender, bytes32, address _beneficiary, bytes calldata _data) external onlyGamblingManager returns(uint256) {
+    function collect(address _sender, bytes32, address, bytes calldata _data) external onlyGamblingManager returns(uint256) {
         require(_sender == owner, "The owner should be the sender");
         return _data.toUint256(0);
     }

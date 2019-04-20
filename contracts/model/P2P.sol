@@ -27,11 +27,11 @@ contract P2P is IModel {
         gamblingManager = _gamblingManager;
     }
 
-    function create(address _sender, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
+    function create(address, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
         revert("Not implements");
     }
 
-    function play(address _sender, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns (uint256 needAmount) {
+    function play(address, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns (uint256 needAmount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB == address(0), "The bet its taken");
 
@@ -81,7 +81,7 @@ contract P2P is IModel {
 
         @return The amount that will be transferred to the _player
     */
-    function collect(address _sender, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
+    function collect(address, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB != address(0), "The bet its not taken");
 
@@ -110,31 +110,31 @@ contract P2P is IModel {
         bet.playerBPay = 0;
     }
 
-    function cancel(address _sender, bytes32 _betId, address, bytes calldata) external onlyGamblingManager returns(bool) {
+    function cancel(address, bytes32 _betId, address, bytes calldata) external onlyGamblingManager returns(bool) {
         require(bets[_betId].playerB == address(0), "The bet its taken");
     }
 
-    function validateCreate(bytes32 _id, bytes calldata) external view returns(bool) {
+    function validateCreate(bytes32, bytes calldata) external view returns(bool) {
         revert("TODO");
     }
 
-    function validatePlay(bytes32 _id, bytes calldata) external view returns(bool) {
+    function validatePlay(bytes32, bytes calldata) external view returns(bool) {
         revert("TODO");
     }
 
-    function getEnd(bytes32 _betId) external view returns (uint256 endTime) {
+    function getEnd(bytes32) external view returns (uint256) {
         revert("TODO");
     }
 
-    function getNoMoreBets(bytes32 _betId) external view returns (uint256 noMoreBets) {
+    function getNoMoreBets(bytes32) external view returns (uint256) {
         revert("TODO");
     }
 
-    function simNeedAmount(bytes32 _betId, bytes calldata _data) external view returns (uint256 needAmount, bool canChange) {
+    function simNeedAmount(bytes32, bytes calldata) external view returns (uint256, bool) {
         revert("TODO");
     }
 
-    function simActualReturn(bytes32 _betId, bytes calldata _data) external view returns (uint256 returnAmount, bool canChange) {
+    function simActualReturn(bytes32, bytes calldata) external view returns (uint256, bool) {
         revert("TODO");
     }
 }
