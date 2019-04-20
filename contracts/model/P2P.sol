@@ -134,7 +134,7 @@ contract P2P is IModel {
         revert("TODO");
     }
 
-    function simActualReturn(bytes32 _betId) external view returns (uint256 returnAmount, bool canChange) {
+    function simActualReturn(bytes32 _betId, bytes calldata _data) external view returns (uint256 returnAmount, bool canChange) {
         revert("TODO");
     }
 }

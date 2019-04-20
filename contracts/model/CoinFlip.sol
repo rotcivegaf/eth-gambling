@@ -5,24 +5,26 @@ import "../interfaces/IModel.sol";
 import "../GamblingManager.sol";
 import "../utils/BytesLib.sol";
 import "../utils/Ownable.sol";
+import "../utils/IsContract.sol";
+
 
 contract CoinFlip is IModel, Ownable {
+    using IsContract for address;
     using BytesLib for bytes;
 
-    event SetMaxBetAmount(uint256 _maxBetAmount);
+    event SetMaxBetAmount(bytes32 _id, uint256 _maxBetAmount);
     event SetMultiplier(uint256 _possibility, uint256 _multiplier);
 
-    event Deposit(uint256 _amount);
-    event Win(uint256 _possibility, uint256 _number, uint256 _amount);
-    event Lose(uint256 _possibility, uint256 _number);
+    event Deposit();
+    event Win(uint256 _possibility, uint256 _multiplier, uint256 _luckyNumber, uint256 _betNumber);
+    event Lose(uint256 _possibility, uint256 _multiplier, uint256 _luckyNumber, uint256 _betNumber);
 
-    uint256 public maxBetAmount;
     GamblingManager public gamblingManager;
 
-    uint256 public constant MULTIPLIER_BASE = 1000000000000000000;
+    uint256 public constant MULTIPLIER_BASE = 1000000;
 
     mapping(uint256 => uint256) public possibilitiesToMultiplier;
-    mapping(address => uint256) public winnerToBalance;
+    mapping(bytes32 => uint256) public toMaxBetAmount;
 
     modifier onlyGamblingManager() {
         require(msg.sender == address(gamblingManager), "Only the Gambling Manager");
@@ -33,9 +35,9 @@ contract CoinFlip is IModel, Ownable {
         gamblingManager = _gamblingManager;
     }
 
-    function setMaxBetAmount(uint256 _maxBetAmount) external onlyOwner {
-        maxBetAmount = _maxBetAmount;
-        emit SetMaxBetAmount(_maxBetAmount);
+    function setMaxBetAmount(bytes32 _id, uint256 _maxBetAmount) external onlyOwner {
+        toMaxBetAmount[_id] = _maxBetAmount;
+        emit SetMaxBetAmount(_id, _maxBetAmount);
     }
 
     function setMultiplier(uint256 _possibility, uint256 _multiplier) external onlyOwner {
@@ -52,33 +54,38 @@ contract CoinFlip is IModel, Ownable {
 
         if (needAmount == 0) { // Deposit to bet
             needAmount = _data.toUint256(32);
-            emit Deposit(needAmount);
+            emit Deposit();
         } else { // Play Bet
-            require(needAmount <= maxBetAmount, "The amount of bet is to high");
+            require(!_sender.isContract(), "The sender should not be a contract");
 
             uint256 possibility = _data.toUint256(32);
+            uint256 multiplier = possibilitiesToMultiplier[possibility];
+            uint256 winAmount = (needAmount * multiplier) / MULTIPLIER_BASE;
+
+            require(winAmount <= toMaxBetAmount[_id], "The amount of bet is to high");
+            (address erc20, uint256 balance,) = gamblingManager.toBet(_id);
+            require(balance >= winAmount, "Insufficient bet founds");
+
             uint256 option = _data.toUint256(64);
             require(option < possibility, "The option should be inside of the possibility");
 
             uint256 winNumber = uint256((keccak256(abi.encodePacked(now, block.difficulty, blockhash(block.number-1))))) % possibility;
 
             if (winNumber == option) {
-                uint256 winAmount = (needAmount * possibilitiesToMultiplier[possibility]) / MULTIPLIER_BASE;
-                (address erc20,,) = gamblingManager.toBet(_id);
-                gamblingManager.transfer(_player, erc20, winAmount);
-                emit Win(possibility, winNumber, winAmount);
+                gamblingManager.modelTransfer(_player, _id, winAmount);
+                emit Win(possibility, multiplier, winNumber, option);
                 return 0;
             }
-            emit Lose(possibility, winNumber);
+            emit Lose(possibility, multiplier, winNumber, option);
         }
     }
 
-    function collect(address _sender, bytes32 _id, address _beneficiary, bytes calldata _data) external onlyGamblingManager returns(uint256) {
+    function collect(address _sender, bytes32, address _beneficiary, bytes calldata _data) external onlyGamblingManager returns(uint256) {
         require(_sender == owner, "The owner should be the sender");
         return _data.toUint256(0);
     }
 
-    function cancel(address _sender, bytes32 _id, bytes calldata) external onlyGamblingManager returns(bool) {
+    function cancel(address _sender, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
         require(_sender == owner, "The owner should be the sender");
         return true;
     }
@@ -89,23 +96,30 @@ contract CoinFlip is IModel, Ownable {
 
     function validatePlay(address _sender, bytes32 _id, address _player, bytes calldata _data) external view returns(bool) {
         uint256 needAmount = _data.toUint256(0);
-        (address erc20,,) = gamblingManager.toBet(_id);
+        (address erc20, uint256 balance,) = gamblingManager.toBet(_id);
 
         if (needAmount == 0) { // Deposit to bet
-            return _data.toUint256(32) >= gamblingManager.balanceOf(_player, erc20);
+            require(_data.toUint256(32) >= gamblingManager.balanceOf(_player, erc20), "The depositer dont have balance");
         } else { // Play Bet
             uint256 possibility = _data.toUint256(32);
-            uint256 option = _data.toUint256(64);
             uint256 winAmount = (needAmount * possibilitiesToMultiplier[possibility]) / MULTIPLIER_BASE;
-            return needAmount <= maxBetAmount
-                && needAmount >= gamblingManager.balanceOf(_player, erc20)
-                && winAmount <= gamblingManager.balanceOf(address(this), erc20)
-                && option < possibility;
+            require(winAmount <= toMaxBetAmount[_id], "The bet amount its to high");
+            require(needAmount <= gamblingManager.balanceOf(_player, erc20), "The player dont have balance");
+            require(winAmount <= balance, "The contract dont have balance");
+            require(possibilitiesToMultiplier[possibility] != 0, "The multiplier its 0");
+            require(_data.toUint256(64) < possibility, "Option out od bounds");
+            require(!_sender.isContract(), "The sender should not be a contract");
         }
+        return true;
     }
 
-    function simActualReturn(bytes32) external view returns (uint256, bool) {
-        revert("Not implement");
+    function simActualReturn(bytes32, bytes calldata _data) external view returns (uint256 needAmount, bool canChange) {
+        needAmount = _data.toUint256(0);
+
+        if (needAmount != 0) { // Play to bet
+            needAmount = (needAmount * possibilitiesToMultiplier[_data.toUint256(32)]) / MULTIPLIER_BASE;
+            canChange = true;
+        }
     }
 
     function getEnd(bytes32) external view returns (uint256) {
@@ -116,13 +130,13 @@ contract CoinFlip is IModel, Ownable {
         return 0;
     }
 
-    function simNeedAmount(bytes32, bytes calldata _data) external view returns (uint256 needAmount, bool) {
+    function simNeedAmount(bytes32, bytes calldata _data) external view returns (uint256 needAmount, bool canChange) {
         needAmount = _data.toUint256(0);
 
         if (needAmount == 0) { // Deposit to bet
             needAmount = _data.toUint256(32);
-        } else { // Play Bet
-            needAmount = (needAmount * possibilitiesToMultiplier[_data.toUint256(32)]) / MULTIPLIER_BASE;
+        } else {
+            canChange = true;
         }
     }
 }
