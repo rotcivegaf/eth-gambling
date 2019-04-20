@@ -46,7 +46,7 @@ contract TestModel is IModel {
         revert("Not implement");
     }
 
-    function simActualReturn(bytes32) external view returns (uint256, bool) {
+    function simActualReturn(bytes32, bytes calldata) external view returns (uint256, bool) {
         revert("Not implement");
     }
 }
