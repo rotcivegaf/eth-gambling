@@ -114,7 +114,7 @@ jobs:
             # Start test-rpc
             - run:
                 name: Start testrpc instance
-                command: node_modules/.bin/ganache-cli --gasLimit 0xfffffffffffff
+                command: node_modules/.bin/ganache-cli --gasLimit 0xfffffffffffff --allowUnlimitedContractSize true
                 background: true
             # Run coverage
             - run:
