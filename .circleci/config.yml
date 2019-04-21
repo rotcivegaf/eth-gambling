@@ -78,7 +78,7 @@ jobs:
             # Start ganache
             - run:
                 name: Start ganache instance
-                command: node_modules/.bin/ganache-cli --gasLimit 7000000
+                command: node_modules/.bin/ganache-cli --gasLimit 0xfffffffffffff
                 background: true
             # Run truffle test
             - run:
@@ -114,7 +114,7 @@ jobs:
             # Start test-rpc
             - run:
                 name: Start testrpc instance
-                command: node_modules/.bin/ganache-cli --gasLimit 7000000
+                command: node_modules/.bin/ganache-cli --gasLimit 0xfffffffffffff
                 background: true
             # Run coverage
             - run:
