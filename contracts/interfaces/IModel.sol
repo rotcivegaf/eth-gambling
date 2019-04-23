@@ -1,7 +1,5 @@
 pragma solidity ^0.5.6;
 
-import "./IOracle.sol";
-
 
 interface IModel {
     // This methods should be sender by the GamblingManager
