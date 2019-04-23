@@ -101,14 +101,16 @@ contract CoinFlip is IModel, Ownable {
         if (needAmount == 0) { // Deposit to bet
             require(_data.toUint256(32) >= gamblingManager.balanceOf(_player, erc20), "The depositer dont have balance");
         } else { // Play Bet
+            require(!_sender.isContract(), "The sender should not be a contract");
+            require(needAmount <= gamblingManager.balanceOf(_player, erc20), "The player dont have balance");
+
             uint256 possibility = _data.toUint256(32);
+            require(possibilitiesToMultiplier[possibility] != 0, "The multiplier should not be 0");
+            require(_data.toUint256(64) < possibility, "Option out of bounds");
+
             uint256 winAmount = (needAmount * possibilitiesToMultiplier[possibility]) / MULTIPLIER_BASE;
             require(winAmount <= toMaxBetAmount[_id], "The bet amount its to high");
-            require(needAmount <= gamblingManager.balanceOf(_player, erc20), "The player dont have balance");
             require(winAmount <= balance, "The contract dont have balance");
-            require(possibilitiesToMultiplier[possibility] != 0, "The multiplier its 0");
-            require(_data.toUint256(64) < possibility, "Option out od bounds");
-            require(!_sender.isContract(), "The sender should not be a contract");
         }
         return true;
     }
