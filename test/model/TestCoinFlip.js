@@ -112,7 +112,7 @@ contract('CoinFlip', function (accounts) {
     idETH = await gamblingManager.buildId3(creator, salt);
     await gamblingManager.create3(ETH, coinFlip.address, [], salt, { from: creator });
     await coinFlip.setMaxBetAmount(idETH, maxUint(128), { from: owner });
-    await coinFlip.setMultiplier(100, MULTIPLIER_BASE, { from: owner });
+    await coinFlip.setMultiplier(2, MULTIPLIER_BASE, { from: owner });
   });
 
   describe('Function play', function () {
@@ -142,7 +142,7 @@ contract('CoinFlip', function (accounts) {
 
       await gamblingManager.deposit(player, ETH, 1, { from: player, value: 1 });
 
-      const winNumber = await hackWin(100);
+      const winNumber = await hackWin(2);
       const loseNumber = winNumber.isZero() ? inc(winNumber) : dec(winNumber);
 
       const Lose = eventLose(
@@ -150,12 +150,12 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, loseNumber),
+          toData(1, 2, loseNumber),
           { from: player }
         )
       );
 
-      expect(Lose._possibility).to.eq.BN(100);
+      expect(Lose._possibility).to.eq.BN(2);
       expect(Lose._multiplier).to.eq.BN(MULTIPLIER_BASE);
       expect(Lose._luckyNumber).to.eq.BN(winNumber);
       expect(Lose._betNumber).to.eq.BN(loseNumber);
@@ -172,19 +172,19 @@ contract('CoinFlip', function (accounts) {
 
       await gamblingManager.deposit(player, ETH, 1, { from: player, value: 1 });
 
-      const winNumber = await hackWin(100);
+      const winNumber = await hackWin(2);
 
       const Win = eventWin(
         await gamblingManager.play(
           player,
           idETH,
           player,
-          toData(1, 100, winNumber),
+          toData(1, 2, winNumber),
           { from: player }
         )
       );
 
-      expect(Win._possibility).to.eq.BN(100);
+      expect(Win._possibility).to.eq.BN(2);
       expect(Win._multiplier).to.eq.BN(MULTIPLIER_BASE);
       expect(Win._luckyNumber).to.eq.BN(winNumber);
       expect(Win._betNumber).to.eq.BN(winNumber);
@@ -202,7 +202,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(maxUint(256), 100, 0),
+          toData(maxUint(256), 2, 0),
           { from: player }
         ),
         'The amount of bet is to high'
@@ -213,7 +213,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, 0),
+          toData(1, 2, 0),
           { from: player }
         ),
         'Insufficient bet founds'
@@ -227,7 +227,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, 100),
+          toData(1, 2, 2),
           { from: player }
         ),
         'The option should be inside of the possibility'
@@ -403,7 +403,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idBet,
           player,
-          toData(1, 100, 10)
+          toData(1, 2, 1)
         )
       );
     });
@@ -414,7 +414,7 @@ contract('CoinFlip', function (accounts) {
           coinFlip.address,
           idETH,
           address0x,
-          toData(1, 100, 10)
+          toData(1, 2, 1)
         ),
         'The sender should not be a contract'
       );
@@ -428,7 +428,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, 10)
+          toData(1, 2, 1)
         ),
         'The player dont have balance'
       );
@@ -456,7 +456,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, 100)
+          toData(1, 2, 2)
         ),
         'Option out of bounds'
       );
@@ -471,7 +471,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, 10)
+          toData(1, 2, 1)
         ),
         'The bet amount its to high'
       );
@@ -486,7 +486,7 @@ contract('CoinFlip', function (accounts) {
           player,
           idETH,
           player,
-          toData(1, 100, 10)
+          toData(1, 2, 1)
         ),
         'The contract dont have balance'
       );
@@ -533,7 +533,7 @@ contract('CoinFlip', function (accounts) {
     expect(simActualReturnDeposit.needAmount).to.eq.BN(0);
     assert.isFalse(simActualReturnDeposit.canChange);
 
-    const simActualReturn = await coinFlip.simActualReturn(address0x, toData(1, 100));
+    const simActualReturn = await coinFlip.simActualReturn(address0x, toData(1, 2));
     expect(simActualReturn.needAmount).to.eq.BN(1);
     assert.isTrue(simActualReturn.canChange);
 
