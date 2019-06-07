@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.6;
 
 
 interface IGamblingManager {
@@ -6,9 +6,7 @@ interface IGamblingManager {
         address indexed _creator,
         bytes32 indexed _id,
         address _token,
-        uint256 _amount,
-        uint256 _tip,
-        bytes32[] _data,
+        bytes _data,
         uint256 _nonce
     );
 
@@ -16,9 +14,7 @@ interface IGamblingManager {
         address indexed _creator,
         bytes32 indexed _id,
         address _token,
-        uint256 _amount,
-        uint256 _tip,
-        bytes32[] _data,
+        bytes _data,
         uint256 _salt
     );
 
@@ -26,31 +22,36 @@ interface IGamblingManager {
         address indexed _creator,
         bytes32 indexed _id,
         address _token,
-        uint256 _amount,
-        uint256 _tip,
-        bytes32[] _data,
+        bytes _data,
         uint256 _salt
     );
 
     event Played(
+        address indexed _sender,
+        address indexed _player,
         bytes32 indexed _id,
         uint256 _amount,
-        bytes32[] _data
+        bytes _data
     );
 
     event Collected(
         address indexed _collecter,
-        address indexed _beneficiary,
         bytes32 indexed _id,
+        address indexed _beneficiary,
         uint256 _amount,
-        uint256 _tip,
-        bytes32[] _data
+        bytes _data
     );
 
     event Canceled(
         address indexed _creator,
         bytes32 indexed _id,
         uint256 _amount,
-        bytes32[] _data
+        bytes _data
+    );
+
+    event ModelTransfer(
+        bytes32 indexed _id,
+        address indexed _beneficiary,
+        uint256 _amount
     );
 }

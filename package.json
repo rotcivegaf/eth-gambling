@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "files": [
-    "build",
     "contracts",
     "test"
   ],
@@ -15,11 +14,12 @@
     "lint": "npm run lint:js && npm run lint:sol",
     "lint:fix": "npm run lint:js:fix && npm run lint:sol:fix",
     "console": "truffle console",
+    "coverage": "bin/coverage.sh",
     "test": "bin/test.sh"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/rotcivegaf/ethGambling.git"
+    "url": "https://github.com/rotcivegaf/ethGambling.git"
   },
   "keywords": [
     "solidity",
@@ -34,19 +34,21 @@
   },
   "homepage": "https://github.com/rotcivegaf/ethGambling",
   "devDependencies": {
-    "chai": "^4.1.2",
-    "coveralls": "^3.0.1",
+    "bn-chai": "^1.0.1",
+    "chai": "^4.2.0",
+    "coveralls": "^3.0.3",
     "dotenv": "^4.0.0",
     "eslint": "^4.19.1",
     "eslint-config-standard": "^10.2.1",
-    "eslint-plugin-import": "^2.13.0",
+    "eslint-plugin-import": "^2.17.1",
     "eslint-plugin-node": "^5.2.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-standard": "^3.1.0",
     "ethjs-abi": "^0.2.1",
-    "ganache-cli": "^6.1.8",
-    "solidity-coverage": "^0.5.11",
-    "solium": "^1.2.0",
-    "truffle": "^5.0.0"
+    "ganache-cli": "^6.4.3",
+    "ganache-cli-coverage": "agusx1211/ganache-cli#coverage",
+    "solidity-coverage": "rotcivegaf/solidity-coverage",
+    "solium": "^1.2.4",
+    "truffle": "^5.0.12"
   }
 }

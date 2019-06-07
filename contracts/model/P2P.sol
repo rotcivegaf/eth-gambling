@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.6;
 
 import "../interfaces/IModel.sol";
 
@@ -27,11 +27,11 @@ contract P2P is IModel {
         gamblingManager = _gamblingManager;
     }
 
-    function create(bytes32, bytes32[] calldata) external onlyGamblingManager returns(uint256) {
+    function create(address, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
         revert("Not implements");
     }
 
-    function play(bytes32 _betId, address _player, bytes32[] calldata) external onlyGamblingManager returns (uint256 needAmount) {
+    function play(address, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns (uint256 needAmount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB == address(0), "The bet its taken");
 
@@ -54,7 +54,7 @@ contract P2P is IModel {
         bytes32 _id,
         address _player,
         bytes32 _option,
-        bytes32[] calldata _data
+        bytes calldata _data
     ) external
         onlyGamblingManager
     returns(uint256 needAmount) {
@@ -81,7 +81,7 @@ contract P2P is IModel {
 
         @return The amount that will be transferred to the _player
     */
-    function collect(bytes32 _betId, address _player, bytes32[] calldata) external onlyGamblingManager returns(uint256 amount) {
+    function collect(address, bytes32 _betId, address _player, bytes calldata) external onlyGamblingManager returns(uint256 amount) {
         Bet storage bet = bets[_betId];
         require(bet.playerB != address(0), "The bet its not taken");
 
@@ -110,7 +110,31 @@ contract P2P is IModel {
         bet.playerBPay = 0;
     }
 
-    function cancel(bytes32 _betId, address, bytes32[] calldata) external onlyGamblingManager returns(bool) {
+    function cancel(address, bytes32 _betId, address, bytes calldata) external onlyGamblingManager returns(bool) {
         require(bets[_betId].playerB == address(0), "The bet its taken");
+    }
+
+    function validateCreate(bytes32, bytes calldata) external view returns(bool) {
+        revert("TODO");
+    }
+
+    function validatePlay(bytes32, bytes calldata) external view returns(bool) {
+        revert("TODO");
+    }
+
+    function getEnd(bytes32) external view returns (uint256) {
+        revert("TODO");
+    }
+
+    function getNoMoreBets(bytes32) external view returns (uint256) {
+        revert("TODO");
+    }
+
+    function simNeedAmount(bytes32, bytes calldata) external view returns (uint256, bool) {
+        revert("TODO");
+    }
+
+    function simActualReturn(bytes32, bytes calldata) external view returns (uint256, bool) {
+        revert("TODO");
     }
 }

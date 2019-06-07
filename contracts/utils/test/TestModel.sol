@@ -1,27 +1,52 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.6;
 
 import "../../interfaces/IModel.sol";
 
+import "../BytesLib.sol";
+
 
 contract TestModel is IModel {
-    function create(bytes32, bytes32[] calldata _data ) external returns(uint256) {
-        return foo(_data);
+    using BytesLib for bytes;
+
+    bytes32 public constant TRUE = 0x0000000000000000000000000000000000000000000000000000000054525545;
+
+    function create(address, bytes32, bytes calldata _data) external returns(bool) {
+        return _data.toBytes32(0) == TRUE;
     }
 
-    function play(bytes32, address, bytes32[] calldata _data) external returns(uint256) {
-        return foo(_data);
+    function play(address, bytes32, address, bytes calldata _data) external returns(uint256) {
+        return _data.toUint256(0);
     }
 
-    function collect(bytes32, address, bytes32[] calldata _data) external returns(uint256) {
-        return foo(_data);
+    function collect(address, bytes32, address, bytes calldata _data) external returns(uint256) {
+        return _data.toUint256(0);
     }
 
-    function cancel(bytes32, address, bytes32[] calldata _data) external returns(bool) {
-        return foo(_data) == 1;
+    function cancel(address, bytes32, bytes calldata _data) external returns(bool) {
+        return _data.toBytes32(0) == TRUE;
     }
 
-    function foo(bytes32[] memory _data) internal pure returns(uint256) {
-        if(_data.length > 0)
-            return uint256(_data[0]);
+    function validateCreate(address, bytes32, bytes calldata) external view returns(bool) {
+        revert("Not implement");
+    }
+
+    function validatePlay(address, bytes32, address, bytes calldata) external view returns(bool) {
+        revert("Not implement");
+    }
+
+    function getEnd(bytes32) external view returns (uint256) {
+        revert("Not implement");
+    }
+
+    function getNoMoreBets(bytes32) external view returns (uint256) {
+        revert("Not implement");
+    }
+
+    function simNeedAmount(bytes32, bytes calldata) external view returns (uint256, bool) {
+        revert("Not implement");
+    }
+
+    function simActualReturn(bytes32, bytes calldata) external view returns (uint256, bool) {
+        revert("Not implement");
     }
 }

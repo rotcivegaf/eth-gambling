@@ -1,9 +1,8 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.6;
 
 
 contract IBalanceManager {
     event Transfer(address indexed _from, address indexed _to, address _token, uint256 _value);
-    event TransferFrom(address indexed _from, address indexed _to, address _token, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, address _token, uint256 _value);
     event Deposit(address indexed _from, address indexed _to, address _token, uint256 _value);
     event Withdraw(address indexed _from, address indexed _to, address _token, uint256 _value);
@@ -18,6 +17,9 @@ contract IBalanceManager {
     function transferFrom(address _from, address _to, address _token, uint256 _value) external returns (bool success);
     function approve(address _spender, address _token, uint256 _value) external returns (bool success);
 
-    function deposit(address _to, address _token, uint256 _value) external payable returns (bool success);
-    function withdraw(address payable _to, address _token, uint256 _value) external returns (bool success);
+    function deposit(address _to, address _token, uint256 _value) external payable;
+    function depositFrom(address _from, address _to, address _token, uint256 _value) external payable;
+
+    function withdraw(address payable _to, address _token, uint256 _value) external;
+    function withdrawFrom(address _from, address payable _to, address _token, uint256 _value) external;
 }

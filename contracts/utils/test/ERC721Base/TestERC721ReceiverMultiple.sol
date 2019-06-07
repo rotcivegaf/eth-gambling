@@ -1,7 +1,7 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.6;
 
-import "./IERC721Receiver.sol";
-import "./IERC721ReceiverLegacy.sol";
+import "./../../../interfaces/IERC721Receiver.sol";
+import "./../../../interfaces/IERC721ReceiverLegacy.sol";
 
 
 contract TestERC721ReceiverMultiple is IERC721Receiver, IERC721ReceiverLegacy {
