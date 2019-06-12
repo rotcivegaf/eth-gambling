@@ -305,7 +305,7 @@ contract ERC721Base is IERC721, ERC165 {
         if (_doCheck && _to.isContract()) {
             // Perform check with the new safe call
             // onERC721Received(address,address,uint256,bytes)
-            (uint256 success, bytes32 result) = _noThrowCall(
+            (bool success, bytes4 result) = _noThrowCall(
                 _to,
                 abi.encodeWithSelector(
                     ERC721_RECEIVED,
@@ -316,7 +316,7 @@ contract ERC721Base is IERC721, ERC165 {
                 )
             );
 
-            if (success != 1 || result != ERC721_RECEIVED) {
+            if (!success || result != ERC721_RECEIVED) {
                 // Try legacy safe call
                 // onERC721Received(address,uint256,bytes)
                 (success, result) = _noThrowCall(
@@ -330,7 +330,7 @@ contract ERC721Base is IERC721, ERC165 {
                 );
 
                 require(
-                    success == 1 && result == ERC721_RECEIVED_LEGACY,
+                    success && result == ERC721_RECEIVED_LEGACY,
                     "Contract rejected the token"
                 );
             }
@@ -343,21 +343,11 @@ contract ERC721Base is IERC721, ERC165 {
     // Utilities
     //
 
-    function _noThrowCall(address _contract, bytes memory _data) internal returns (uint256 success, bytes32 result) {
-        assembly {
-            let x := mload(0x40)
+    function _noThrowCall(address _contract, bytes memory _data) internal returns (bool success, bytes4 result) {
+        bytes memory returnData;
+        (success, returnData) = _contract.call(_data);
 
-            success := call(
-                            gas,                  // Send all gas
-                            _contract,            // To addr
-                            0,                    // Send ETH
-                            add(0x20, _data),     // Input is data past the first 32 bytes
-                            mload(_data),         // Input size is the lenght of data
-                            x,                    // Store the ouput on x
-                            0x20                  // Output is a single bytes32, has 32 bytes
-                        )
-
-            result := mload(x)
-        }
+        if (returnData.length > 0)
+            result = abi.decode(returnData, (bytes4));
     }
 }
