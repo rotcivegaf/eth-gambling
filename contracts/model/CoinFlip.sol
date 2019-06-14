@@ -49,6 +49,15 @@ contract CoinFlip is IModel, Ownable {
         return true;
     }
 
+    /**
+        @dev This emits when the obligation of debt change.
+
+        @param _sender The sender of the tx
+        @param _id Id of the bet on gambling manager
+        @param _player The bet player, the win amount will send of this
+        @param _data If the first uint256 its 0: its a deposit, the second uint256 is the amount of the deposit
+                      Otherwise, the first uint256 is the amount of the bet, the second id the possibility and the third is the option(lucky number)
+    */
     function play(address _sender, bytes32 _id, address _player, bytes calldata _data) external onlyGamblingManager returns(uint256 needAmount) {
         needAmount = _data.toUint256(0);
 
