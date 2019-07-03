@@ -18,7 +18,9 @@
     "test": "bin/test.sh"
   },
   "pre-commit": [
-    "lint:js"
+    "lint:js",
+    "test",
+    "bin/test.sh"
   ],
   "repository": {
     "type": "git",
