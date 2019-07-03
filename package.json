@@ -17,6 +17,7 @@
     "coverage": "bin/coverage.sh",
     "test": "bin/test.sh"
   },
+  "pre-commit": ["lint"],
   "repository": {
     "type": "git",
     "url": "https://github.com/rotcivegaf/ethGambling.git"
