@@ -115,7 +115,6 @@ contract('CoinFlip', function (accounts) {
     await coinFlip.setMultiplier(2, MULTIPLIER_BASE, { from: owner });
 
     console.log('gamblingManager: ' + gamblingManager.address);
-    console.log('coinFlip: ' + coinFlip.address);
   });
 
   describe('Function play', function () {
