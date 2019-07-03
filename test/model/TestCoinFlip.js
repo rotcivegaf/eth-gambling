@@ -113,6 +113,9 @@ contract('CoinFlip', function (accounts) {
     await gamblingManager.create3(ETH, coinFlip.address, [], salt, { from: creator });
     await coinFlip.setMaxBetAmount(idETH, maxUint(128), { from: owner });
     await coinFlip.setMultiplier(2, MULTIPLIER_BASE, { from: owner });
+
+    console.log('gamblingManager: ' + gamblingManager.address);
+    console.log('coinFlip: ' + coinFlip.address);
   });
 
   describe('Function play', function () {
