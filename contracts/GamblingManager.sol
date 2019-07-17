@@ -69,7 +69,7 @@ contract TipERC20 is BalanceManager, ITipERC20, Ownable {
         if (tansferAmount != 0)
             _transferFrom(_from, owner, _token, tansferAmount);
 
-        emit Tip(_amount);
+        emit Tip(_from, _token, _amount);
     }
 }
 

@@ -1225,6 +1225,8 @@ contract('GamblingManager', function (accounts) {
       assert.equal(Deposit._token, ETH);
       expect(Deposit._value).to.eq.BN('1');
       const Tip = events[1];
+      assert.equal(Tip._from, player1);
+      assert.equal(Tip._token, ETH);
       expect(Tip._amount).to.eq.BN('1');
 
       // Check ETH balance
@@ -1255,6 +1257,8 @@ contract('GamblingManager', function (accounts) {
       assert.equal(Transfer._token, ETH);
       expect(Transfer._value).to.eq.BN('1');
       const Tip = events[1];
+      assert.equal(Tip._from, player1);
+      assert.equal(Tip._token, ETH);
       expect(Tip._amount).to.eq.BN('1');
 
       // Check ETH balance
@@ -1291,6 +1295,8 @@ contract('GamblingManager', function (accounts) {
       assert.equal(Transfer._token, ETH);
       expect(Transfer._value).to.eq.BN('1');
       const Tip = events[2];
+      assert.equal(Tip._from, player1);
+      assert.equal(Tip._token, ETH);
       expect(Tip._amount).to.eq.BN('2');
 
       // Check ETH balance
@@ -1333,6 +1339,8 @@ contract('GamblingManager', function (accounts) {
       assert.equal(Deposit._token, erc20.address);
       expect(Deposit._value).to.eq.BN('1');
       const Tip = events[1];
+      assert.equal(Tip._from, player1);
+      assert.equal(Tip._token, erc20.address);
       expect(Tip._amount).to.eq.BN('1');
 
       // Check ERC20 balance
@@ -1368,6 +1376,8 @@ contract('GamblingManager', function (accounts) {
       assert.equal(Transfer._token, erc20.address);
       expect(Transfer._value).to.eq.BN('1');
       const Tip = events[1];
+      assert.equal(Tip._from, player1);
+      assert.equal(Tip._token, erc20.address);
       expect(Tip._amount).to.eq.BN('1');
 
       // Check ERC20 balance
@@ -1415,6 +1425,8 @@ contract('GamblingManager', function (accounts) {
       assert.equal(Transfer._token, erc20.address);
       expect(Transfer._value).to.eq.BN('1');
       const Tip = events[3];
+      assert.equal(Tip._from, player1);
+      assert.equal(Tip._token, erc20.address);
       expect(Tip._amount).to.eq.BN('2');
 
       // Check ERC20 balance
