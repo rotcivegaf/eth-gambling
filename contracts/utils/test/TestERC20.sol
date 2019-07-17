@@ -28,8 +28,8 @@ contract StandardERC20 is IERC20 {
     address public constant RETURN_FALSE_ADDRESS = address(0x0000000000000000000000000000000066616c7365);
 
     uint256 public totalSupply;
-    event Transfer(address indexed _from, address indexed _to, uint256 _value);
-    event Approval(address indexed _owner, address indexed _spender, uint256 _value);
+    event Transfer(address indexed _from, address indexed _to, uint256 indexed _value);
+    event Approval(address indexed _owner, address indexed _spender, uint256 indexed _value);
 
     function transfer(address _to, uint256 _value) public returns (bool) {
         if (_to == RETURN_FALSE_ADDRESS)
