@@ -69,7 +69,7 @@ contract TipERC20 is BalanceManager, ITipERC20, Ownable {
         if (tansferAmount != 0)
             _transferFrom(_from, owner, _token, tansferAmount);
 
-        emit Tip(_amount);
+        emit Tip(_from, _token, _amount);
     }
 }
 
@@ -84,6 +84,10 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     mapping(bytes32 => Bet) public toBet;
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
+
+    function setURIProvider(URIProvider _provider) external onlyOwner {
+        _setURIProvider(_provider);
+    }
 
     function create(
         address _erc20,

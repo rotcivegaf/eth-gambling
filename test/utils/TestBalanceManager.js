@@ -87,7 +87,6 @@ contract('BalanceManager', function (accounts) {
     expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.add(minAmount));
     expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.add(minAmount));
   });
-
   describe('function transfer', function () {
     it('Transfer ETH', async () => {
       await balanceManager.deposit(
@@ -122,7 +121,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
     });
-
     it('Transfer half amount of balance in ETH', async () => {
       await balanceManager.deposit(
         player1,
@@ -156,7 +154,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
     });
-
     it('Transfer ERC20', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -193,7 +190,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(minAmount));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(minAmount));
     });
-
     it('Transfer half amount of balance in ERC20', async () => {
       await erc20.setBalance(depositer, bn('2'));
       await erc20.approve(balanceManager.address, bn('2'), { from: depositer });
@@ -230,7 +226,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(minAmount));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(minAmount));
     });
-
     it('Try transfer to address 0x0', async () => {
       await balanceManager.deposit(
         player1,
@@ -269,7 +264,6 @@ contract('BalanceManager', function (accounts) {
         '_to should not be 0x0'
       );
     });
-
     it('Try transfer ETH without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -287,7 +281,6 @@ contract('BalanceManager', function (accounts) {
         'Insufficient founds to transfer'
       );
     });
-
     it('Try transfer ERC20 without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -306,7 +299,6 @@ contract('BalanceManager', function (accounts) {
       );
     });
   });
-
   describe('function transferFrom', function () {
     it('TransferFrom ETH', async () => {
       await balanceManager.deposit(
@@ -354,7 +346,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
     });
-
     it('TransferFrom half amount of balance in ETH', async () => {
       await balanceManager.deposit(
         player1,
@@ -401,7 +392,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2.add(minAmount));
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
     });
-
     it('TransferFrom ERC20', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -451,7 +441,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(minAmount));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(minAmount));
     });
-
     it('TransferFrom half amount of balance in ERC20', async () => {
       await erc20.setBalance(depositer, bn('2'));
       await erc20.approve(balanceManager.address, bn('2'), { from: depositer });
@@ -501,7 +490,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(minAmount));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(minAmount));
     });
-
     it('Try transferFrom to address 0x0', async () => {
       await balanceManager.deposit(
         player1,
@@ -556,7 +544,6 @@ contract('BalanceManager', function (accounts) {
         '_to should not be 0x0'
       );
     });
-
     it('Try transferFrom without having the approval of the amount', async () => {
       await balanceManager.deposit(
         player1,
@@ -611,7 +598,6 @@ contract('BalanceManager', function (accounts) {
         'Insufficient _allowance to transferFrom'
       );
     });
-
     it('Try transferFrom ETH without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -637,7 +623,6 @@ contract('BalanceManager', function (accounts) {
         'Insufficient founds to transfer'
       );
     });
-
     it('Try transferFrom ERC20 without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -664,7 +649,6 @@ contract('BalanceManager', function (accounts) {
       );
     });
   });
-
   describe('function approve', function () {
     it('Approve ETH', async () => {
       await saveETHPrevBalances();
@@ -695,7 +679,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, ETH)).to.eq.BN(prevBalBMP2);
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
     });
-
     it('Approve ERC20', async () => {
       await saveErc20PrevBalances();
 
@@ -727,7 +710,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
     });
   });
-
   describe('function deposit', function () {
     it('Deposit ETH', async () => {
       await saveETHPrevBalances();
@@ -751,7 +733,6 @@ contract('BalanceManager', function (accounts) {
       expect(await getETHBalance(balanceManager.address)).to.eq.BN(prevBalBM.add(minAmount));
       expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.add(minAmount));
     });
-
     it('Deposit ERC20', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -779,7 +760,6 @@ contract('BalanceManager', function (accounts) {
       expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.add(minAmount));
     });
-
     it('Deposit a ERC20 amount less than what the loanManager has approved and take only the low amount', async () => {
       await erc20.setBalance(depositer, minAmount.add(bn('1')));
       await erc20.approve(balanceManager.address, minAmount.add(bn('1')), { from: depositer });
@@ -807,7 +787,6 @@ contract('BalanceManager', function (accounts) {
       expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.add(minAmount));
     });
-
     it('Try deposit ETH with erc20 as Token', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -822,7 +801,6 @@ contract('BalanceManager', function (accounts) {
         'Error pulling tokens or send ETH, in deposit'
       );
     });
-
     it('Try deposit erc20 with ETH as erc20', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -837,7 +815,6 @@ contract('BalanceManager', function (accounts) {
         'The amount should be equal to msg.value'
       );
     });
-
     it('Try deposit to address 0x0', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -862,7 +839,6 @@ contract('BalanceManager', function (accounts) {
         '_to should not be 0x0'
       );
     });
-
     it('Try deposit ETH with different amount', async () => {
       const higthAmount = bn('999999999');
       const lowAmount = bn('100');
@@ -887,7 +863,6 @@ contract('BalanceManager', function (accounts) {
         'The amount should be equal to msg.value'
       );
     });
-
     it('Try deposit ERC20 without approbe', async () => {
       await erc20.setBalance(depositer, minAmount);
 
@@ -902,7 +877,6 @@ contract('BalanceManager', function (accounts) {
       );
     });
   });
-
   describe('function depositFrom', function () {
     it('Deposit ETH from otherAccount', async () => {
       await saveETHPrevBalances();
@@ -927,7 +901,6 @@ contract('BalanceManager', function (accounts) {
       assert.equal(await getETHBalance(balanceManager.address), prevBalBM.add(minAmount).toString());
       assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.add(minAmount).toString());
     });
-
     it('Deposit ERC20 from otherAccount', async () => {
       await erc20.setBalance(otherAccount, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: otherAccount });
@@ -957,7 +930,6 @@ contract('BalanceManager', function (accounts) {
       assert.equal(await balanceManager.balanceOf(player1, erc20.address), prevBalBMP120.add(minAmount).toString());
     });
   });
-
   describe('function withdraw', function () {
     it('Withdraw ETH', async () => {
       await balanceManager.deposit(
@@ -991,7 +963,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(minAmount));
     });
-
     it('Withdraw half amount of balance in ETH', async () => {
       await balanceManager.deposit(
         player1,
@@ -1024,7 +995,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1.sub(minAmount));
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(minAmount));
     });
-
     it('Withdraw ERC20', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -1062,7 +1032,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(minAmount));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
     });
-
     it('Withdraw half amount of balance in ERC20', async () => {
       await erc20.setBalance(depositer, minAmount.add(bn('1')));
       await erc20.approve(balanceManager.address, minAmount.add(bn('1')), { from: depositer });
@@ -1100,7 +1069,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(minAmount));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
     });
-
     it('Try withdraw to address 0x0', async () => {
       await balanceManager.deposit(
         player1,
@@ -1139,7 +1107,6 @@ contract('BalanceManager', function (accounts) {
         '_to should not be 0x0'
       );
     });
-
     it('Try withdraw ETH without balance', async () => {
       await Helper.tryCatchRevert(
         balanceManager.withdraw(
@@ -1151,7 +1118,6 @@ contract('BalanceManager', function (accounts) {
         'Insufficient founds to discount'
       );
     });
-
     it('Try withdraw ERC20 without balance', async () => {
       await Helper.tryCatchRevert(
         balanceManager.withdraw(
@@ -1163,7 +1129,6 @@ contract('BalanceManager', function (accounts) {
         'Insufficient founds to discount'
       );
     });
-
     it('Try withdraw ERC20 and the transfer returns false', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -1186,7 +1151,6 @@ contract('BalanceManager', function (accounts) {
       );
     });
   });
-
   describe('function withdrawFrom', function () {
     it('Withdraw ETH from otherAccount', async () => {
       await balanceManager.deposit(
@@ -1223,7 +1187,6 @@ contract('BalanceManager', function (accounts) {
       assert.equal(await balanceManager.balanceOf(player1, ETH), prevBalBMP1.sub(minAmount).toString());
       assert.equal(await getETHBalance(player2), prevPlayer2Bal.add(minAmount).toString());
     });
-
     it('Withdraw ERC20 from otherAccount', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -1264,7 +1227,6 @@ contract('BalanceManager', function (accounts) {
       assert.equal(await balanceManager.balanceOf(player1, erc20.address), prevBalBMP120.sub(minAmount).toString());
       assert.equal(await balanceManager.balanceOf(player2, erc20.address), prevBalBMP220.toString());
     });
-
     it('Try withdraw ETH from otherAccount without allowance', async () => {
       await balanceManager.deposit(
         player1,
@@ -1284,7 +1246,6 @@ contract('BalanceManager', function (accounts) {
         'Insufficient _allowance to transferFrom'
       );
     });
-
     it('Try withdraw ERC20 from otherAccount without allowance', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -1308,7 +1269,6 @@ contract('BalanceManager', function (accounts) {
       );
     });
   });
-
   describe('function withdrawAll', function () {
     it('Withdraw all ETH', async () => {
       await balanceManager.deposit(
@@ -1342,7 +1302,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN('0');
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal.add(prevBalBMP1));
     });
-
     it('Withdraw all ERC20', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
@@ -1379,7 +1338,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN('0');
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
     });
-
     it('Try withdraw all to address 0x0', async () => {
       await balanceManager.deposit(
         player1,
@@ -1416,7 +1374,6 @@ contract('BalanceManager', function (accounts) {
         '_to should not be 0x0'
       );
     });
-
     it('Withdraw all ETH without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -1447,7 +1404,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player1, ETH)).to.eq.BN(prevBalBMP1);
       expect(await getETHBalance(player2)).to.eq.BN(prevPlayer2Bal);
     });
-
     it('Withdraw all ERC20 without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -1480,7 +1436,6 @@ contract('BalanceManager', function (accounts) {
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
       expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
     });
-
     it('Try withdraw all ERC20 and the transfer returns false', async () => {
       await erc20.setBalance(depositer, minAmount);
       await erc20.approve(balanceManager.address, minAmount, { from: depositer });
