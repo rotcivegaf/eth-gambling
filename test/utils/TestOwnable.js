@@ -17,7 +17,6 @@ contract('Ownable', function (accounts) {
   it('Should be creator with caller as owner', async function () {
     assert.equal(await ownable.owner(), owner);
   });
-
   describe('Function transferOwnership', function () {
     it('Should change owner on transfer', async function () {
       const OwnershipTransferred = await Helper.toEvents(
@@ -35,7 +34,6 @@ contract('Ownable', function (accounts) {
 
       ownable.transferOwnership(owner, { from: secondOwner });
     });
-
     it('Try to transfer ownership to 0x0', async function () {
       await Helper.tryCatchRevert(
         () => ownable.transferOwnership(
@@ -45,7 +43,6 @@ contract('Ownable', function (accounts) {
         '0x0 Is not a valid owner'
       );
     });
-
     // modifier onlyOwner
     it('Should revert if account without ownership tries to transfer', async function () {
       await Helper.tryCatchRevert(

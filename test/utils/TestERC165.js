@@ -11,14 +11,12 @@ contract('Ownable', function (accounts) {
   it('Constructor', async function () {
     assert.isTrue(await erc165.supportsInterface('0x01ffc9a7'));
   });
-
   describe('Function registerInterface', async function () {
     it('Should register an interface', async function () {
       await erc165.registerInterface('0x00000001');
 
       assert.isTrue(await erc165.supportsInterface('0x00000001'));
     });
-
     it('Should register an interface two times', async function () {
       await erc165.registerInterface('0x00000001');
 
@@ -28,7 +26,6 @@ contract('Ownable', function (accounts) {
 
       assert.isTrue(await erc165.supportsInterface('0x00000001'));
     });
-
     it('Try register 0xffffffff interface', async function () {
       await Helper.tryCatchRevert(
         () => erc165.registerInterface(
