@@ -311,8 +311,7 @@ contract('ERC721 Base', function (accounts) {
           user,
           receiver.address,
           assetId
-        ),
-        ''
+        )
       );
 
       assert.equal(await token.ownerOf(assetId), user);
