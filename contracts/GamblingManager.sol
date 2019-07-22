@@ -85,6 +85,10 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
 
+    function setURIProvider(URIProvider _provider) external onlyOwner {
+        _setURIProvider(_provider);
+    }
+
     function create(
         address _erc20,
         IModel _model,

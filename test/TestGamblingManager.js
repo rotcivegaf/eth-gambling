@@ -200,7 +200,27 @@ contract('GamblingManager', function (accounts) {
       assert.equal(id, calcId);
     });
   });
+  describe('Function setURIProvider', function () {
+    it('Should set the URI provider', async function () {
+      const SetURIProvider = await Helper.toEvents(
+        gamblingManager.setURIProvider(
+          address0x,
+          { from: owner }
+        ),
+        'SetURIProvider'
+      );
 
+      assert.equal(SetURIProvider._uriProvider, address0x);
+    });
+    it('Try set URI provider without ownership', async function () {
+      await Helper.tryCatchRevert(
+        () => gamblingManager.setURIProvider(
+          address0x,
+          { from: depositer }
+        )
+      );
+    });
+  });
   describe('Functions create, create3, create3, _create', function () {
     it('Function create with ETH', async () => {
       const nonce = await gamblingManager.nonces(creator);
