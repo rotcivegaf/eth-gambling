@@ -26,11 +26,11 @@ function maxUint (base) {
 
 function toHexBytes32 (number) {
   return web3.utils.toTwosComplement(number);
-};
+}
 
 async function getETHBalance (account) {
   return bn(await web3.eth.getBalance(account));
-};
+}
 
 const ETH = web3.utils.padLeft('0x0', 40);
 const address0x = web3.utils.padLeft('0x0', 40);
