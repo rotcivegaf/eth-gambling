@@ -1,4 +1,4 @@
-pragma solidity ^0.5.6;
+pragma solidity ^0.5.10;
 
 import "./interfaces/ITipERC20.sol";
 import "./interfaces/IGamblingManager.sol";

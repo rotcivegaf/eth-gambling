@@ -40,7 +40,7 @@ module.exports.toEvents = async (promise, ...events) => {
   );
 
   if (eventObjs.length === 0 || eventObjs.some(x => x === undefined)) {
-    console.warn('\t\u001b[91m\u001b[2m\u001b[1mError: The event dont find');
+    console.log('\t\u001b[91m\u001b[2m\u001b[1mError: The event dont find');
     assert.fail();
   }
   eventObjs = eventObjs.map(x => x.args);
