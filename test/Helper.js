@@ -47,6 +47,20 @@ module.exports.toEvents = async (promise, ...events) => {
   return (eventObjs.length === 1) ? eventObjs[0] : eventObjs;
 };
 
+module.exports.getEvent = (tx, contract, event) => {
+  const eventSignature = web3.eth.abi.encodeEventSignature(event);
+
+  const rawLog = tx.receipt.rawLogs.find(e => {
+    return e.topics[0] === eventSignature;
+  });
+
+  const eventObj = contract.abi.find(e => {
+    return e.signature === eventSignature;
+  });
+
+  return web3.eth.abi.decodeLog(eventObj.inputs, rawLog.data, rawLog.topics.slice(1));
+};
+
 module.exports.eventNotEmitted = async (receipt, eventName) => {
   assert.equal(receipt.logs.length, 0, 'Should have not emitted the event ' + eventName);
 };
