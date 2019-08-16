@@ -285,7 +285,7 @@ contract('GamblingManager', function (accounts) {
         'Created'
       );
 
-      assert.equal(Created._creator, creator);
+      assert.equal(Created._sender, creator);
       assert.equal(Created._id, id);
       assert.equal(Created._token, ETH);
       assert.equal(Created._data, RETURN_TRUE);
@@ -317,7 +317,7 @@ contract('GamblingManager', function (accounts) {
         'Created'
       );
 
-      assert.equal(Created._creator, creator);
+      assert.equal(Created._sender, creator);
       assert.equal(Created._id, id);
       assert.equal(Created._token, erc20.address);
       assert.equal(Created._data, RETURN_TRUE);
@@ -357,7 +357,7 @@ contract('GamblingManager', function (accounts) {
         'Created2'
       );
 
-      assert.equal(Created2._creator, creator);
+      assert.equal(Created2._sender, creator);
       assert.equal(Created2._id, id);
       assert.equal(Created2._token, ETH);
       assert.equal(Created2._data, RETURN_TRUE);
@@ -395,7 +395,7 @@ contract('GamblingManager', function (accounts) {
         'Created2'
       );
 
-      assert.equal(Created2._creator, creator);
+      assert.equal(Created2._sender, creator);
       assert.equal(Created2._id, id);
       assert.equal(Created2._token, erc20.address);
       assert.equal(Created2._data, RETURN_TRUE);
@@ -424,7 +424,7 @@ contract('GamblingManager', function (accounts) {
         'Created3'
       );
 
-      assert.equal(Created3._creator, creator);
+      assert.equal(Created3._sender, creator);
       assert.equal(Created3._id, id);
       assert.equal(Created3._token, ETH);
       assert.equal(Created3._data, RETURN_TRUE);
@@ -456,7 +456,7 @@ contract('GamblingManager', function (accounts) {
         'Created3'
       );
 
-      assert.equal(Created3._creator, creator);
+      assert.equal(Created3._sender, creator);
       assert.equal(Created3._id, id);
       assert.equal(Created3._token, erc20.address);
       assert.equal(Created3._data, RETURN_TRUE);
@@ -895,7 +895,7 @@ contract('GamblingManager', function (accounts) {
       );
 
       // For event
-      assert.equal(Collected._collecter, creator);
+      assert.equal(Collected._sender, creator);
       assert.equal(Collected._id, bet.id);
       assert.equal(Collected._beneficiary, player1);
       expect(Collected._amount).to.eq.BN(0);
@@ -928,7 +928,7 @@ contract('GamblingManager', function (accounts) {
       );
 
       // For event
-      assert.equal(Collected._collecter, creator);
+      assert.equal(Collected._sender, creator);
       assert.equal(Collected._id, bet.id);
       assert.equal(Collected._beneficiary, player1);
       expect(Collected._amount).to.eq.BN(1);
@@ -990,7 +990,7 @@ contract('GamblingManager', function (accounts) {
       );
 
       // For event
-      assert.equal(Canceled._creator, creator);
+      assert.equal(Canceled._sender, creator);
       assert.equal(Canceled._id, bet.id);
       expect(Canceled._amount).to.eq.BN(1);
       assert.equal(Canceled._data, RETURN_TRUE);
@@ -1018,7 +1018,7 @@ contract('GamblingManager', function (accounts) {
       );
 
       // For event
-      assert.equal(Canceled._creator, creator);
+      assert.equal(Canceled._sender, creator);
       assert.equal(Canceled._id, bet.id);
       expect(Canceled._amount).to.eq.BN(0);
       assert.equal(Canceled._data, RETURN_TRUE);
