@@ -225,7 +225,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         bet.balance -= _amount;
         _transfer(address(this), _beneficiary, bet.erc20, _amount);
 
-        emit ModelTransfer(_betId, _beneficiary, _amount);
+        emit ModelTransfer(_betId, address(bet.model), _beneficiary, _amount);
     }
 
     function _create(

@@ -1089,8 +1089,9 @@ contract('GamblingManager', function (accounts) {
       );
 
       // For events
-      const ModelTransfer = Helper.getEvent(tx, gamblingManager, 'ModelTransfer(bytes32,address,uint256)');
+      const ModelTransfer = Helper.getEvent(tx, gamblingManager, 'ModelTransfer(bytes32,address,address,uint256)');
       assert.equal(ModelTransfer._id, bet.id);
+      assert.equal(ModelTransfer._model, model.address);
       assert.equal(ModelTransfer._beneficiary, player1);
       expect(ModelTransfer._amount).to.eq.BN(1);
 
@@ -1125,8 +1126,9 @@ contract('GamblingManager', function (accounts) {
       );
 
       // For events
-      const ModelTransfer = Helper.getEvent(tx, gamblingManager, 'ModelTransfer(bytes32,address,uint256)');
+      const ModelTransfer = Helper.getEvent(tx, gamblingManager, 'ModelTransfer(bytes32,address,address,uint256)');
       assert.equal(ModelTransfer._id, bet.id);
+      assert.equal(ModelTransfer._model, model.address);
       assert.equal(ModelTransfer._beneficiary, player1);
       expect(ModelTransfer._amount).to.eq.BN(1);
 
