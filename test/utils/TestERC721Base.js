@@ -12,7 +12,7 @@ const expect = require('chai')
   .expect;
 
 function bn (number) {
-  return new BN(number);
+  return web3.utils.toBN(number);
 }
 
 function inc (number) {

@@ -8,7 +8,7 @@ const expect = require('chai')
   .expect;
 
 function bn (number) {
-  return new web3.utils.BN(number);
+  return web3.utils.toBN(number);
 }
 
 async function getETHBalance (account) {
