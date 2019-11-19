@@ -1,6 +1,5 @@
 pragma solidity ^0.5.6;
 
-import "./interfaces/ITipERC20.sol";
 import "./interfaces/IGamblingManager.sol";
 import "./interfaces/IModel.sol";
 
@@ -42,39 +41,7 @@ contract IdHelper {
 }
 
 
-contract TipERC20 is BalanceManager, ITipERC20, Ownable {
-    function tip(address _from, address _token, uint256 _amount) external payable {
-        require(_amount != 0, "The amount should not be 0");
-        uint256 tansferAmount;
-
-        if (_token == ETH) {
-            if (msg.value > 0) {
-                require(_amount >= msg.value, "The msg.value should be more or equal than the _amount");
-                tansferAmount = _amount - msg.value;
-                _deposit(_from, owner, _token, msg.value);
-            } else {
-                tansferAmount = _amount;
-            }
-        } else {
-            require(msg.value == 0, "The msg.value should be 0");
-            if (_amount > _toBalance[_from][_token]) {
-                tansferAmount = _amount - _toBalance[_from][_token];
-                _deposit(_from, owner, _token, tansferAmount);
-                tansferAmount = _amount - tansferAmount;
-            } else {
-                tansferAmount = _amount;
-            }
-        }
-
-        if (tansferAmount != 0)
-            _transferFrom(_from, owner, _token, tansferAmount);
-
-        emit Tip(_amount);
-    }
-}
-
-
-contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
+contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamblingManager {
     struct Bet {
         address erc20;
         uint256 balance;
@@ -84,6 +51,10 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
     mapping(bytes32 => Bet) public toBet;
 
     constructor() public ERC721Base("Ethereum Gambling Bets", "EGB") { }
+
+    function setURIProvider(URIProvider _provider) external onlyOwner {
+        _setURIProvider(_provider);
+    }
 
     function create(
         address _erc20,
@@ -103,7 +74,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
         _create(betId, _erc20, _model, _data);
 
-        emit Created(msg.sender, betId, _erc20, _data, nonce);
+        emit Created(msg.sender, betId, _erc20, _model, _data, nonce);
     }
 
     function create2(
@@ -126,7 +97,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
         _create(betId, _erc20, _model, _data);
 
-        emit Created2(msg.sender, betId, _erc20, _data, _salt);
+        emit Created2(msg.sender, betId, _erc20, _model, _data, _salt);
     }
 
     function create3(
@@ -139,7 +110,7 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
         _create(betId, _erc20, _model, _data);
 
-        emit Created3(msg.sender, betId, _erc20, _data, _salt);
+        emit Created3(msg.sender, betId, _erc20, _model, _data, _salt);
     }
 
     function play(
@@ -147,20 +118,16 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
         bytes32 _betId,
         uint256 _maxAmount,
         bytes calldata _data
-    ) external payable returns(bool) {
+    ) external returns(bool) {
         Bet storage bet = toBet[_betId];
 
         uint256 needAmount = bet.model.play(msg.sender, _betId, _player, _data);
         require(needAmount <= _maxAmount, "The needAmount must be less or equal than _maxAmount");
 
-        if (msg.sender != _player) {
-            require(msg.value == 0, "The msg.value should be 0");
+        if (msg.sender != _player)
             _transferFrom(_player, address(this), bet.erc20, needAmount);
-        } else {
-            if (_toBalance[_player][bet.erc20] < needAmount)
-                _deposit(_player, _player, bet.erc20, needAmount - _toBalance[_player][bet.erc20]);
+        else
             _transfer(_player, address(this), bet.erc20, needAmount);
-        }
 
         // Add balance to Bet
         bet.balance += needAmount;
@@ -198,11 +165,14 @@ contract GamblingManager is TipERC20, IdHelper, IGamblingManager, ERC721Base {
 
         require(bet.model.cancel(msg.sender, _betId, _data), "The bet cant cancel");
 
-        delete (bet.model);
-
         uint256 balance = bet.balance;
+
         delete (bet.balance);
+
         _transfer(address(this), msg.sender, bet.erc20, balance);
+
+        delete (bet.erc20);
+        delete (bet.model);
 
         emit Canceled(msg.sender, _betId, balance, _data);
     }

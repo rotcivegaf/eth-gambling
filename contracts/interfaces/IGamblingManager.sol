@@ -1,11 +1,14 @@
 pragma solidity ^0.5.6;
 
+import "./IModel.sol";
+
 
 interface IGamblingManager {
     event Created(
         address indexed _creator,
         bytes32 indexed _id,
         address _token,
+        IModel _model,
         bytes _data,
         uint256 _nonce
     );
@@ -14,6 +17,7 @@ interface IGamblingManager {
         address indexed _creator,
         bytes32 indexed _id,
         address _token,
+        IModel _model,
         bytes _data,
         uint256 _salt
     );
@@ -22,6 +26,7 @@ interface IGamblingManager {
         address indexed _creator,
         bytes32 indexed _id,
         address _token,
+        IModel _model,
         bytes _data,
         uint256 _salt
     );

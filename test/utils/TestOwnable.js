@@ -1,24 +1,26 @@
 const Ownable = artifacts.require('../utils/Ownable.sol');
-const Helper = require('../Helper.js');
 
-const address0x = web3.utils.padLeft('0x0', 40);
+const {
+  tryCatchRevert,
+  address0x,
+} = require('../Helper.js');
 
-contract('Ownable', function (accounts) {
+contract('Ownable', (accounts) => {
   const owner = accounts[1];
   const secondOwner = accounts[2];
   const thirdOwner = accounts[3];
 
-  it('Should change owner on transfer', async function () {
+  it('Should change owner on transfer', async () => {
     const ownable = await Ownable.new({ from: owner });
     await ownable.transferTo(secondOwner, { from: owner });
 
     assert.equal(await ownable.owner(), secondOwner);
   });
 
-  it('Should revert if try to transfer to 0x0', async function () {
+  it('Should revert if try to transfer to 0x0', async () => {
     const ownable = await Ownable.new({ from: owner });
 
-    await Helper.tryCatchRevert(
+    await tryCatchRevert(
       () => ownable.transferTo(
         address0x,
         { from: owner }
@@ -29,10 +31,10 @@ contract('Ownable', function (accounts) {
     assert.equal(await ownable.owner(), owner);
   });
 
-  it('Should revert if another account tries to transfer', async function () {
+  it('Should revert if another account tries to transfer', async () => {
     const ownable = await Ownable.new({ from: owner });
 
-    await Helper.tryCatchRevert(
+    await tryCatchRevert(
       () => ownable.transferTo(
         secondOwner,
         { from: secondOwner }
@@ -40,7 +42,7 @@ contract('Ownable', function (accounts) {
       'The owner should be the sender'
     );
 
-    await Helper.tryCatchRevert(
+    await tryCatchRevert(
       () => ownable.transferTo(
         thirdOwner,
         { from: secondOwner }
@@ -51,7 +53,7 @@ contract('Ownable', function (accounts) {
     assert.equal(await ownable.owner(), owner);
   });
 
-  it('Should be creator with caller as owner', async function () {
+  it('Should be creator with caller as owner', async () => {
     const ownable = await Ownable.new({ from: accounts[7] });
     assert.equal(await ownable.owner(), accounts[7]);
   });

@@ -99,7 +99,7 @@ contract CoinFlip is IModel, Ownable {
         (address erc20, uint256 balance,) = gamblingManager.toBet(_id);
 
         if (needAmount == 0) { // Deposit to bet
-            require(_data.toUint256(32) >= gamblingManager.balanceOf(_player, erc20), "The depositer dont have balance");
+            require(_data.toUint256(32) <= gamblingManager.balanceOf(_player, erc20), "The depositer dont have balance");
         } else { // Play Bet
             require(!_sender.isContract(), "The sender should not be a contract");
             require(needAmount <= gamblingManager.balanceOf(_player, erc20), "The player dont have balance");
