@@ -81,12 +81,12 @@ contract CoinFlip is IModel, Ownable {
     }
 
     function collect(address _sender, bytes32, address, bytes calldata _data) external onlyGamblingManager returns(uint256) {
-        require(_sender == owner, "The owner should be the sender");
+        require(_sender == _owner, "The owner should be the sender");
         return _data.toUint256(0);
     }
 
     function cancel(address _sender, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
-        require(_sender == owner, "The owner should be the sender");
+        require(_sender == _owner, "The owner should be the sender");
         return true;
     }
 
