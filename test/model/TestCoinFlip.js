@@ -4,6 +4,7 @@ const CoinFlip = artifacts.require('./model/CoinFlip.sol');
 const GamblingManager = artifacts.require('./GamblingManager.sol');
 
 const {
+  expect,
   bn,
   tryCatchRevert,
   toEvents,
@@ -11,13 +12,11 @@ const {
   maxUint,
   inc,
   dec,
-  randomHex32,
+  random32,
+  random32bn,
   address0x,
   bytes320x,
 } = require('../Helper.js');
-const expect = require('chai')
-  .use(require('bn-chai')(web3.utils.BN))
-  .expect;
 
 function toData (...args) {
   let data = '0x';
@@ -64,8 +63,8 @@ async function hackWin (possibility) {
   return web3.utils.toBN(number).mod(possibility);
 }
 
-const DEPOSIT = bn('0');
-const MULTIPLIER_BASE = bn('1000000');
+const DEPOSIT = bn(0);
+const MULTIPLIER_BASE = bn(1000000);
 
 contract('CoinFlip', (accounts) => {
   const owner = accounts[1];
@@ -97,9 +96,9 @@ contract('CoinFlip', (accounts) => {
 
     coinFlip = await CoinFlip.new(gamblingManager.address, { from: owner });
 
-    const salt = bn(randomHex32().toString());
+    const salt = random32bn();
     idBet = await gamblingManager.buildId3(creator, salt);
-    await gamblingManager.create3(erc20.address, coinFlip.address, [], salt, { from: creator });
+    await gamblingManager.create3(erc20.address, coinFlip.address, 0, [], salt, { from: creator });
     await coinFlip.setMaxBetAmount(idBet, maxUint(128), { from: owner });
     await coinFlip.setMultiplier(2, MULTIPLIER_BASE, { from: owner });
   });
@@ -224,8 +223,8 @@ contract('CoinFlip', (accounts) => {
   });
   describe('Function setMultiplier', () => {
     it('Set multiplier', async () => {
-      const possibility = randomHex32();
-      const multiplier = randomHex32();
+      const possibility = random32();
+      const multiplier = random32();
 
       const SetMultiplier = await toEvents(
         coinFlip.setMultiplier(
@@ -244,8 +243,8 @@ contract('CoinFlip', (accounts) => {
     it('Try set multiplier without ownership', async () => {
       await tryCatchRevert(
         coinFlip.setMultiplier(
-          randomHex32(),
-          randomHex32(),
+          random32(),
+          random32(),
           { from: creator }
         ),
         'The owner should be the sender'
@@ -297,9 +296,9 @@ contract('CoinFlip', (accounts) => {
   describe('Function cancel', () => {
     it('Cancel', async () => {
       await resetSetBalance(creator, 8);
-      const salt = bn(randomHex32().toString());
+      const salt = random32bn();
       const idBet = await gamblingManager.buildId3(creator, salt);
-      await gamblingManager.create3(erc20.address, coinFlip.address, [], salt, { from: creator });
+      await gamblingManager.create3(erc20.address, coinFlip.address, 0, [], salt, { from: creator });
       await gamblingManager.play(creator, idBet, player, toData(DEPOSIT, 8), { from: creator });
 
       await gamblingManager.cancel(
@@ -336,9 +335,9 @@ contract('CoinFlip', (accounts) => {
   });
   describe('Function validatePlay', () => {
     it('Validate a deposit', async () => {
-      const salt = bn(randomHex32().toString());
+      const salt = random32bn();
       const idBet = await gamblingManager.buildId3(creator, salt);
-      await gamblingManager.create3(erc20.address, coinFlip.address, [], salt, { from: creator });
+      await gamblingManager.create3(erc20.address, coinFlip.address, 0, [], salt, { from: creator });
       await setApproveBalance(creator, 1);
       await gamblingManager.deposit(creator, erc20.address, 1, { from: creator });
 
@@ -352,9 +351,9 @@ contract('CoinFlip', (accounts) => {
       );
     });
     it('require(_data.toUint256(32) <= gamblingManager.balanceOf(_player, erc20), "The depositer dont have balance")', async () => {
-      const salt = bn(randomHex32().toString());
+      const salt = random32bn();
       const idBet = await gamblingManager.buildId3(creator, salt);
-      await gamblingManager.create3(erc20.address, coinFlip.address, [], salt, { from: creator });
+      await gamblingManager.create3(erc20.address, coinFlip.address, 0, [], salt, { from: creator });
       await gamblingManager.withdrawAll(creator, erc20.address, { from: player });
 
       await tryCatchRevert(
@@ -368,9 +367,9 @@ contract('CoinFlip', (accounts) => {
       );
     });
     it('Validate a play', async () => {
-      const salt = bn(randomHex32().toString());
+      const salt = random32bn();
       const idBet = await gamblingManager.buildId3(creator, salt);
-      await gamblingManager.create3(erc20.address, coinFlip.address, [], salt, { from: creator });
+      await gamblingManager.create3(erc20.address, coinFlip.address, 0, [], salt, { from: creator });
 
       await setApproveBalance(creator, 1);
       await gamblingManager.deposit(creator, erc20.address, 1, { from: creator });
@@ -473,9 +472,9 @@ contract('CoinFlip', (accounts) => {
   });
   describe('Function setMaxBetAmount', () => {
     it('Set max bet amount', async () => {
-      const salt = bn(randomHex32().toString());
+      const salt = random32bn();
       const idBet = await gamblingManager.buildId3(creator, salt);
-      await gamblingManager.create3(erc20.address, coinFlip.address, [], salt, { from: creator });
+      await gamblingManager.create3(erc20.address, coinFlip.address, 0, [], salt, { from: creator });
 
       const SetMaxBetAmount = await toEvents(
         coinFlip.setMaxBetAmount(

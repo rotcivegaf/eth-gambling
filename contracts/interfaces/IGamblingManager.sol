@@ -9,6 +9,7 @@ interface IGamblingManager {
         bytes32 indexed _id,
         address _token,
         IModel _model,
+        uint256 _takenAmount,
         bytes _data,
         uint256 _nonce
     );
@@ -18,6 +19,7 @@ interface IGamblingManager {
         bytes32 indexed _id,
         address _token,
         IModel _model,
+        uint256 _takenAmount,
         bytes _data,
         uint256 _salt
     );
@@ -27,6 +29,7 @@ interface IGamblingManager {
         bytes32 indexed _id,
         address _token,
         IModel _model,
+        uint256 _takenAmount,
         bytes _data,
         uint256 _salt
     );

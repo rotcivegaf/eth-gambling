@@ -45,9 +45,7 @@ contract CoinFlip is IModel, Ownable {
         emit SetMultiplier(_possibility, _multiplier);
     }
 
-    function create(address, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
-        return true;
-    }
+    function create(address, bytes32, bytes calldata) external onlyGamblingManager returns(uint256) { }
 
     function play(address _sender, bytes32 _id, address _player, bytes calldata _data) external onlyGamblingManager returns(uint256 needAmount) {
         needAmount = _data.toUint256(0);

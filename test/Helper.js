@@ -1,8 +1,16 @@
+module.exports.expect = require('chai')
+  .use(require('bn-chai')(web3.utils.BN))
+  .expect;
+
 module.exports.returnFalseAddress = '0x00000000000000000000000000000066616c7365';
 module.exports.address0x = web3.utils.padLeft('0x0', 40);
 module.exports.bytes320x = web3.utils.padLeft('0x0', 64);
 
-module.exports.randomHex32 = () => {
+module.exports.random32bn = () => {
+  return this.bn(this.random32());
+};
+
+module.exports.random32 = () => {
   return this.bn(web3.utils.randomHex(32));
 };
 

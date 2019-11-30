@@ -5,7 +5,9 @@ const TestURIProvider = artifacts.require('TestURIProvider.sol');
 const GamblingManager = artifacts.require('GamblingManager.sol');
 
 const {
+  expect,
   bn,
+  random32bn,
   tryCatchRevert,
   toEvents,
   toHexBytes32,
@@ -15,16 +17,11 @@ const {
   address0x,
   bytes320x,
 } = require('./Helper.js');
-const expect = require('chai')
-  .use(require('bn-chai')(web3.utils.BN))
-  .expect;
 
-const oneBytes32 = toHexBytes32('1');
-const one = '0x01';
-const two = '0x02';
-const three = '0x03';
+const ONE_BYTES_32 = toHexBytes32(1);
 // For testModel return true
 const RETURN_TRUE = toHexBytes32(web3.utils.asciiToHex('TRUE'));
+const AMOUNT0 = toHexBytes32(0);
 
 contract('GamblingManager', (accounts) => {
   const owner = accounts[1];
@@ -108,7 +105,7 @@ contract('GamblingManager', (accounts) => {
       const nonce = bn('1515121');
 
       const calcId = await web3.utils.soliditySha3(
-        { t: 'uint8', v: one },
+        { t: 'uint8', v: '0x01' },
         { t: 'address', v: gamblingManager.address },
         { t: 'address', v: creator },
         { t: 'uint256', v: nonce }
@@ -124,10 +121,10 @@ contract('GamblingManager', (accounts) => {
         '2958923085128a371829371289371f2893712398712398721312342134123444' +
         '00000000000000000000000021659816515112315123151a1561561abcabc121' +
         '000000000000000000000000000000000000000021651651516512315123151a';
-      const salt = bn('1515121');
+      const salt = random32bn();
 
       const calcId = await web3.utils.soliditySha3(
-        { t: 'uint8', v: two },
+        { t: 'uint8', v: '0x02' },
         { t: 'address', v: gamblingManager.address },
         { t: 'address', v: creator },
         { t: 'address', v: _token },
@@ -149,10 +146,10 @@ contract('GamblingManager', (accounts) => {
       assert.equal(id, calcId);
     });
     it('function buildId3', async () => {
-      const salt = bn('21313');
+      const salt = random32bn();
 
       const calcId = await web3.utils.soliditySha3(
-        { t: 'uint8', v: three },
+        { t: 'uint8', v: '0x03' },
         { t: 'address', v: gamblingManager.address },
         { t: 'address', v: creator },
         { t: 'uint256', v: salt }
@@ -175,7 +172,8 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.create(
           erc20.address,
           model.address,
-          RETURN_TRUE,
+          0,
+          AMOUNT0,
           { from: creator }
         ),
         'Created'
@@ -185,7 +183,8 @@ contract('GamblingManager', (accounts) => {
       assert.equal(Created._id, id);
       assert.equal(Created._token, erc20.address);
       assert.equal(Created._model, model.address);
-      assert.equal(Created._data, RETURN_TRUE);
+      expect(Created._takenAmount).to.eq.BN(0);
+      assert.equal(Created._data, AMOUNT0);
       expect(Created._nonce).to.eq.BN(nonce);
 
       const bet = await gamblingManager.toBet(id);
@@ -212,13 +211,13 @@ contract('GamblingManager', (accounts) => {
       expect((await gamblingManager.toBet(id)).balance).to.eq.BN(balBet);
     });
     it('Function create2', async () => {
-      const salt = bn('1515121');
+      const salt = random32bn();
 
       const id = await gamblingManager.buildId2(
         creator,
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        AMOUNT0,
         salt
       );
 
@@ -226,7 +225,8 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.create2(
           erc20.address,
           model.address,
-          RETURN_TRUE,
+          0,
+          AMOUNT0,
           salt,
           { from: creator }
         ),
@@ -237,7 +237,8 @@ contract('GamblingManager', (accounts) => {
       assert.equal(Created2._id, id);
       assert.equal(Created2._token, erc20.address);
       assert.equal(Created2._model, model.address);
-      assert.equal(Created2._data, RETURN_TRUE);
+      expect(Created2._takenAmount).to.eq.BN(0);
+      assert.equal(Created2._data, AMOUNT0);
       expect(Created2._salt).to.eq.BN(salt);
 
       const bet = await gamblingManager.toBet(id);
@@ -246,7 +247,7 @@ contract('GamblingManager', (accounts) => {
       assert.equal(bet.model, model.address);
     });
     it('Function create3', async () => {
-      const salt = bn('21314');
+      const salt = random32bn();
 
       const id = await gamblingManager.buildId3(creator, salt);
 
@@ -254,7 +255,8 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.create3(
           erc20.address,
           model.address,
-          RETURN_TRUE,
+          0,
+          AMOUNT0,
           salt,
           { from: creator }
         ),
@@ -265,7 +267,8 @@ contract('GamblingManager', (accounts) => {
       assert.equal(Created3._id, id);
       assert.equal(Created3._token, erc20.address);
       assert.equal(Created3._model, model.address);
-      assert.equal(Created3._data, RETURN_TRUE);
+      expect(Created3._takenAmount).to.eq.BN(0);
+      assert.equal(Created3._data, AMOUNT0);
       expect(Created3._salt).to.eq.BN(salt);
 
       const bet = await gamblingManager.toBet(id);
@@ -273,13 +276,129 @@ contract('GamblingManager', (accounts) => {
       expect(bet.balance).to.eq.BN('0');
       assert.equal(bet.model, model.address);
     });
+  });
+  describe('Functions _create', function () {
+    it('Function create a bet with balance', async () => {
+      const nonce = await gamblingManager.nonces(creator);
+      const id = await gamblingManager.buildId(creator, nonce);
+
+      await setApproveBalance(creator, 1);
+      await gamblingManager.deposit(creator, erc20.address, 1, { from: creator });
+
+      await saveBalances(id);
+
+      const Created = await toEvents(
+        gamblingManager.create(
+          erc20.address,
+          model.address,
+          1,
+          ONE_BYTES_32,
+          { from: creator }
+        ),
+        'Created'
+      );
+
+      assert.equal(Created._creator, creator);
+      assert.equal(Created._id, id);
+      assert.equal(Created._token, erc20.address);
+      assert.equal(Created._model, model.address);
+      expect(Created._takenAmount).to.eq.BN(1);
+      assert.equal(Created._data, ONE_BYTES_32);
+      expect(Created._nonce).to.eq.BN(nonce);
+
+      const bet = await gamblingManager.toBet(id);
+      assert.equal(bet.erc20, erc20.address);
+      expect(bet.balance).to.eq.BN(1);
+      assert.equal(bet.model, model.address);
+
+      // Check ERC20 balance
+      // Balance of gamblingManager
+      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(balGM);
+      // Balance of creator
+      expect(await erc20.balanceOf(creator)).to.eq.BN(balCreator);
+      // Balance of player1
+      expect(await erc20.balanceOf(player1)).to.eq.BN(balPlayer1);
+      // Balance on gamblingManager of owner
+      expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(balGmOwner);
+      // Balance on gamblingManager of creator
+      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(dec(balGMCreator));
+      // Balance on gamblingManager of player1
+      expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(balGMPlayer1);
+      // Balance on gamblingManager of depositer
+      expect(await gamblingManager.methods['balanceOf(address,address)'](depositer, erc20.address)).to.eq.BN(balGDepositer);
+    });
+    it('Function create a bet and deposit', async () => {
+      const nonce = await gamblingManager.nonces(creator);
+      const id = await gamblingManager.buildId(creator, nonce);
+
+      await setApproveBalance(creator, 1);
+      await erc20.approve(gamblingManager.address, 1, { from: creator });
+
+      await saveBalances(id);
+
+      const Created = await toEvents(
+        gamblingManager.create(
+          erc20.address,
+          model.address,
+          1,
+          ONE_BYTES_32,
+          { from: creator }
+        ),
+        'Created'
+      );
+
+      assert.equal(Created._creator, creator);
+      assert.equal(Created._id, id);
+      assert.equal(Created._token, erc20.address);
+      assert.equal(Created._model, model.address);
+      expect(Created._takenAmount).to.eq.BN(1);
+      assert.equal(Created._data, ONE_BYTES_32);
+      expect(Created._nonce).to.eq.BN(nonce);
+
+      const bet = await gamblingManager.toBet(id);
+      assert.equal(bet.erc20, erc20.address);
+      expect(bet.balance).to.eq.BN(1);
+      assert.equal(bet.model, model.address);
+
+      // Check ERC20 balance
+      // Balance of gamblingManager
+      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(inc(balGM));
+      // Balance of creator
+      expect(await erc20.balanceOf(creator)).to.eq.BN(dec(balCreator));
+      // Balance of player1
+      expect(await erc20.balanceOf(player1)).to.eq.BN(balPlayer1);
+      // Balance on gamblingManager of owner
+      expect(await gamblingManager.methods['balanceOf(address,address)'](owner, erc20.address)).to.eq.BN(balGmOwner);
+      // Balance on gamblingManager of creator
+      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(balGMCreator);
+      // Balance on gamblingManager of player1
+      expect(await gamblingManager.methods['balanceOf(address,address)'](player1, erc20.address)).to.eq.BN(balGMPlayer1);
+      // Balance on gamblingManager of depositer
+      expect(await gamblingManager.methods['balanceOf(address,address)'](depositer, erc20.address)).to.eq.BN(balGDepositer);
+    });
+    it('Try create a bet with low maxAmount', async () => {
+      await setApproveBalance(creator, 1);
+      await gamblingManager.deposit(creator, erc20.address, 1, { from: creator });
+
+      await tryCatchRevert(
+        gamblingManager.create(
+          erc20.address,
+          model.address,
+          0,
+          ONE_BYTES_32,
+          { from: creator }
+        ),
+        'The needAmount must be less or equal than _maxAmount'
+      );
+    });
     it('Try create an identical bet', async () => {
-      const salt = bn('56465165');
+      const salt = random32bn();
 
       await gamblingManager.create3(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         salt,
         { from: creator }
       );
@@ -288,22 +407,12 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.create3(
           erc20.address,
           model.address,
-          RETURN_TRUE,
+          0,
+          AMOUNT0,
           salt,
           { from: creator }
         ),
         'The bet is already created'
-      );
-    });
-    it('Try create a bet, but the model reject it', async () => {
-      await tryCatchRevert(
-        gamblingManager.create(
-          erc20.address,
-          model.address,
-          oneBytes32,
-          { from: creator }
-        ),
-        'Model.create return false'
       );
     });
   });
@@ -314,12 +423,13 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
+      await gamblingManager.deposit(player1, erc20.address, 1, { from: depositer });
 
       await saveBalances(id);
 
@@ -328,7 +438,7 @@ contract('GamblingManager', (accounts) => {
           player1,
           id,
           maxUint('256'),
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player1 }
         ),
         'Played'
@@ -338,12 +448,12 @@ contract('GamblingManager', (accounts) => {
       assert.equal(Played._sender, player1);
       assert.equal(Played._player, player1);
       assert.equal(Played._id, id);
-      expect(Played._amount).to.eq.BN('1');
-      assert.equal(Played._data, oneBytes32);
+      expect(Played._amount).to.eq.BN(1);
+      assert.equal(Played._data, ONE_BYTES_32);
 
       const bet = await gamblingManager.toBet(id);
       assert.equal(bet.erc20, erc20.address);
-      expect(bet.balance).to.eq.BN('1');
+      expect(bet.balance).to.eq.BN(1);
       assert.equal(bet.model, model.address);
 
       // Check ERC20 balance
@@ -370,15 +480,16 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await gamblingManager.withdrawAll(accounts[8], erc20.address, { from: player1 });
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
-      await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, '1', { from: player1 });
+      await gamblingManager.deposit(player1, erc20.address, 1, { from: depositer });
+      await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, 1, { from: player1 });
 
       await saveBalances(id);
 
@@ -387,7 +498,7 @@ contract('GamblingManager', (accounts) => {
           player1,
           id,
           maxUint('256'),
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player2 }
         ),
         'Played'
@@ -397,12 +508,12 @@ contract('GamblingManager', (accounts) => {
       assert.equal(Played._sender, player2);
       assert.equal(Played._player, player1);
       assert.equal(Played._id, id);
-      expect(Played._amount).to.eq.BN('1');
-      assert.equal(Played._data, oneBytes32);
+      expect(Played._amount).to.eq.BN(1);
+      assert.equal(Played._data, ONE_BYTES_32);
 
       const bet = await gamblingManager.toBet(id);
       assert.equal(bet.erc20, erc20.address);
-      expect(bet.balance).to.eq.BN('1');
+      expect(bet.balance).to.eq.BN(1);
       assert.equal(bet.model, model.address);
 
       // Check allowance
@@ -435,19 +546,20 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
+      await gamblingManager.deposit(player1, erc20.address, 1, { from: depositer });
 
       await tryCatchRevert(
         gamblingManager.play(
           player1,
           id,
           '0',
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player1 }
         ),
         'The needAmount must be less or equal than _maxAmount'
@@ -459,19 +571,20 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await gamblingManager.withdrawAll(accounts[8], erc20.address, { from: player1 });
-      await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, '1', { from: player1 });
+      await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, 1, { from: player1 });
 
       await tryCatchRevert(
         gamblingManager.play(
           player1,
           id,
           maxUint('256'),
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player2 }
         ),
         'Insufficient founds to transfer'
@@ -483,12 +596,13 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(player1, erc20.address, '1', { from: depositer });
+      await gamblingManager.deposit(player1, erc20.address, 1, { from: depositer });
       await gamblingManager.methods['approve(address,address,uint256)'](player2, erc20.address, 0, { from: player1 });
 
       await tryCatchRevert(
@@ -496,7 +610,7 @@ contract('GamblingManager', (accounts) => {
           player1,
           id,
           maxUint('256'),
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player2 }
         ),
         'Insufficient _allowance to transfer'
@@ -507,7 +621,7 @@ contract('GamblingManager', (accounts) => {
           player1,
           id,
           1,
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player2 }
         ),
         'Insufficient _allowance to transfer'
@@ -519,11 +633,13 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await gamblingManager.withdrawAll(accounts[8], erc20.address, { from: player1 });
+      await erc20.approve(gamblingManager.address, 0, { from: player1 });
 
       // Without balance
       await tryCatchRevert(
@@ -531,10 +647,10 @@ contract('GamblingManager', (accounts) => {
           player1,
           id,
           maxUint('256'),
-          oneBytes32,
+          ONE_BYTES_32,
           { from: player1 }
         ),
-        'Insufficient founds to transfer'
+        'Error pulling tokens, in deposit'
       );
 
       // Try overflow
@@ -546,7 +662,7 @@ contract('GamblingManager', (accounts) => {
           toHexBytes32(-1),
           { from: player1 }
         ),
-        'Insufficient founds to transfer'
+        'Error pulling tokens, in deposit'
       );
     });
   });
@@ -557,7 +673,8 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
@@ -609,18 +726,19 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await setApproveBalance(player1, 1);
-      await gamblingManager.deposit(player1, erc20.address, '1', { from: player1 });
+      await gamblingManager.deposit(player1, erc20.address, 1, { from: player1 });
 
       await gamblingManager.play(
         player1,
         id,
         maxUint('256'),
-        oneBytes32,
+        ONE_BYTES_32,
         { from: player1 }
       );
 
@@ -630,7 +748,7 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.collect(
           player1,
           id,
-          oneBytes32,
+          ONE_BYTES_32,
           { from: creator }
         ),
         'Collected'
@@ -640,8 +758,8 @@ contract('GamblingManager', (accounts) => {
       assert.equal(Collected._collecter, creator);
       assert.equal(Collected._id, id);
       assert.equal(Collected._beneficiary, player1);
-      expect(Collected._amount).to.eq.BN('1');
-      assert.equal(Collected._data, oneBytes32);
+      expect(Collected._amount).to.eq.BN(1);
+      assert.equal(Collected._data, ONE_BYTES_32);
 
       const bet = await gamblingManager.toBet(id);
       assert.equal(bet.erc20, erc20.address);
@@ -670,12 +788,13 @@ contract('GamblingManager', (accounts) => {
       const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(creator, erc20.address, '1', { from: depositer });
+      await gamblingManager.deposit(creator, erc20.address, 1, { from: depositer });
 
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
@@ -683,7 +802,7 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.collect(
           address0x,
           id,
-          oneBytes32,
+          ONE_BYTES_32,
           { from: creator }
         ),
         '_beneficiary should not be 0x0'
@@ -693,12 +812,13 @@ contract('GamblingManager', (accounts) => {
       const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(creator, erc20.address, '1', { from: depositer });
+      await gamblingManager.deposit(creator, erc20.address, 1, { from: depositer });
 
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
@@ -718,23 +838,24 @@ contract('GamblingManager', (accounts) => {
       const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
       await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(creator, erc20.address, '1', { from: depositer });
+      await gamblingManager.deposit(creator, erc20.address, 1, { from: depositer });
 
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
       await setApproveBalance(player1, 1);
-      await gamblingManager.deposit(player1, erc20.address, '1', { from: player1 });
+      await gamblingManager.deposit(player1, erc20.address, 1, { from: player1 });
 
       await gamblingManager.play(
         player1,
         id,
         maxUint('256'),
-        oneBytes32,
+        ONE_BYTES_32,
         { from: player1 }
       );
 
@@ -752,7 +873,7 @@ contract('GamblingManager', (accounts) => {
       // For event
       assert.equal(Canceled._creator, creator);
       assert.equal(Canceled._id, id);
-      expect(Canceled._amount).to.eq.BN('1');
+      expect(Canceled._amount).to.eq.BN(1);
       assert.equal(Canceled._data, RETURN_TRUE);
 
       const bet = await gamblingManager.toBet(id);
@@ -784,7 +905,8 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
@@ -834,7 +956,8 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 
@@ -870,7 +993,8 @@ contract('GamblingManager', (accounts) => {
       await gamblingManager.create(
         erc20.address,
         model.address,
-        RETURN_TRUE,
+        0,
+        AMOUNT0,
         { from: creator }
       );
 

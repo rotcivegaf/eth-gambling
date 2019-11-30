@@ -3,15 +3,13 @@ const TestERC20 = artifacts.require('./utils/test/TestERC20.sol');
 const BalanceManager = artifacts.require('./utils/BalanceManager.sol');
 
 const {
+  expect,
   bn,
   tryCatchRevert,
   toEvents,
   address0x,
   returnFalseAddress,
 } = require('../Helper.js');
-const expect = require('chai')
-  .use(require('bn-chai')(web3.utils.BN))
-  .expect;
 
 const maxAmount = bn('2').pow(bn('256')).sub(bn('1'));
 

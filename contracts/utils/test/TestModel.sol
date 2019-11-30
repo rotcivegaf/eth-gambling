@@ -10,8 +10,8 @@ contract TestModel is IModel {
 
     bytes32 public constant TRUE = 0x0000000000000000000000000000000000000000000000000000000054525545;
 
-    function create(address, bytes32, bytes calldata _data) external returns(bool) {
-        return _data.toBytes32(0) == TRUE;
+    function create(address, bytes32, bytes calldata _data) external returns(uint256) {
+        return _data.toUint256(0);
     }
 
     function play(address, bytes32, address, bytes calldata _data) external returns(uint256) {

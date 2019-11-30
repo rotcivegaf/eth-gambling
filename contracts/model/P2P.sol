@@ -27,7 +27,7 @@ contract P2P is IModel {
         gamblingManager = _gamblingManager;
     }
 
-    function create(address, bytes32, bytes calldata) external onlyGamblingManager returns(bool) {
+    function create(address, bytes32, bytes calldata) external onlyGamblingManager returns(uint256) {
         revert("Not implements");
     }
 

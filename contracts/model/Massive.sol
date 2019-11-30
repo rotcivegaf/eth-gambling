@@ -59,7 +59,7 @@ contract Massive is IModel, Ownable {
         emit SetWiner(_id, _winner);
     }
 
-    function create(address, bytes32 _id, bytes calldata _data) external onlyGamblingManager returns(bool) {
+    function create(address, bytes32 _id, bytes calldata _data) external onlyGamblingManager returns(uint256) {
         require(!pause, "The model its pause");
         uint256 noMoreBets = _data.toUint256(0);
         require(oracle != address(0), "The oracle should not be 0");

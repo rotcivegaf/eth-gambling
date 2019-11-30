@@ -6,6 +6,7 @@ const TestERC721ReceiverMultiple = artifacts.require('./utils/test/TestERC721Rec
 const TestURIProvider = artifacts.require('./utils/test/TestURIProvider.sol');
 
 const {
+  expect,
   bn,
   tryCatchRevert,
   toEvents,
@@ -14,10 +15,6 @@ const {
   inc,
   dec,
 } = require('../Helper.js');
-const BN = web3.utils.BN;
-const expect = require('chai')
-  .use(require('bn-chai')(BN))
-  .expect;
 
 contract('ERC721 Base', (accounts) => {
   const user = accounts[1];

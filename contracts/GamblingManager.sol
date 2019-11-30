@@ -59,6 +59,7 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
     function create(
         address _erc20,
         IModel _model,
+        uint256 _maxAmount,
         bytes calldata _data
     ) external returns (bytes32 betId) {
         uint256 nonce = nonces[msg.sender]++;
@@ -72,14 +73,15 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
             )
         );
 
-        _create(betId, _erc20, _model, _data);
+        uint256 takenAmount = _create(betId, _erc20, _model, _maxAmount, _data);
 
-        emit Created(msg.sender, betId, _erc20, _model, _data, nonce);
+        emit Created(msg.sender, betId, _erc20, _model, takenAmount, _data, nonce);
     }
 
     function create2(
         address _erc20,
         IModel _model,
+        uint256 _maxAmount,
         bytes calldata _data,
         uint256 _salt
     ) external returns (bytes32 betId) {
@@ -95,22 +97,23 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
             )
         );
 
-        _create(betId, _erc20, _model, _data);
+        uint256 takenAmount = _create(betId, _erc20, _model, _maxAmount, _data);
 
-        emit Created2(msg.sender, betId, _erc20, _model, _data, _salt);
+        emit Created2(msg.sender, betId, _erc20, _model, takenAmount, _data, _salt);
     }
 
     function create3(
         address _erc20,
         IModel _model,
+        uint256 _maxAmount,
         bytes calldata _data,
         uint256 _salt
     ) external returns(bytes32 betId) {
         betId = keccak256(abi.encodePacked(uint8(3), address(this), msg.sender, _salt));
 
-        _create(betId, _erc20, _model, _data);
+        uint256 takenAmount = _create(betId, _erc20, _model, _maxAmount, _data);
 
-        emit Created3(msg.sender, betId, _erc20, _model, _data, _salt);
+        emit Created3(msg.sender, betId, _erc20, _model, takenAmount, _data, _salt);
     }
 
     function play(
@@ -120,14 +123,20 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
         bytes calldata _data
     ) external returns(bool) {
         Bet storage bet = toBet[_betId];
+        address token = address(bet.erc20);
 
         uint256 needAmount = bet.model.play(msg.sender, _betId, _player, _data);
         require(needAmount <= _maxAmount, "The needAmount must be less or equal than _maxAmount");
 
-        if (msg.sender != _player)
-            _transferFrom(_player, address(this), bet.erc20, needAmount);
-        else
-            _transfer(_player, address(this), bet.erc20, needAmount);
+        if (msg.sender != _player) {
+            _transferFrom(_player, address(this), token, needAmount);
+        } else {
+          uint256 balance = _toBalance[_player][token];
+          if (needAmount > balance) {
+              _deposit(_player, _player, token, needAmount - balance);
+          }
+          _transfer(_player, address(this), token, needAmount);
+        }
 
         // Add balance to Bet
         bet.balance += needAmount;
@@ -198,17 +207,25 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
         bytes32 _betId,
         address _erc20,
         IModel _model,
+        uint256 _maxAmount,
         bytes memory _data
-    ) internal {
+    ) internal returns(uint256 needAmount) {
         require(toBet[_betId].model == IModel(0), "The bet is already created");
 
-        require(_model.create(msg.sender, _betId, _data), "Model.create return false");
+        needAmount = _model.create(msg.sender, _betId, _data);
+        require(needAmount <= _maxAmount, "The needAmount must be less or equal than _maxAmount");
+
+        uint256 balance = _toBalance[msg.sender][_erc20];
+        if (needAmount > balance) {
+            _deposit(msg.sender, msg.sender, _erc20, needAmount - balance);
+        }
+        _transfer(msg.sender, address(this), _erc20, needAmount);
 
         _generate(uint256(_betId), msg.sender);
 
         toBet[_betId] = Bet({
             erc20: _erc20,
-            balance: 0,
+            balance: needAmount,
             model: _model
         });
     }
