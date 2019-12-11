@@ -272,7 +272,6 @@ contract ERC721Base is IERC721, ERC165 {
     bytes memory _userData,
     bool _doCheck
   ) internal {
-    require(_to != address(0), "Target can't be 0x0");
     address owner = _ownerOf[_assetId];
     require(
       msg.sender == owner || _approval[_assetId] == msg.sender || operators[owner][msg.sender],

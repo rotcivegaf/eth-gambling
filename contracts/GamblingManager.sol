@@ -149,7 +149,6 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
     bytes32 _betId,
     bytes calldata _data
   ) external {
-    require(_beneficiary != address(0), "_beneficiary should not be 0x0");
     Bet storage bet = toBet[_betId];
 
     uint256 amount = bet.model.collect(msg.sender, _betId, _beneficiary, _data);
@@ -191,7 +190,6 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
     bytes32 _betId,
     uint256 _amount
   ) external {
-    require(_beneficiary != address(0), "_beneficiary should not be 0x0");
     Bet storage bet = toBet[_betId];
 
     require(msg.sender == address(bet.model), "The sender should be the model");

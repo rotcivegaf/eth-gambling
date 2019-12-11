@@ -7,7 +7,6 @@ const {
   bn,
   tryCatchRevert,
   toEvents,
-  address0x,
   returnFalseAddress,
 } = require('../Helper.js');
 
@@ -126,25 +125,6 @@ contract('BalanceManager', (accounts) => {
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(bn(1)));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(bn(1)));
     });
-    it('Try transfer to address 0x0', async () => {
-      await setApproveBalance(depositer, bn(1));
-      await balanceManager.deposit(
-        player1,
-        erc20.address,
-        bn(1),
-        { from: depositer }
-      );
-
-      await tryCatchRevert(
-        balanceManager.transfer(
-          address0x,
-          erc20.address,
-          bn(1),
-          { from: player1 }
-        ),
-        '_to should not be 0x0'
-      );
-    });
     it('Try transfer ERC20 without balance', async () => {
       await balanceManager.withdrawAll(
         accounts[8],
@@ -257,33 +237,6 @@ contract('BalanceManager', (accounts) => {
       expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220);
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(bn(1)));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220.add(bn(1)));
-    });
-    it('Try transferFrom to address 0x0', async () => {
-      await setApproveBalance(depositer, bn(1));
-      await balanceManager.deposit(
-        player1,
-        erc20.address,
-        bn(1),
-        { from: depositer }
-      );
-
-      await balanceManager.approve(
-        approved,
-        erc20.address,
-        bn(1),
-        { from: player1 }
-      );
-
-      await tryCatchRevert(
-        balanceManager.transferFrom(
-          player1,
-          address0x,
-          erc20.address,
-          bn(1),
-          { from: approved }
-        ),
-        '_to should not be 0x0'
-      );
     });
     it('Try transferFrom without having the approval of the amount', async () => {
       await setApproveBalance(depositer, bn(1));
@@ -422,19 +375,6 @@ contract('BalanceManager', (accounts) => {
       expect(await erc20.balanceOf(player1)).to.eq.BN(prevBalP120);
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.add(bn(1)));
     });
-    it('Try deposit to address 0x0', async () => {
-      await setApproveBalance(depositer, bn(1));
-
-      await tryCatchRevert(
-        balanceManager.deposit(
-          address0x,
-          erc20.address,
-          bn(1),
-          { from: depositer }
-        ),
-        '_to should not be 0x0'
-      );
-    });
     it('Try deposit ERC20 without approbe', async () => {
       await setApproveBalance(depositer, bn(1));
       await erc20.approve(balanceManager.address, 0, { from: depositer });
@@ -549,25 +489,6 @@ contract('BalanceManager', (accounts) => {
       expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220.add(bn(1)));
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN(prevBalBMP120.sub(bn(1)));
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
-    });
-    it('Try withdraw to address 0x0', async () => {
-      await setApproveBalance(depositer, bn(1));
-      await balanceManager.deposit(
-        player1,
-        erc20.address,
-        bn(1),
-        { from: depositer }
-      );
-
-      await tryCatchRevert(
-        balanceManager.withdraw(
-          address0x,
-          erc20.address,
-          bn(1),
-          { from: player1 }
-        ),
-        '_to should not be 0x0'
-      );
     });
     it('Try withdraw ERC20 without balance', async () => {
       await tryCatchRevert(
@@ -694,24 +615,6 @@ contract('BalanceManager', (accounts) => {
       expect(await erc20.balanceOf(player2)).to.eq.BN(prevBalP220.add(prevBalBMP120));
       expect(await balanceManager.balanceOf(player1, erc20.address)).to.eq.BN('0');
       expect(await balanceManager.balanceOf(player2, erc20.address)).to.eq.BN(prevBalBMP220);
-    });
-    it('Try withdraw all to address 0x0', async () => {
-      await setApproveBalance(depositer, bn(1));
-      await balanceManager.deposit(
-        player1,
-        erc20.address,
-        bn(1),
-        { from: depositer }
-      );
-
-      await tryCatchRevert(
-        balanceManager.withdrawAll(
-          address0x,
-          erc20.address,
-          { from: player1 }
-        ),
-        '_to should not be 0x0'
-      );
     });
     it('Withdraw all ERC20 without balance', async () => {
       await balanceManager.withdrawAll(

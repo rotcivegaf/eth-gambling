@@ -48,8 +48,6 @@ contract BalanceManager is IBalanceManager {
   }
 
   function _transfer(address _from, address _to, address _token, uint256 _value) internal returns(bool) {
-    require(_to != address(0), "_to should not be 0x0");
-
     // Here check _toBalance underflow
     require(_toBalance[_from][_token] >= _value, "Insufficient founds to transfer");
 
@@ -78,8 +76,6 @@ contract BalanceManager is IBalanceManager {
   }
 
   function _deposit(address _from, address _to, address _token, uint256 _amount) internal returns(bool) {
-    require(_to != address(0), "_to should not be 0x0");
-
     require(
       IERC20(_token).transferFrom(_from, address(this), _amount),
       "Error pulling tokens, in deposit"
@@ -104,7 +100,6 @@ contract BalanceManager is IBalanceManager {
   }
 
   function _withdraw(address _from, address _to, address _token, uint256 _value) internal {
-    require(_to != address(0), "_to should not be 0x0");
     require(_toBalance[_from][_token] >= _value, "Insufficient founds to discount");
 
     _toBalance[_from][_token] -= _value;
@@ -115,8 +110,6 @@ contract BalanceManager is IBalanceManager {
   }
 
   function withdrawAll(address _to, address _token) external {
-    require(_to != address(0), "_to should not be 0x0");
-
     uint256 addrBal = _toBalance[msg.sender][_token];
     delete (_toBalance[msg.sender][_token]);
 

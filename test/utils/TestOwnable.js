@@ -3,7 +3,6 @@ const Ownable = artifacts.require('../utils/Ownable.sol');
 const {
   toEvents,
   tryCatchRevert,
-  address0x,
 } = require('../Helper.js');
 
 contract('Ownable', (accounts) => {
@@ -33,19 +32,6 @@ contract('Ownable', (accounts) => {
       assert.equal(OwnershipTransferred._newOwner, secondOwner);
 
       assert.equal(await ownable.owner(), secondOwner);
-    });
-    it('Try to transfer ownership to 0x0', async function () {
-      const ownable = await Ownable.new({ from: owner });
-
-      await tryCatchRevert(
-        () => ownable.transferOwnership(
-          address0x,
-          { from: owner }
-        ),
-        '0x0 Is not a valid owner'
-      );
-
-      assert.equal(await ownable.owner(), owner);
     });
     // modifier onlyOwner
     it('Should revert if account without ownership tries to transfer', async function () {

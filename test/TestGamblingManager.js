@@ -784,30 +784,6 @@ contract('GamblingManager', (accounts) => {
       // Balance of Bet on gamblingManager
       expect((await gamblingManager.toBet(id)).balance).to.eq.BN(dec(balBet));
     });
-    it('Try collect a bet with 0x0 address as beneficiary', async () => {
-      const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
-
-      await setApproveBalance(depositer, 1);
-      await gamblingManager.deposit(creator, erc20.address, 1, { from: depositer });
-
-      await gamblingManager.create(
-        erc20.address,
-        model.address,
-        0,
-        AMOUNT0,
-        { from: creator }
-      );
-
-      await tryCatchRevert(
-        gamblingManager.collect(
-          address0x,
-          id,
-          ONE_BYTES_32,
-          { from: creator }
-        ),
-        '_beneficiary should not be 0x0'
-      );
-    });
     it('Try collect a bet and the balance of bet its insufficient (try overflow)', async () => {
       const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
 
