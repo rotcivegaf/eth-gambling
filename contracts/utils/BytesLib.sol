@@ -198,13 +198,13 @@ library BytesLib {
         sstore(sc, add(sload(sc), and(mload(mc), mask)))
 
         for {
-          sc := add(sc, 1)
-          mc := add(mc, 0x20)
+            sc := add(sc, 1)
+            mc := add(mc, 0x20)
         } lt(mc, end) {
-          sc := add(sc, 1)
-          mc := add(mc, 0x20)
+            sc := add(sc, 1)
+            mc := add(mc, 0x20)
         } {
-          sstore(sc, mload(mc))
+            sstore(sc, mload(mc))
         }
 
         mask := exp(0x100, sub(mc, end))
@@ -214,7 +214,7 @@ library BytesLib {
     }
   }
 
-  function slice(bytes memory _bytes, uint256 _start, uint256 _length) internal pure returns (bytes memory tempBytes){
+  function slice(bytes memory _bytes, uint256 _start, uint256 _length) internal pure returns (bytes memory tempBytes) {
     require(_bytes.length >= (_start + _length), "Read out of bounds");
 
     assembly {
@@ -276,7 +276,7 @@ library BytesLib {
   }
 
   function toUint8(bytes memory _bytes, uint256 _start) internal pure returns (uint8 ret) {
-    require(_bytes.length >= (_start + 1), "Read out of bounds");
+    require(_bytes.length >= (_start + 1));
 
     assembly {
       ret := mload(add(add(_bytes, 0x1), _start))
@@ -284,7 +284,7 @@ library BytesLib {
   }
 
   function toUint16(bytes memory _bytes, uint256 _start) internal pure returns (uint16 ret) {
-    require(_bytes.length >= (_start + 2), "Read out of bounds");
+    require(_bytes.length >= (_start + 2));
 
     assembly {
       ret := mload(add(add(_bytes, 0x2), _start))
@@ -296,6 +296,30 @@ library BytesLib {
 
     assembly {
       ret := mload(add(add(_bytes, 0x4), _start))
+    }
+  }
+
+  function toUint64(bytes memory _bytes, uint256 _start) internal pure returns (uint64 ret) {
+    require(_bytes.length >= (_start + 8), "Read out of bounds");
+
+    assembly {
+      ret := mload(add(add(_bytes, 0x8), _start))
+    }
+  }
+
+  function toUint96(bytes memory _bytes, uint256 _start) internal pure returns (uint96 ret) {
+    require(_bytes.length >= (_start + 12), "Read out of bounds");
+
+    assembly {
+      ret := mload(add(add(_bytes, 0xc), _start))
+    }
+  }
+
+  function toUint128(bytes memory _bytes, uint256 _start) internal pure returns (uint128 ret) {
+    require(_bytes.length >= (_start + 16), "Read out of bounds");
+
+    assembly {
+      ret := mload(add(add(_bytes, 0x10), _start))
     }
   }
 
@@ -335,8 +359,8 @@ library BytesLib {
 
         for {
           let cc := add(_postBytes, 0x20)
-        // the next line is the loop condition:
-        // while(uint256(mc < end) + cb == 2)
+          // the next line is the loop condition:
+          // while(uint256(mc < end) + cb == 2)
         } eq(add(lt(mc, end), cb), 2) {
           mc := add(mc, 0x20)
           cc := add(cc, 0x20)
