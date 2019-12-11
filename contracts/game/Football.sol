@@ -2,7 +2,7 @@ pragma solidity ^0.5.6;
 
 import "../utils/Ownable.sol";
 
-import "../interfaces/IOracle.sol";
+import "../interfaces/IGame.sol";
 
 
 contract IdHelper {
@@ -14,7 +14,7 @@ contract IdHelper {
 }
 
 
-contract Football is IOracle, IdHelper, Ownable {
+contract Football is IGame, IdHelper, Ownable {
   event NewGame(uint256 _now, bytes32 _gameId, uint256 _noMoreBets, bytes32 _team1, bytes32 _team2);
   event SetWinner(uint256 _now, bytes32 _gameId, bytes32 _winTeam);
 
@@ -30,7 +30,7 @@ contract Football is IOracle, IdHelper, Ownable {
 
   mapping(bytes32 => Game) public games;
 
-  function validateCreate(bytes32 _eventId, bytes calldata) external view returns(bool) {
+  function validateCreate(bytes32 _eventId, bytes32) external view returns(bool) {
     Game storage game = games[_eventId];
     require(
       now < game.noMoreBets && game.noMoreBets != 0,
@@ -40,7 +40,7 @@ contract Football is IOracle, IdHelper, Ownable {
     return true;
   }
 
-  function validatePlay(bytes32 _eventId, bytes32 _option, bytes calldata) external view returns(bool) {
+  function validatePlay(bytes32 _eventId, bytes32 _option) external view returns(bool) {
     Game storage game = games[_eventId];
     require(
       now < game.noMoreBets && game.noMoreBets != 0,
