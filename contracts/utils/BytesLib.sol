@@ -267,7 +267,7 @@ library BytesLib {
     }
   }
 
-  function toAddress(bytes memory _bytes, uint256 _start) internal  pure returns (address ret) {
+  function toAddress(bytes memory _bytes, uint256 _start) internal pure returns (address ret) {
     require(_bytes.length >= (_start + 20), "Read out of bounds");
 
     assembly {
@@ -275,7 +275,7 @@ library BytesLib {
     }
   }
 
-  function toUint8(bytes memory _bytes, uint256 _start) internal  pure returns (uint8 ret) {
+  function toUint8(bytes memory _bytes, uint256 _start) internal pure returns (uint8 ret) {
     require(_bytes.length >= (_start + 1), "Read out of bounds");
 
     assembly {
@@ -283,7 +283,7 @@ library BytesLib {
     }
   }
 
-  function toUint16(bytes memory _bytes, uint256 _start) internal  pure returns (uint16 ret) {
+  function toUint16(bytes memory _bytes, uint256 _start) internal pure returns (uint16 ret) {
     require(_bytes.length >= (_start + 2), "Read out of bounds");
 
     assembly {
@@ -291,7 +291,7 @@ library BytesLib {
     }
   }
 
-  function toUint32(bytes memory _bytes, uint256 _start) internal  pure returns (uint32 ret) {
+  function toUint32(bytes memory _bytes, uint256 _start) internal pure returns (uint32 ret) {
     require(_bytes.length >= (_start + 4), "Read out of bounds");
 
     assembly {
@@ -299,7 +299,7 @@ library BytesLib {
     }
   }
 
-  function toUint256(bytes memory _bytes, uint256 _start) internal  pure returns (uint256 ret) {
+  function toUint256(bytes memory _bytes, uint256 _start) internal pure returns (uint256 ret) {
     require(_bytes.length >= (_start + 32), "Read out of bounds");
 
     assembly {
@@ -307,7 +307,7 @@ library BytesLib {
     }
   }
 
-  function toBytes32(bytes memory _bytes, uint256 _start) internal  pure returns (bytes32 tempBytes32) {
+  function toBytes32(bytes memory _bytes, uint256 _start) internal pure returns (bytes32 tempBytes32) {
     require(_bytes.length >= (_start + 32), "Read out of bounds");
 
     assembly {
