@@ -1,6 +1,6 @@
-const TestERC20 = artifacts.require('./utils/test/TestERC20.sol');
+const TestERC20 = artifacts.require('TestERC20');
 
-const BalanceManager = artifacts.require('./utils/BalanceManager.sol');
+const BalanceManager = artifacts.require('BalanceManager');
 
 const {
   expect,

@@ -1,4 +1,4 @@
-const TestERC165 = artifacts.require('./utils/test/TestERC165.sol');
+const TestERC165 = artifacts.require('TestERC165');
 
 const {
   tryCatchRevert,

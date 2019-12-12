@@ -1,9 +1,9 @@
-const TestERC721 = artifacts.require('./utils/test/TestERC721.sol');
-const TestERC721Receiver = artifacts.require('./utils/test/TestERC721Receiver.sol');
-const TestERC721ReceiverLegacy = artifacts.require('./utils/test/TestERC721ReceiverLegacy.sol');
-const TestERC721ReceiverLegacyRaw = artifacts.require('./utils/test/TestERC721ReceiverLegacyRaw.sol');
-const TestERC721ReceiverMultiple = artifacts.require('./utils/test/TestERC721ReceiverMultiple.sol');
-const TestURIProvider = artifacts.require('./utils/test/TestURIProvider.sol');
+const TestERC721 = artifacts.require('TestERC721');
+const TestERC721Receiver = artifacts.require('TestERC721Receiver');
+const TestERC721ReceiverLegacy = artifacts.require('TestERC721ReceiverLegacy');
+const TestERC721ReceiverLegacyRaw = artifacts.require('TestERC721ReceiverLegacyRaw');
+const TestERC721ReceiverMultiple = artifacts.require('TestERC721ReceiverMultiple');
+const TestURIProvider = artifacts.require('TestURIProvider');
 
 const {
   expect,

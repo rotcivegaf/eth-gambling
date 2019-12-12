@@ -1,4 +1,4 @@
-const Ownable = artifacts.require('../utils/Ownable.sol');
+const Ownable = artifacts.require('Ownable');
 
 const {
   toEvents,
