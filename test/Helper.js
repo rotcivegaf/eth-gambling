@@ -11,7 +11,7 @@ module.exports.random32bn = () => {
 };
 
 module.exports.random32 = () => {
-  return this.bn(web3.utils.randomHex(32));
+  return web3.utils.randomHex(32);
 };
 
 module.exports.bn = (number) => {
@@ -32,6 +32,18 @@ module.exports.maxUint = (base) => {
 
 module.exports.toHexBytes32 = (number) => {
   return web3.utils.toTwosComplement(number);
+};
+
+module.exports.toData = (...args) => {
+  let data = '0x';
+
+  for (let i = 0; i < args.length; i++) {
+    if (web3.utils.BN.isBN(args[i]) || Number.isInteger(args[i]))
+      args[i] = web3.utils.toTwosComplement(args[i]);
+    data += args[i].slice(2);
+  }
+
+  return data;
 };
 
 module.exports.timeTravel = async (seconds) => {
