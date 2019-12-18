@@ -2,6 +2,7 @@ pragma solidity ^0.5.6;
 
 import "../interfaces/IModel.sol";
 import "../interfaces/IGame.sol";
+import "../GamblingManager.sol";
 
 import "../utils/BytesLib.sol";
 
@@ -11,7 +12,7 @@ contract P2P is IModel {
 
   struct P2PBet {
     IGame game;
-    bytes32 eventId;
+    bytes32 event0Id;
     bytes32 ownerOption;
     address player;
     bytes32 playerOption;
@@ -20,14 +21,14 @@ contract P2P is IModel {
 
   mapping(bytes32 => P2PBet) public p2PBets;
 
-  address public gamblingManager;
+  GamblingManager public gamblingManager;
 
   modifier onlyGamblingManager() {
-    require(msg.sender == gamblingManager);
+    require(msg.sender == address(gamblingManager));
     _;
   }
 
-  constructor(address _gamblingManager) public {
+  constructor(GamblingManager _gamblingManager) public {
     gamblingManager = _gamblingManager;
   }
 
@@ -37,10 +38,10 @@ contract P2P is IModel {
     bytes calldata _data
   ) external onlyGamblingManager returns(uint256 ownerAmount) {
     IGame game = IGame(_data.toAddress(0));
-    bytes32 eventId = _data.toBytes32(20);
+    bytes32 event0Id = _data.toBytes32(20);
     bytes32 ownerOption = _data.toBytes32(52);
 
-    require(game.validateCreate(eventId, ownerOption), "The option its not valid");
+    require(game.validateCreate(event0Id, ownerOption), "The option its not valid");
 
     ownerAmount = _data.toUint256(84);
 
@@ -48,7 +49,7 @@ contract P2P is IModel {
 
     p2PBets[_betId] = P2PBet({
       game: game,
-      eventId: eventId,
+      event0Id: event0Id,
       ownerOption: ownerOption,
       player: address(0),
       playerOption: bytes32(0),
@@ -57,17 +58,15 @@ contract P2P is IModel {
   }
 
   function play(
-    address,
-    bytes32 _betId,
     address _player,
+    bytes32 _betId,
     bytes calldata _data
   ) external onlyGamblingManager returns (uint256 needAmount) {
     P2PBet storage bet = p2PBets[_betId];
 
     require(bet.player == address(0), "The bet its taken");
-    bytes32 eventId = _data.toBytes32(0);
-    bytes32 playerOption = _data.toBytes32(32);
-    require(bet.game.validatePlay(eventId, playerOption) && bet.ownerOption != playerOption, "The option its not valid");
+    bytes32 playerOption = _data.toBytes32(0);
+    require(bet.game.validatePlay(bet.event0Id, playerOption) && bet.ownerOption != playerOption, "The option its not valid");
 
     p2PBets[_betId].player = _player;
     p2PBets[_betId].playerOption = playerOption;
@@ -76,64 +75,46 @@ contract P2P is IModel {
   }
 
   function collect(
-    address,
+    address _sender,
     bytes32 _betId,
-    address _player,
     bytes calldata
-  ) external onlyGamblingManager returns(uint256 amount) {
+  ) external onlyGamblingManager returns(uint256 totalPay) {
     P2PBet storage bet = p2PBets[_betId];
     require(bet.player != address(0), "The bet its not taken");
-/*
-    require(bet.playerA == _player || bet.playerB == _player, "");
-    bytes32 _winner;
-    // @param _winner Must be returned by the oracle of the bet,
-    //    it may be option A or B and if not, the bet is considered a draw.
 
-    if (_winner == bet.playerAOption && _player == bet.playerA) {
-      amount = bet.playerAPay + bet.playerBPay;
-    } else {
-      if (_winner == bet.playerBOption && _player == bet.playerB) {
-        amount = bet.playerAPay + bet.playerBPay;
-      } else {
-        if (_player == bet.playerA) {
-          amount = bet.playerBPay;
-        } else {
-          if (_player == bet.playerB) {
-            amount = bet.playerAPay;
-          }
-        }
+    bytes32 winOption = bet.game.whoWon(bet.event0Id);
+
+    address owner = gamblingManager.ownerOf(uint256(_betId));
+
+    require(_sender == owner || _sender == bet.player, "Wrong sender");
+
+    // Return this if win owner or win player
+    (, totalPay,) = gamblingManager.toBet(_betId);
+
+    // Else if we have a draw
+    if (winOption != bet.ownerOption || winOption != bet.playerOption) {
+      if (_sender == owner && bet.ownerOption != bytes32(0)) { // Owner collect
+        delete (bet.ownerOption);
+        totalPay -= bet.playerPay;
+      }
+      if (_sender == bet.player) {// Player collect
+        totalPay = bet.playerPay;
+        delete (bet.playerPay);
       }
     }
-
-    bet.playerAPay = 0;
-    bet.playerBPay = 0;*/
   }
 
-  function cancel(address, bytes32 _betId, address, bytes calldata) external onlyGamblingManager returns(bool) {
-    //require(bets[_betId].playerB == address(0), "The bet its taken");
-  }
+  function cancel(
+    address _sender,
+    bytes32 _betId,
+    bytes calldata
+  ) external onlyGamblingManager returns(bool) {
+    P2PBet storage bet = p2PBets[_betId];
+    require(bet.player == address(0), "The bet its taken");
+    require(_sender == gamblingManager.ownerOf(uint256(_betId)), "The sender its not the owner");
 
-  function validateCreate(bytes32, bytes calldata) external view returns(bool) {
-    revert("TODO");
-  }
+    delete (p2PBets[_betId]);
 
-  function validatePlay(bytes32, bytes calldata) external view returns(bool) {
-    revert("TODO");
-  }
-
-  function getEnd(bytes32) external view returns (uint256) {
-    revert("TODO");
-  }
-
-  function getNoMoreBets(bytes32) external view returns (uint256) {
-    revert("TODO");
-  }
-
-  function simNeedAmount(bytes32, bytes calldata) external view returns (uint256, bool) {
-    revert("TODO");
-  }
-
-  function simActualReturn(bytes32, bytes calldata) external view returns (uint256, bool) {
-    revert("TODO");
+    return true;
   }
 }

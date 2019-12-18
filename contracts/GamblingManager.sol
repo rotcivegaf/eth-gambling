@@ -125,7 +125,7 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
     Bet storage bet = toBet[_betId];
     address token = address(bet.erc20);
 
-    uint256 needAmount = bet.model.play(msg.sender, _betId, _player, _data);
+    uint256 needAmount = bet.model.play(_player, _betId, _data);
     require(needAmount <= _maxAmount, "The needAmount must be less or equal than _maxAmount");
 
     if (msg.sender != _player) {
@@ -151,7 +151,7 @@ contract GamblingManager is BalanceManager, Ownable, ERC721Base, IdHelper, IGamb
   ) external {
     Bet storage bet = toBet[_betId];
 
-    uint256 amount = bet.model.collect(msg.sender, _betId, _beneficiary, _data);
+    uint256 amount = bet.model.collect(msg.sender, _betId, _data);
 
     require(amount <= bet.balance, "Insufficient founds to discount from bet balance");
     bet.balance -= amount;
