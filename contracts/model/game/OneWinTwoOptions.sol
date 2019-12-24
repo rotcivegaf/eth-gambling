@@ -46,7 +46,8 @@ contract OneWinTwoOptions is IGame, Ownable {
   function whoWon(bytes32 _event0Id) external view returns(bytes32) {
     Event0 storage event0 = toEvent0[_event0Id];
 
-    require(event0.optionWin != 0x0 && event0.noMoreBets != 0,
+    require(
+      event0.optionWin != 0x0 && event0.noMoreBets != 0,
       "The event0 do not have a winner yet or invalid event0Id"
     );
 
