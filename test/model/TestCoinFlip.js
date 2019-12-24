@@ -66,7 +66,7 @@ async function hackWin (possibility) {
 const DEPOSIT = bn(0);
 const MULTIPLIER_BASE = bn(1000000);
 
-contract('CoinFlip', (accounts) => {
+contract.skip('CoinFlip', (accounts) => {
   const owner = accounts[1];
   const creator = accounts[2];
   const player = accounts[3];
