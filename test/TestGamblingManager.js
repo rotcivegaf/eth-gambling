@@ -10,7 +10,7 @@ const {
   random32bn,
   tryCatchRevert,
   toEvents,
-  toHexBytes32,
+  toBytes32,
   maxUint,
   inc,
   dec,
@@ -18,10 +18,10 @@ const {
   bytes320x,
 } = require('./Helper.js');
 
-const ONE_BYTES_32 = toHexBytes32(1);
+const ONE_BYTES_32 = toBytes32(1);
 // For testModel return true
-const RETURN_TRUE = toHexBytes32(web3.utils.asciiToHex('TRUE'));
-const AMOUNT0 = toHexBytes32(0);
+const RETURN_TRUE = toBytes32(web3.utils.asciiToHex('TRUE'));
+const AMOUNT0 = toBytes32(0);
 
 contract('GamblingManager', (accounts) => {
   const owner = accounts[1];
@@ -111,7 +111,7 @@ contract('GamblingManager', (accounts) => {
         { t: 'uint256', v: nonce }
       );
 
-      const id = toHexBytes32(await gamblingManager.buildId(creator, nonce));
+      const id = toBytes32(await gamblingManager.buildId(creator, nonce));
 
       assert.equal(id, calcId);
     });
@@ -133,7 +133,7 @@ contract('GamblingManager', (accounts) => {
         { t: 'uint256', v: salt }
       );
 
-      const id = toHexBytes32(
+      const id = toBytes32(
         await gamblingManager.buildId2(
           creator,
           _token,
@@ -155,7 +155,7 @@ contract('GamblingManager', (accounts) => {
         { t: 'uint256', v: salt }
       );
 
-      const id = toHexBytes32(await gamblingManager.buildId3(creator, salt));
+      const id = toBytes32(await gamblingManager.buildId3(creator, salt));
 
       assert.equal(id, calcId);
     });
@@ -658,8 +658,8 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.play(
           player1,
           id,
-          toHexBytes32(-1),
-          toHexBytes32(-1),
+          toBytes32(-1),
+          toBytes32(-1),
           { from: player1 }
         ),
         'Error pulling tokens, in deposit'
@@ -802,7 +802,7 @@ contract('GamblingManager', (accounts) => {
         gamblingManager.collect(
           player1,
           id,
-          toHexBytes32(-1),
+          toBytes32(-1),
           { from: creator }
         ),
         'Insufficient founds to discount from bet balance'
