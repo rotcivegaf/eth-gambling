@@ -71,17 +71,17 @@ contract('P2P', (accounts) => {
 
     basicBet.event = basicEvent;
     basicBet.ownerAmount = bn(333);
-    basicBet.playerPay = bn(666);
+    basicBet.playerAmount = bn(666);
     basicBet.creatorOption = DRAW;
 
     const data = toData(
       basicBet.event.id,      // Event0 id
       basicBet.creatorOption, // Owner option
       basicBet.ownerAmount,   // Owner amount
-      basicBet.playerPay      // Player pay
+      basicBet.playerAmount   // Player amount
     );
 
-    await setApproveBalance(creator, basicBet.ownerAmount);
+    await setApproveBalance(creator, basicBet.playerAmount);
 
     await saveErc20PrevBalances();
 
@@ -89,7 +89,7 @@ contract('P2P', (accounts) => {
     await gamblingManager.create(
       erc20.address,
       p2p.address,
-      basicBet.ownerAmount,
+      basicBet.playerAmount,
       data,
       { from: creator }
     );
@@ -101,16 +101,44 @@ contract('P2P', (accounts) => {
     basicBet.playerOption = basicBet.event.optionA;
     basicBet.drawOption = basicBet.event.optionB;
 
-    await setApproveBalance(player, basicBet.playerPay);
+    await setApproveBalance(player, basicBet.playerAmount);
     await saveErc20PrevBalances(basicBet.id);
 
     await gamblingManager.play(
       player,
       basicBet.id,
-      basicBet.playerPay,
+      basicBet.playerAmount,
       basicBet.playerOption,
       { from: player }
     );
+  }
+
+  async function tryCollect (betId, from) {
+    await saveErc20PrevBalances(betId);
+
+    try {
+      await gamblingManager.collect(
+        from,
+        betId,
+        [],
+        { from: from }
+      );
+    } catch (error) {
+      assert(
+        error.message.search('revert Insufficient founds to discount from bet balance') >= 0 || process.env.SOLIDITY_COVERAGE,
+        'Expected a revert \'' + 'revert Insufficient founds to discount from bet balance' + '\', got \'' + error.message + '\' instead'
+      );
+      return;
+    }
+
+    // Check balances
+    expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+    expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+    expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+    expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
+    expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
+    expect((await gamblingManager.toBet(betId)).balance).to.eq.BN(prevBalBGM);
   }
 
   async function saveErc20PrevBalances (id) {
@@ -431,7 +459,7 @@ contract('P2P', (accounts) => {
     it('Create a p2p bet', async () => {
       await addBasicEvent();
       const ownerAmount = bn(1);
-      const playerPay = bn(1);
+      const playerAmount = bn(1);
       const event0Id = basicEvent.id;
       const creatorOption = basicEvent.optionA;
 
@@ -439,7 +467,7 @@ contract('P2P', (accounts) => {
         event0Id,      // Event0 id
         creatorOption, // Owner option
         ownerAmount,   // Owner amount
-        playerPay      // Player pay
+        playerAmount   // Player amount
       );
 
       await setApproveBalance(creator, ownerAmount);
@@ -458,14 +486,55 @@ contract('P2P', (accounts) => {
       const p2pBet = await p2p.p2PBets(id);
       assert.equal(p2pBet.event0Id, event0Id);
       assert.equal(p2pBet.ownerOption, creatorOption);
+      expect(p2pBet.ownerAmount).to.eq.BN(ownerAmount);
       assert.equal(p2pBet.player, address0x);
       assert.equal(p2pBet.playerOption, bytes320x);
-      expect(p2pBet.playerPay).to.eq.BN(playerPay);
+      expect(p2pBet.playerAmount).to.eq.BN(playerAmount);
       // Check balances
       expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM.add(ownerAmount));
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC.sub(ownerAmount));
       expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
       expect((await gamblingManager.toBet(id)).balance).to.eq.BN(ownerAmount);
+    });
+    it('Create a p2p bet with more pay to the player', async () => {
+      await addBasicEvent();
+      const ownerAmount = bn(1);
+      const playerAmount = bn(2);
+      const event0Id = basicEvent.id;
+      const creatorOption = basicEvent.optionA;
+
+      const data = toData(
+        event0Id,      // Event0 id
+        creatorOption, // Owner option
+        ownerAmount,   // Owner amount
+        playerAmount   // Player amount
+      );
+
+      await setApproveBalance(creator, playerAmount);
+
+      await saveErc20PrevBalances();
+
+      const id = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
+      await gamblingManager.create(
+        erc20.address,
+        p2p.address,
+        playerAmount,
+        data,
+        { from: creator }
+      );
+      // Check storage bet
+      const p2pBet = await p2p.p2PBets(id);
+      assert.equal(p2pBet.event0Id, event0Id);
+      assert.equal(p2pBet.ownerOption, creatorOption);
+      expect(p2pBet.ownerAmount).to.eq.BN(ownerAmount);
+      assert.equal(p2pBet.player, address0x);
+      assert.equal(p2pBet.playerOption, bytes320x);
+      expect(p2pBet.playerAmount).to.eq.BN(playerAmount);
+      // Check balances
+      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM.add(playerAmount));
+      expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC.sub(playerAmount));
+      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
+      expect((await gamblingManager.toBet(id)).balance).to.eq.BN(playerAmount);
     });
     it('Try create a bet and the game reject the option', async () => {
       const data = toData(
@@ -514,13 +583,13 @@ contract('P2P', (accounts) => {
       const playerOption = basicBet.event.optionA;
       const dataPlay = toData(playerOption);
 
-      await setApproveBalance(player, basicBet.playerPay);
+      await setApproveBalance(player, basicBet.playerAmount);
       await saveErc20PrevBalances(basicBet.id);
 
       await gamblingManager.play(
         player,
         basicBet.id,
-        basicBet.playerPay,
+        basicBet.playerAmount,
         dataPlay,
         { from: player }
       );
@@ -530,21 +599,21 @@ contract('P2P', (accounts) => {
       assert.equal(p2pBet.player, player);
       assert.equal(p2pBet.playerOption, playerOption);
       // Check balances
-      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM.add(basicBet.playerPay));
-      expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP.sub(basicBet.playerPay));
+      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM.add(basicBet.playerAmount));
+      expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP.sub(basicBet.playerAmount));
       expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(prevBalBGM.add(basicBet.playerPay));
+      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(prevBalBGM.add(basicBet.playerAmount));
     });
     it('Try play a played bet', async () => {
       await createBasicBet();
 
-      await setApproveBalance(player, basicBet.playerPay);
+      await setApproveBalance(player, basicBet.playerAmount);
       await saveErc20PrevBalances(basicBet.id);
 
       await gamblingManager.play(
         player,
         basicBet.id,
-        basicBet.playerPay,
+        basicBet.playerAmount,
         basicBet.event.optionA,
         { from: player }
       );
@@ -553,7 +622,7 @@ contract('P2P', (accounts) => {
         () => gamblingManager.play(
           player,
           basicBet.id,
-          basicBet.playerPay,
+          basicBet.playerAmount,
           basicBet.event.optionA,
           { from: player }
         ),
@@ -563,14 +632,14 @@ contract('P2P', (accounts) => {
     it('Try play a played bet with owner option', async () => {
       await createBasicBet();
 
-      await setApproveBalance(player, basicBet.playerPay);
+      await setApproveBalance(player, basicBet.playerAmount);
       await saveErc20PrevBalances(basicBet.id);
 
       await tryCatchRevert(
         () => gamblingManager.play(
           player,
           basicBet.id,
-          basicBet.playerPay,
+          basicBet.playerAmount,
           DRAW,
           { from: player }
         ),
@@ -580,16 +649,16 @@ contract('P2P', (accounts) => {
     it('Try play a played bet with owner option', async () => {
       await createBasicBet();
 
-      await setApproveBalance(player, basicBet.playerPay);
+      await setApproveBalance(player, basicBet.playerAmount);
       await saveErc20PrevBalances(basicBet.id);
 
-      await setApproveBalance(player, basicBet.playerPay);
+      await setApproveBalance(player, basicBet.playerAmount);
 
       await tryCatchRevert(
         () => gamblingManager.play(
           player,
           basicBet.id,
-          basicBet.playerPay,
+          basicBet.playerAmount,
           FALSE,
           { from: player }
         ),
@@ -613,7 +682,6 @@ contract('P2P', (accounts) => {
         { from: creator }
       );
 
-      assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, basicBet.creatorOption);
       // Check balances
       expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
       expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
@@ -624,24 +692,8 @@ contract('P2P', (accounts) => {
       expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(0);
 
       // Collect for second time
-      await saveErc20PrevBalances(basicBet.id);
-
-      await gamblingManager.collect(
-        creator,
-        basicBet.id,
-        [],
-        { from: creator }
-      );
-
+      await tryCollect(basicBet.id, creator);
       assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, basicBet.creatorOption);
-      // Check balances
-      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
-      expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
-      expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
-
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(0);
     });
     it('Creator collect a draw p2p bet', async () => {
       await playBasicBet();
@@ -664,9 +716,9 @@ contract('P2P', (accounts) => {
       expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(basicBet.ownerAmount));
+      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(basicBet.playerAmount));
       expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.playerPay);
+      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.playerAmount);
 
       // Collect for second time
       await saveErc20PrevBalances(basicBet.id);
@@ -678,7 +730,6 @@ contract('P2P', (accounts) => {
         { from: creator }
       );
 
-      assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, bytes320x);
       // Check balances
       expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
       expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
@@ -686,7 +737,7 @@ contract('P2P', (accounts) => {
 
       expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
       expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.playerPay);
+      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.playerAmount);
     });
     it('Player collect a win p2p bet', async () => {
       await playBasicBet();
@@ -703,35 +754,25 @@ contract('P2P', (accounts) => {
         { from: player }
       );
 
-      assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, basicBet.creatorOption);
       // Check balances
       expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
       expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
       expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(prevBalBGM));
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(0);
+      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(basicBet.ownerAmount).add(basicBet.playerAmount));
+      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(prevBalBGM.sub(basicBet.ownerAmount).sub(basicBet.playerAmount));
 
-      // Collect for second time
-      await saveErc20PrevBalances(basicBet.id);
-
-      await gamblingManager.collect(
-        player,
-        basicBet.id,
-        [],
-        { from: player }
+      // Try collect for second time
+      await tryCatchRevert(
+        () => gamblingManager.collect(
+          player,
+          basicBet.id,
+          [],
+          { from: player }
+        ),
+        'Insufficient founds to discount from bet balance'
       );
-
-      assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, basicBet.creatorOption);
-      // Check balances
-      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
-      expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
-      expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
-
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(0);
     });
     it('Player collect a draw p2p bet', async () => {
       await playBasicBet();
@@ -755,28 +796,13 @@ contract('P2P', (accounts) => {
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
       expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(basicBet.playerPay));
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.ownerAmount);
+      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(basicBet.playerAmount));
+      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(prevBalBGM.sub(basicBet.playerAmount));
 
       // Collect for second time
-      await saveErc20PrevBalances(basicBet.id);
-
-      await gamblingManager.collect(
-        player,
-        basicBet.id,
-        [],
-        { from: player }
-      );
+      await tryCollect(basicBet.id, player);
 
       assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, basicBet.creatorOption);
-      // Check balances
-      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
-      expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
-      expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
-
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.ownerAmount);
     });
     it('Collect a draw p2p bet', async () => {
       await playBasicBet();
@@ -807,7 +833,7 @@ contract('P2P', (accounts) => {
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
       expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(basicBet.playerPay));
+      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(basicBet.playerAmount));
       expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(0);
     });
     it('Player try collect a loss p2p bet', async () => {
@@ -826,14 +852,9 @@ contract('P2P', (accounts) => {
       );
 
       assert.equal((await p2p.p2PBets(basicBet.id)).ownerOption, basicBet.creatorOption);
-      // Check balances
-      expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
-      expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
-      expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
-      expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(prevBalBGM);
+      // Check balances
+      await tryCollect(basicBet.id, player);
     });
     it('Creator try collect a loss p2p bet', async () => {
       await playBasicBet();
@@ -856,9 +877,9 @@ contract('P2P', (accounts) => {
       expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
+      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalBGM.sub(basicBet.ownerAmount).sub(basicBet.playerAmount));
       expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
-      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(prevBalBGM);
+      expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(basicBet.ownerAmount.add(basicBet.playerAmount));
     });
     it('Try collect from wrong sender', async () => {
       await playBasicBet();
@@ -903,15 +924,16 @@ contract('P2P', (accounts) => {
       const p2pBet = await p2p.p2PBets(basicBet.id);
       assert.equal(p2pBet.event0Id, bytes320x);
       assert.equal(p2pBet.ownerOption, bytes320x);
+      expect(p2pBet.ownerAmount).to.eq.BN(0);
       assert.equal(p2pBet.player, address0x);
       assert.equal(p2pBet.playerOption, bytes320x);
-      expect(p2pBet.playerPay).to.eq.BN(0);
+      expect(p2pBet.playerAmount).to.eq.BN(0);
       // Check balances
       expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
       expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
       expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
 
-      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(basicBet.ownerAmount));
+      expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(prevBalBGM));
       expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
       expect((await gamblingManager.toBet(basicBet.id)).balance).to.eq.BN(0);
     });
@@ -939,5 +961,257 @@ contract('P2P', (accounts) => {
         'The sender its not the owner'
       );
     });
+  });
+  describe.only('Functional tests', () => {
+    const betParams = [
+      // ownerAmount, playerAmount, winner, forOwner, forPlayer
+      [100, 50, 100, 50],
+
+      //[50, 100],
+      //[100, 0],
+      //[0, 100],
+    ];
+    const returns = [
+      // winner, forOwner, forPlayer
+      [0, 100, 50], // DRAW
+      [1, 150, 0], // CREATOR
+      [2, 50, 100], // PLAYER
+
+      [0, 50, 100], // DRAW
+      [1, 50, 100], // CREATOR
+      [2, 50, 100], // PLAYER
+      [0, 100, 0], // DRAW
+      [1, 100, 0], // CREATOR
+      [2, 100, 0], // PLAYER
+      [0, 0, 100], // DRAW
+      [1, 0, 100], // CREATOR
+      [2, 0, 100], // PLAYER
+    ];
+
+    async function createSkeleton (numberOfTest) {
+      const skeleton = {};
+
+      skeleton.ownerAmount = bn(betParams[numberOfTest][0]);
+      skeleton.playerAmount = bn(betParams[numberOfTest][1]);
+      skeleton.ownerDepositAmount = skeleton.ownerAmount.gt(skeleton.playerAmount) ? skeleton.ownerAmount : skeleton.playerAmount;
+      skeleton.totalBetBalance = skeleton.ownerDepositAmount.add(skeleton.playerAmount);
+      skeleton.ownerOption = toBytes32(1);
+      skeleton.playerOption = toBytes32(2);
+
+      await addBasicEvent();
+
+      await setApproveBalance(creator, skeleton.ownerAmount);
+      const data = toData(
+        basicEvent.id, // Event0 id
+        skeleton.ownerOption, // Owner option
+        skeleton.ownerAmount, // Owner amount
+        skeleton.playerAmount // Player amount
+      );
+
+      skeleton.betId = await gamblingManager.buildId(creator, await gamblingManager.nonces(creator));
+      await gamblingManager.create(
+        erc20.address,
+        p2p.address,
+        skeleton.ownerDepositAmount,
+        data,
+        { from: creator }
+      );
+
+      await setApproveBalance(player, skeleton.playerAmount);
+      await gamblingManager.play(
+        player,
+        skeleton.betId,
+        skeleton.playerAmount,
+        skeleton.playerOption,
+        { from: player }
+      );
+
+      await increaseTime(inc(basicEvent.deltaNoMoreBets));
+
+      return skeleton;
+    }
+
+    for (let i = 0; i < betParams.length; i++) {
+      it('Creator wins', async () => {
+        const skeleton = await createSkeleton(i);
+        // Start tests
+        // Set winner
+        await p2p.setWinOption(basicEvent.id, skeleton.ownerOption, { from: owner });
+        // Player try collect
+        await tryCollect(skeleton.betId, player);
+        // Creator collect
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          creator,
+          skeleton.betId,
+          [],
+          { from: creator }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(skeleton.totalBetBalance));
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.totalBetBalance));
+
+        // Creator try collect
+        await tryCollect(skeleton.betId, creator);
+        // Player try collect
+        await tryCollect(skeleton.betId, player);
+      });
+      it('Player wins', async () => {
+        const skeleton = await createSkeleton(i);
+        // Start tests
+        // Set winner
+        await p2p.setWinOption(basicEvent.id, skeleton.playerOption, { from: owner });
+        // Creator collect surplus
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          creator,
+          skeleton.betId,
+          [],
+          { from: creator }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(skeleton.ownerDepositAmount.sub(skeleton.ownerAmount)));
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.ownerDepositAmount.sub(skeleton.ownerAmount)));
+        // Creator try collect
+        await tryCollect(skeleton.betId, creator);
+        // Creator collect
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          player,
+          skeleton.betId,
+          [],
+          { from: player }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(skeleton.ownerAmount.add(skeleton.playerAmount)));
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.ownerAmount.add(skeleton.playerAmount)));
+
+        // Creator try collect
+        await tryCollect(skeleton.betId, creator);
+        // Player try collect
+        await tryCollect(skeleton.betId, player);
+      });
+      it('Draw creator collect first', async () => {
+        const skeleton = await createSkeleton(i);
+        // Start tests
+        // Set winner
+        await p2p.setWinOption(basicEvent.id, DRAW, { from: owner });
+        // Creator collect
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          creator,
+          skeleton.betId,
+          [],
+          { from: creator }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(skeleton.ownerDepositAmount));
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.ownerDepositAmount));
+        // Creator try collect
+        await tryCollect(skeleton.betId, creator);
+        // Player collect
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          player,
+          skeleton.betId,
+          [],
+          { from: player }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(skeleton.playerAmount));
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.playerAmount));
+
+        // Creator try collect
+        await tryCollect(skeleton.betId, creator);
+        // Player try collect
+        await tryCollect(skeleton.betId, player);
+      });
+      it('Draw player collect first', async () => {
+        const skeleton = await createSkeleton(i);
+        // Start tests
+        // Set winner
+        await p2p.setWinOption(basicEvent.id, DRAW, { from: owner });
+        // Player collect
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          player,
+          skeleton.betId,
+          [],
+          { from: player }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM);
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM.add(skeleton.playerAmount));
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.playerAmount));
+
+        // Player try collect
+        await tryCollect(skeleton.betId, player);
+
+        // Creator collect
+        await saveErc20PrevBalances(skeleton.betId);
+
+        await gamblingManager.collect(
+          creator,
+          skeleton.betId,
+          [],
+          { from: creator }
+        );
+
+        // Check balances
+        expect(await erc20.balanceOf(gamblingManager.address)).to.eq.BN(prevBalGM);
+        expect(await erc20.balanceOf(player)).to.eq.BN(prevBalP);
+        expect(await erc20.balanceOf(creator)).to.eq.BN(prevBalC);
+
+        expect(await gamblingManager.methods['balanceOf(address,address)'](creator, erc20.address)).to.eq.BN(prevBalCGM.add(skeleton.ownerDepositAmount));
+        expect(await gamblingManager.methods['balanceOf(address,address)'](player, erc20.address)).to.eq.BN(prevBalPGM);
+        expect((await gamblingManager.toBet(skeleton.betId)).balance).to.eq.BN(prevBalBGM.sub(skeleton.ownerDepositAmount));
+
+        // Creator try collect
+        await tryCollect(skeleton.betId, creator);
+        // Player try collect
+        await tryCollect(skeleton.betId, player);
+      });
+    }
   });
 });

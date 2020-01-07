@@ -118,9 +118,10 @@ contract P2P is IModel, OneWinTwoOptions {
   struct P2PBet {
     bytes32 event0Id;
     bytes32 ownerOption;
+    uint256 ownerAmount;
     address player;
     bytes32 playerOption;
-    uint256 playerPay; // Pay owner to player
+    uint256 playerAmount;
   }
 
   mapping(bytes32 => P2PBet) public p2PBets;
@@ -140,23 +141,25 @@ contract P2P is IModel, OneWinTwoOptions {
     address,
     bytes32 _betId,
     bytes calldata _data
-  ) external onlyGamblingManager returns(uint256 ownerAmount) {
+  ) external onlyGamblingManager returns(uint256) {
     bytes32 event0Id = _data.toBytes32(0);
     bytes32 ownerOption = _data.toBytes32(32);
 
     require(_validate(event0Id, ownerOption), "The option its not valid");
 
-    ownerAmount = _data.toUint256(64);
-
-    uint256 playerPay = _data.toUint256(96);
+    uint256 ownerAmount = _data.toUint256(64);
+    uint256 playerAmount = _data.toUint256(96);
 
     p2PBets[_betId] = P2PBet({
       event0Id: event0Id,
       ownerOption: ownerOption,
+      ownerAmount: ownerAmount,
       player: address(0),
       playerOption: bytes32(0),
-      playerPay: playerPay
+      playerAmount: playerAmount
     });
+
+    return ownerAmount > playerAmount ? ownerAmount : playerAmount;
   }
 
   function play(
@@ -173,14 +176,14 @@ contract P2P is IModel, OneWinTwoOptions {
     p2PBets[_betId].player = _player;
     p2PBets[_betId].playerOption = playerOption;
 
-    return bet.playerPay;
+    return bet.playerAmount;
   }
 
   function collect(
     address _sender,
     bytes32 _betId,
     bytes calldata
-  ) external onlyGamblingManager returns(uint256) {
+  ) external onlyGamblingManager returns(uint256 retAmount) {
     P2PBet storage bet = p2PBets[_betId];
     require(bet.player != address(0), "The bet its not taken");
 
@@ -189,24 +192,34 @@ contract P2P is IModel, OneWinTwoOptions {
 
     bytes32 winOption = _whoWon(bet.event0Id);
 
-    (, uint256 totalPay,) = gamblingManager.toBet(_betId);
-
-    if (winOption == bet.ownerOption && _sender == owner)
-      return totalPay;
-
-    if (winOption == bet.playerOption && _sender == bet.player)
-      return totalPay;
-
-    if (_sender == owner && bet.ownerOption != bytes32(0) && winOption != bet.playerOption) {
-      delete (bet.ownerOption);
-      totalPay -= bet.playerPay;
-      return totalPay;
+    if (_sender == owner && bet.event0Id == bytes32(0)) { // returns the owner remains
+      (, retAmount,) = gamblingManager.toBet(_betId);
+      return retAmount;
     }
 
-    if (_sender == bet.player && winOption != bet.ownerOption) {
-      totalPay = bet.playerPay;
-      delete (bet.playerPay);
-      return totalPay;
+    if (winOption == bet.ownerOption || winOption == bet.playerOption) { // The owner or the player win
+      if (_sender == owner ) {
+        (, retAmount,) = gamblingManager.toBet(_betId);
+        if (winOption != bet.ownerOption) {
+          return retAmount - bet.ownerAmount - bet.playerAmount;
+        }
+      } else {
+        if (winOption != bet.playerOption) {
+          return 0;
+        } else {
+          retAmount = bet.ownerAmount + bet.playerAmount;
+        }
+      }
+    } else { // Draw
+      if (_sender == owner && bet.ownerOption != bytes32(0)) { // Owner returns
+        retAmount = bet.ownerAmount > bet.playerAmount ? bet.ownerAmount : bet.playerAmount;
+        delete (bet.ownerOption);
+      } else {
+        if (_sender == bet.player && bet.playerOption != bytes32(0)) { // Player returns
+          retAmount = bet.playerAmount;
+          delete (bet.playerOption);
+        }
+      }
     }
   }
 
