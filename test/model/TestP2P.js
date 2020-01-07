@@ -962,30 +962,13 @@ contract('P2P', (accounts) => {
       );
     });
   });
-  describe.only('Functional tests', () => {
+  describe('Functional tests', () => {
     const betParams = [
-      // ownerAmount, playerAmount, winner, forOwner, forPlayer
-      [100, 50, 100, 50],
-
-      //[50, 100],
-      //[100, 0],
-      //[0, 100],
-    ];
-    const returns = [
-      // winner, forOwner, forPlayer
-      [0, 100, 50], // DRAW
-      [1, 150, 0], // CREATOR
-      [2, 50, 100], // PLAYER
-
-      [0, 50, 100], // DRAW
-      [1, 50, 100], // CREATOR
-      [2, 50, 100], // PLAYER
-      [0, 100, 0], // DRAW
-      [1, 100, 0], // CREATOR
-      [2, 100, 0], // PLAYER
-      [0, 0, 100], // DRAW
-      [1, 0, 100], // CREATOR
-      [2, 0, 100], // PLAYER
+      // ownerAmount, playerAmount
+      [100, 50],
+      [50, 100],
+      [100, 0],
+      [0, 100],
     ];
 
     async function createSkeleton (numberOfTest) {
@@ -1032,7 +1015,7 @@ contract('P2P', (accounts) => {
     }
 
     for (let i = 0; i < betParams.length; i++) {
-      it('Creator wins', async () => {
+      it('Creator wins, test Number: ' + i, async () => {
         const skeleton = await createSkeleton(i);
         // Start tests
         // Set winner
@@ -1063,7 +1046,7 @@ contract('P2P', (accounts) => {
         // Player try collect
         await tryCollect(skeleton.betId, player);
       });
-      it('Player wins', async () => {
+      it('Player wins, test Number: ' + i, async () => {
         const skeleton = await createSkeleton(i);
         // Start tests
         // Set winner
@@ -1112,7 +1095,7 @@ contract('P2P', (accounts) => {
         // Player try collect
         await tryCollect(skeleton.betId, player);
       });
-      it('Draw creator collect first', async () => {
+      it('Draw creator collect first, test Number: ' + i, async () => {
         const skeleton = await createSkeleton(i);
         // Start tests
         // Set winner
@@ -1161,7 +1144,7 @@ contract('P2P', (accounts) => {
         // Player try collect
         await tryCollect(skeleton.betId, player);
       });
-      it('Draw player collect first', async () => {
+      it('Draw player collect first, test Number: ' + i, async () => {
         const skeleton = await createSkeleton(i);
         // Start tests
         // Set winner
