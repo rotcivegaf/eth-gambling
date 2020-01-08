@@ -5,22 +5,22 @@ import "../GamblingManager.sol";
 
 import "../utils/BytesLib.sol";
 
-import "../utils/Ownable.sol";
 
-
-contract OneWinTwoOptions is Ownable {
+contract OneWinTwoOptions {
   bytes32 public constant DRAW = 0x0000000000000000000000000000000000000000000000000000000064726177;
 
-  event NewEvent0(
-    bytes32 _event0Id,
+  event NewEvent(
+    address _owner,
+    bytes32 _eventId,
     string _name,
     uint256 _noMoreBets,
     bytes32 _optionA,
     bytes32 _optionB
   );
-  event SetWinner(bytes32 _event0Id, bytes32 _optionWin);
+  event SetWinner(bytes32 _eventId, bytes32 _optionWin);
 
   struct Event0 {
+    address owner;
     string name;
     bytes32 optionWin;
     bytes32 optionA;
@@ -28,52 +28,54 @@ contract OneWinTwoOptions is Ownable {
     uint256 noMoreBets;
   }
 
-  mapping(bytes32 => Event0) public toEvent0;
+  mapping(bytes32 => Event0) public toEvent;
 
-  function validate(bytes32 _event0Id, bytes32 _option) external view returns(bool) {
-    return _validate(_event0Id, _option);
+  function validate(bytes32 _eventId, bytes32 _option) external view returns(bool) {
+    return _validate(_eventId, _option);
   }
 
-  function _validate(bytes32 _event0Id, bytes32 _option) internal view returns(bool) {
-    Event0 storage event0 = toEvent0[_event0Id];
+  function _validate(bytes32 _eventId, bytes32 _option) internal view returns(bool) {
+    Event0 storage event0 = toEvent[_eventId];
 
     return (event0.optionA == _option || event0.optionB == _option || DRAW == _option) &&
       event0.noMoreBets > now &&
       event0.optionWin == 0x0;
   }
 
-  function whoWon(bytes32 _event0Id) external view returns(bytes32) {
-    return _whoWon(_event0Id);
+  function whoWon(bytes32 _eventId) external view returns(bytes32) {
+    return _whoWon(_eventId);
   }
 
-  function _whoWon(bytes32 _event0Id) internal view returns(bytes32) {
-    Event0 storage event0 = toEvent0[_event0Id];
+  function _whoWon(bytes32 _eventId) internal view returns(bytes32) {
+    Event0 storage event0 = toEvent[_eventId];
 
     require(
       event0.optionWin != 0x0 && event0.noMoreBets != 0,
-      "The event0 do not have a winner yet or invalid event0Id"
+      "The event0 do not have a winner yet or invalid eventId"
     );
 
     return event0.optionWin;
   }
 
-  function addEvent0(
+  function addEvent(
     string calldata _name,
     bytes32 _optionA,
     bytes32 _optionB,
     uint256 _noMoreBets
-  ) external onlyOwner returns(bytes32 event0Id) {
-    event0Id = keccak256(
+  ) external returns(bytes32 eventId) {
+    eventId = keccak256(
       abi.encodePacked(
         _name,
-        _noMoreBets
+        _noMoreBets,
+        msg.sender
       )
     );
 
-    require(toEvent0[event0Id].noMoreBets == 0, "The event0 is already created");
+    require(toEvent[eventId].noMoreBets == 0, "The event0 is already created");
     require(_noMoreBets > now, "noMoreBets is to old");
 
-    toEvent0[event0Id] = Event0({
+    toEvent[eventId] = Event0({
+      owner: msg.sender,
       name: _name,
       optionWin: 0x0,
       optionA: _optionA,
@@ -81,8 +83,9 @@ contract OneWinTwoOptions is Ownable {
       noMoreBets: _noMoreBets
     });
 
-    emit NewEvent0(
-      event0Id,
+    emit NewEvent(
+      msg.sender,
+      eventId,
       _name,
       _noMoreBets,
       _optionA,
@@ -90,12 +93,11 @@ contract OneWinTwoOptions is Ownable {
     );
   }
 
-  // what happens if the owner makes a mistake and puts an incorrect winner
-  function setWinOption(bytes32 _event0Id, bytes32 _optionWin) external onlyOwner {
-    Event0 storage event0 = toEvent0[_event0Id];
+  function setWinOption(bytes32 _eventId, bytes32 _optionWin) external {
+    Event0 storage event0 = toEvent[_eventId];
 
+    require(event0.owner == msg.sender, "The sender its not the owner, or invalid id");
     require(event0.noMoreBets <= now, "The event0 is not closed");
-    require(event0.noMoreBets != 0, "Invalid id");
     require(event0.optionWin == 0, "The winner is set");
 
     require(
@@ -105,9 +107,9 @@ contract OneWinTwoOptions is Ownable {
       "Invalid winner"
     );
 
-    toEvent0[_event0Id].optionWin = _optionWin;
+    toEvent[_eventId].optionWin = _optionWin;
 
-    emit SetWinner(_event0Id, _optionWin);
+    emit SetWinner(_eventId, _optionWin);
   }
 }
 
@@ -116,7 +118,7 @@ contract P2P is IModel, OneWinTwoOptions {
   using BytesLib for bytes;
 
   struct P2PBet {
-    bytes32 event0Id;
+    bytes32 eventId;
     bytes32 ownerOption;
     uint256 ownerAmount;
     address player;
@@ -142,16 +144,16 @@ contract P2P is IModel, OneWinTwoOptions {
     bytes32 _betId,
     bytes calldata _data
   ) external onlyGamblingManager returns(uint256) {
-    bytes32 event0Id = _data.toBytes32(0);
+    bytes32 eventId = _data.toBytes32(0);
     bytes32 ownerOption = _data.toBytes32(32);
 
-    require(_validate(event0Id, ownerOption), "The option its not valid");
+    require(_validate(eventId, ownerOption), "The option its not valid");
 
     uint256 ownerAmount = _data.toUint256(64);
     uint256 playerAmount = _data.toUint256(96);
 
     p2PBets[_betId] = P2PBet({
-      event0Id: event0Id,
+      eventId: eventId,
       ownerOption: ownerOption,
       ownerAmount: ownerAmount,
       player: address(0),
@@ -171,7 +173,7 @@ contract P2P is IModel, OneWinTwoOptions {
 
     require(bet.player == address(0), "The bet its taken");
     bytes32 playerOption = _data.toBytes32(0);
-    require(_validate(bet.event0Id, playerOption) && bet.ownerOption != playerOption, "The option its not valid");
+    require(_validate(bet.eventId, playerOption) && bet.ownerOption != playerOption, "The option its not valid");
 
     p2PBets[_betId].player = _player;
     p2PBets[_betId].playerOption = playerOption;
@@ -190,9 +192,9 @@ contract P2P is IModel, OneWinTwoOptions {
     address owner = gamblingManager.ownerOf(uint256(_betId));
     require(_sender == owner || _sender == bet.player, "Wrong sender");
 
-    bytes32 winOption = _whoWon(bet.event0Id);
+    bytes32 winOption = _whoWon(bet.eventId);
 
-    if (_sender == owner && bet.event0Id == bytes32(0)) { // returns the owner remains
+    if (_sender == owner && bet.eventId == bytes32(0)) { // returns the owner remains
       (, retAmount,) = gamblingManager.toBet(_betId);
       return retAmount;
     }

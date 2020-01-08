@@ -54,10 +54,11 @@ contract('P2P', (accounts) => {
 
     basicEvent.id = await web3.utils.soliditySha3(
       { t: 'string', v: basicEvent.name },
-      { t: 'uint256', v: basicEvent.noMoreBets }
+      { t: 'uint256', v: basicEvent.noMoreBets },
+      { t: 'address', v: owner },
     );
 
-    await p2p.addEvent0(
+    await p2p.addEvent(
       basicEvent.name,
       basicEvent.optionA,
       basicEvent.optionB,
@@ -75,7 +76,7 @@ contract('P2P', (accounts) => {
     basicBet.creatorOption = DRAW;
 
     const data = toData(
-      basicBet.event.id,      // Event0 id
+      basicBet.event.id,      // Event id
       basicBet.creatorOption, // Owner option
       basicBet.ownerAmount,   // Owner amount
       basicBet.playerAmount   // Player amount
@@ -159,8 +160,8 @@ contract('P2P', (accounts) => {
   });
 
   // OneWinTwoOptions
-  describe('Function addEvent0', () => {
-    it('Add an event0', async () => {
+  describe('Function addEvent', () => {
+    it('Add an event', async () => {
       const name = 'Test123';
       const optionA = toBytes32(1);
       const optionB = toBytes32(2);
@@ -168,28 +169,31 @@ contract('P2P', (accounts) => {
 
       const eventId = await web3.utils.soliditySha3(
         { t: 'string', v: name },
-        { t: 'uint256', v: noMoreBets }
+        { t: 'uint256', v: noMoreBets },
+        { t: 'address', v: owner },
       );
 
-      const NewEvent0 = await toEvents(
-        p2p.addEvent0(
+      const NewEvent = await toEvents(
+        p2p.addEvent(
           name,
           optionA,
           optionB,
           noMoreBets,
           { from: owner }
         ),
-        'NewEvent0'
+        'NewEvent'
       );
 
       // For event
-      assert.equal(NewEvent0._event0Id, eventId);
-      assert.equal(NewEvent0._name, name);
-      expect(NewEvent0._noMoreBets).to.eq.BN(noMoreBets);
-      assert.equal(NewEvent0._optionA, optionA);
-      assert.equal(NewEvent0._optionB, optionB);
+      assert.equal(NewEvent._owner, owner);
+      assert.equal(NewEvent._eventId, eventId);
+      assert.equal(NewEvent._name, name);
+      expect(NewEvent._noMoreBets).to.eq.BN(noMoreBets);
+      assert.equal(NewEvent._optionA, optionA);
+      assert.equal(NewEvent._optionB, optionB);
       // Check storage bet
-      const event0 = await p2p.toEvent0(eventId);
+      const event0 = await p2p.toEvent(eventId);
+      assert.equal(event0.owner, owner);
       assert.equal(event0.name, name);
       assert.equal(event0.optionWin, bytes320x);
       assert.equal(event0.optionA, optionA);
@@ -197,7 +201,7 @@ contract('P2P', (accounts) => {
       expect(event0.noMoreBets).to.eq.BN(noMoreBets);
     });
     it('Try create two identical events', async () => {
-      await p2p.addEvent0(
+      await p2p.addEvent(
         'eventA',
         toBytes32(1),
         toBytes32(2),
@@ -206,7 +210,7 @@ contract('P2P', (accounts) => {
       );
 
       await tryCatchRevert(
-        () => p2p.addEvent0(
+        () => p2p.addEvent(
           'eventA',
           toBytes32(1),
           toBytes32(2),
@@ -218,7 +222,7 @@ contract('P2P', (accounts) => {
     });
     it('Try create old event', async () => {
       await tryCatchRevert(
-        () => p2p.addEvent0(
+        () => p2p.addEvent(
           'eventA',
           toBytes32(1),
           toBytes32(2),
@@ -246,10 +250,10 @@ contract('P2P', (accounts) => {
       );
 
       // For event
-      assert.equal(SetWinner._event0Id, basicEvent.id);
+      assert.equal(SetWinner._eventId, basicEvent.id);
       assert.equal(SetWinner._optionWin, optionWin);
       // Check storage bet
-      const event0 = await p2p.toEvent0(basicEvent.id);
+      const event0 = await p2p.toEvent(basicEvent.id);
       assert.equal(event0.optionWin, optionWin);
     });
     it('Set DRAW winner', async () => {
@@ -268,11 +272,24 @@ contract('P2P', (accounts) => {
       );
 
       // For event
-      assert.equal(SetWinner._event0Id, basicEvent.id);
+      assert.equal(SetWinner._eventId, basicEvent.id);
       assert.equal(SetWinner._optionWin, optionWin);
       // Check storage bet
-      const event0 = await p2p.toEvent0(basicEvent.id);
+      const event0 = await p2p.toEvent(basicEvent.id);
       assert.equal(event0.optionWin, optionWin);
+    });
+    it('Try set a winner without ownership', async () => {
+      await addBasicEvent();
+      await increaseTime(inc(basicEvent.deltaNoMoreBets));
+
+      await tryCatchRevert(
+        () => p2p.setWinOption(
+          basicEvent.id,
+          DRAW,
+          { from: player }
+        ),
+        'The sender its not the owner, or invalid id'
+      );
     });
     it('Try set a winner in an early event', async () => {
       await addBasicEvent();
@@ -293,7 +310,7 @@ contract('P2P', (accounts) => {
           toBytes32(1),
           { from: owner }
         ),
-        'Invalid id'
+        'The sender its not the owner, or invalid id'
       );
     });
     it('Try set a winner and the winner was setted', async () => {
@@ -331,30 +348,6 @@ contract('P2P', (accounts) => {
       );
     });
   });
-  describe('Modifier onlyOwner', () => {
-    it('Function addEvent0', async () => {
-      await tryCatchRevert(
-        () => p2p.addEvent0(
-          'eventA',
-          toBytes32(1),
-          toBytes32(2),
-          0,
-          { from: player }
-        ),
-        'The owner should be the sender'
-      );
-    });
-    it('Function setWinOption', async () => {
-      await tryCatchRevert(
-        () => p2p.setWinOption(
-          random32(),
-          toBytes32(1),
-          { from: player }
-        ),
-        'The owner should be the sender'
-      );
-    });
-  });
   describe('View Function', () => {
     it('Function validate, _validate', async () => {
       await addBasicEvent();
@@ -380,17 +373,17 @@ contract('P2P', (accounts) => {
       assert.isFalse(await p2p.validate(random32(), random32()));
     });
     it('Function whoWon, _whoWon', async () => {
-      // Invalid event0Id
+      // Invalid eventId
       await tryCatchRevert(
         () => p2p.whoWon(random32()),
-        'The event0 do not have a winner yet or invalid event0Id'
+        'The event0 do not have a winner yet or invalid eventId'
       );
 
       await addBasicEvent();
       // Do not have a winner yet
       await tryCatchRevert(
         () => p2p.whoWon(basicEvent.id),
-        'The event0 do not have a winner yet or invalid event0Id'
+        'The event0 do not have a winner yet or invalid eventId'
       );
       // Draw
       await addBasicEvent();
@@ -460,11 +453,11 @@ contract('P2P', (accounts) => {
       await addBasicEvent();
       const ownerAmount = bn(1);
       const playerAmount = bn(1);
-      const event0Id = basicEvent.id;
+      const eventId = basicEvent.id;
       const creatorOption = basicEvent.optionA;
 
       const data = toData(
-        event0Id,      // Event0 id
+        eventId,      // Event id
         creatorOption, // Owner option
         ownerAmount,   // Owner amount
         playerAmount   // Player amount
@@ -484,7 +477,7 @@ contract('P2P', (accounts) => {
       );
       // Check storage bet
       const p2pBet = await p2p.p2PBets(id);
-      assert.equal(p2pBet.event0Id, event0Id);
+      assert.equal(p2pBet.eventId, eventId);
       assert.equal(p2pBet.ownerOption, creatorOption);
       expect(p2pBet.ownerAmount).to.eq.BN(ownerAmount);
       assert.equal(p2pBet.player, address0x);
@@ -500,11 +493,11 @@ contract('P2P', (accounts) => {
       await addBasicEvent();
       const ownerAmount = bn(1);
       const playerAmount = bn(2);
-      const event0Id = basicEvent.id;
+      const eventId = basicEvent.id;
       const creatorOption = basicEvent.optionA;
 
       const data = toData(
-        event0Id,      // Event0 id
+        eventId,      // Event id
         creatorOption, // Owner option
         ownerAmount,   // Owner amount
         playerAmount   // Player amount
@@ -524,7 +517,7 @@ contract('P2P', (accounts) => {
       );
       // Check storage bet
       const p2pBet = await p2p.p2PBets(id);
-      assert.equal(p2pBet.event0Id, event0Id);
+      assert.equal(p2pBet.eventId, eventId);
       assert.equal(p2pBet.ownerOption, creatorOption);
       expect(p2pBet.ownerAmount).to.eq.BN(ownerAmount);
       assert.equal(p2pBet.player, address0x);
@@ -922,7 +915,7 @@ contract('P2P', (accounts) => {
 
       // Check storage bet
       const p2pBet = await p2p.p2PBets(basicBet.id);
-      assert.equal(p2pBet.event0Id, bytes320x);
+      assert.equal(p2pBet.eventId, bytes320x);
       assert.equal(p2pBet.ownerOption, bytes320x);
       expect(p2pBet.ownerAmount).to.eq.BN(0);
       assert.equal(p2pBet.player, address0x);
@@ -985,7 +978,7 @@ contract('P2P', (accounts) => {
 
       await setApproveBalance(creator, skeleton.ownerAmount);
       const data = toData(
-        basicEvent.id, // Event0 id
+        basicEvent.id, // Event id
         skeleton.ownerOption, // Owner option
         skeleton.ownerAmount, // Owner amount
         skeleton.playerAmount // Player amount
